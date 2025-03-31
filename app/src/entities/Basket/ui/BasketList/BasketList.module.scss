@@ -1,0 +1,65 @@
+.root {
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+    
+    @media (width <= 1300px) {
+        max-width: 300px;
+    }
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    padding: 1rem;
+    border-radius: .25rem;
+    max-width: 400px;
+    width: 100%;
+    min-height: 300px;
+    background-color: white;
+
+    @media (width <= 1300px) {
+        max-width: 300px;
+    }
+}
+
+.basketList {
+    margin-bottom: 20px;
+    height: 300px;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.header {
+    margin-bottom: .5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.15rem;
+    font-weight: bold;
+    font-family: "Roboto";
+}
+
+.basketFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.totalPrice {
+    font-family: "Roboto";
+}
+
+.emptyBasket {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

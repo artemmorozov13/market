@@ -1,0 +1,1 @@
+export { OrderTablePageLazy as OrderTablePage } from "./ui/OrderTablePageLazy";

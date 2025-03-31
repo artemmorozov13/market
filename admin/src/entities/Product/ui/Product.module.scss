@@ -1,0 +1,66 @@
+.productCard {
+    margin: 16px;
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+        transform: scale(1.05);
+    }
+}
+
+.image {
+    object-fit: cover;
+}
+
+.wrapper {
+    padding: 16px;
+}
+
+.name {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.description {
+    margin-bottom: 12px;
+    color: #555;
+}
+
+.priceSection {
+    margin: 12px 0;
+}
+
+.price {
+    font-weight: bold;
+    color: #1976d2;
+}
+
+.discountChip {
+    margin-left: 8px;
+    background-color: #ff4081;
+    color: white;
+}
+
+.unit {
+    margin: 8px 0;
+    color: #777;
+}
+
+.actions {
+    align-self: flex-end;
+    margin-top: 12px;
+    color: #888;
+}
+
+.divider {
+    margin: 12px 0;
+}
+
+.oldPrice {
+    text-decoration: line-through;
+}
+
+.unit {
+    margin: 8px 0;
+    color: #777;
+    font-size: 14px;
+}

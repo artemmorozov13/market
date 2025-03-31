@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  admin:
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+
+  app:
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+
+  backend:
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run start:dev
+    environment:
+      - NODE_ENV=development

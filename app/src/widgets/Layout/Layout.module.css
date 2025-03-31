@@ -1,0 +1,50 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+.content {
+  flex: 1;
+  padding-bottom: 56px; /* Высота нижней навигации */
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.bottomNavigation {
+  display: flex;
+  justify-content: space-around;
+  background-color: #fff;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px 0;
+  flex: 1;
+}
+
+.navItem .MuiBottomNavigationAction-label {
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+.navItem.Mui-selected {
+  color: #1976d2;
+}
+
+.MuiBadge-badge {
+  top: 8px;
+  right: 16px;
+}
