@@ -19,15 +19,15 @@ services:
     build:
       context: ./backend
     environment:
-      - PORT=3000
-      - DB_HOST=postgres
+      - PORT=8000
+      - DB_HOST=${DB_HOST}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
     env_file:
       - ./.env
     expose:
-      - "3000"  # Только для внутренней сети Docker
+      - "8000"  # Только для внутренней сети Docker
 
   admin:
     build:
