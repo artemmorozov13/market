@@ -8,7 +8,7 @@ export class OrderedProductsEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'bigint', nullable: true })
+    @Column({ type: 'bigint' })
     telegram_id: number;
 
     @Column({ default: 1 })

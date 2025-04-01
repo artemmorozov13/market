@@ -1,7 +1,7 @@
 export const RoutePath = {
-    profile: "/profile",
-    home: "/home",
-    order: "/order",
-    basket: "/basket",
-    products: "/products",
+    home: "/app/",
+    profile: "/app/profile",
+    order: "/app/order",
+    basket: "/app/basket",
+    products: "/app/products",
 }

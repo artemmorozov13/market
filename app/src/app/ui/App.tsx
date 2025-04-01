@@ -10,19 +10,21 @@ import { yellowOrangeTheme } from "@/shared/themes/yellowTheme";
 import { ProductsPageLazy } from "@/pages/ProductsPage/ui/ProductsPageLazy";
 import { BasketPageLazy } from "@/pages/BasketPage/BasketPageLazy";
 import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
+import { RoutePath } from "@/shared/routes/routeConfig";
 
 const queryClient = new QueryClient();
 
 export const App: FC = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename='/'>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={yellowOrangeTheme}>
           <AuthProvider>
             <Routes>
-              <Route path="products" element={<ProductsPageLazy/>} />
-              <Route path="basket" element={<BasketPageLazy/>} />
-              <Route path="order" element={<OrderPageLazy/>} />
+              <Route path={RoutePath.home} element={<ProductsPageLazy/>} />
+              <Route path={RoutePath.products} element={<ProductsPageLazy/>} />
+              <Route path={RoutePath.basket} element={<BasketPageLazy/>} />
+              <Route path={RoutePath.order} element={<OrderPageLazy/>} />
             </Routes>
           </AuthProvider>
         </ThemeProvider>

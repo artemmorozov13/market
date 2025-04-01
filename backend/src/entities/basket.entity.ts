@@ -10,7 +10,7 @@ export class BasketEntity {
   @Column({ default: 0 })
   products_count: number;
 
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ type: 'bigint' })
   telegram_id: number
 
   @OneToOne(() => UsersEntity, (user) => user.basket, { onDelete: 'CASCADE' })

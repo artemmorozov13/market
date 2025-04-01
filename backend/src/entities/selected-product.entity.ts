@@ -15,7 +15,7 @@ export class SelectedProductEntity {
   @Column({ default: 1 })
   quantity: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   userTgchatId: number;
 
   @ManyToOne(() => BasketEntity, (basket) => basket.selectedProducts, { onDelete: "CASCADE" })
