@@ -47,7 +47,6 @@ export class UsersService {
   }
 
   async loginWithTelegram(initData: string) {
-    // Проверяем данные Telegram
     // const isValid = await TelegramUtils.validateInitData(initData);
     // if (!isValid) {
     //   throw new Error('Invalid Telegram data');

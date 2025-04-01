@@ -11,7 +11,7 @@ export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column()
+    @Column({ type: 'bigint' })
     telegram_id: number;
 
     @Column({ default: "" })
