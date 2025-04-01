@@ -48,13 +48,16 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"  # Единственный порт, открытый наружу
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certificates:/etc/nginx/certificates:ro
     depends_on:
       - backend
       - admin
       - app
+    restart: unless-stopped
 
 volumes:
   postgres_data:
