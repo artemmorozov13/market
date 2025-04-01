@@ -14,16 +14,16 @@ services:
   admin:
     build:
       context: ./admin
-    environment:
-      - VITE_BASE_URL=/admin/
+    env_file:
+      - ./.env
     ports:
       - "3001:3001"
 
   app:
     build:
       context: ./app
-    environment:
-      - VITE_BASE_URL=/app/
+    env_file:
+      - ./.env
     ports:
       - "3002:3002"
 

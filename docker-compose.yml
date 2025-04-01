@@ -32,16 +32,16 @@ services:
   admin:
     build:
       context: ./admin
-    environment:
-      - VITE_BASE_URL=/admin/
+    env_file:
+      - ./.env
     expose:
       - "80"  # Frontend на 80 порту внутри контейнера
 
   app:
     build:
       context: ./app
-    environment:
-      - VITE_BASE_URL=/app/
+    env_file:
+      - ./.env
     expose:
       - "80"  # Frontend на 80 порту внутри контейнера
 
