@@ -10,6 +10,8 @@ import { RoutePath } from "@/shared/routes/routeConfig";
 import { BasketCard } from "@/entities/Basket/ui/BasketCard/BasketCard";
 import { Link, useNavigate } from "react-router";
 
+const DELIVERY_PRICE = 100;
+
 const BasketPage: FC = observer(() => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate= useNavigate();
@@ -88,7 +90,7 @@ const BasketPage: FC = observer(() => {
 
         <Box className={styles.summary}>
           <Box className={styles.summaryRow}>
-            <Typography>Товары ({basketStore.basketList.length})</Typography>
+            <Typography>Товары ({basketStore.totalItems})</Typography>
             <Typography>{basketStore.totalPrice.toFixed(2)} ₽</Typography>
           </Box>
           <Box className={styles.summaryRow}>
@@ -102,19 +104,17 @@ const BasketPage: FC = observer(() => {
               }, 0)).toFixed(2)} ₽
             </Typography>
           </Box>
+          <Box className={styles.summaryRow}>
+            <Typography>Доставка</Typography>
+            <Typography>
+              {DELIVERY_PRICE}₽
+            </Typography>
+          </Box>
           <Divider className={styles.divider} />
           <Box className={styles.summaryRow}>
             <Typography variant="h6">Итого</Typography>
             <Typography variant="h6">
-              {(
-                basketStore.totalPrice - 
-                basketStore.basketList.reduce((acc, item) => {
-                  const discount = Number(item.product.discount);
-                  return discount > 0 
-                    ? acc + (Number(item.product.price) * item.quantity * discount / 100)
-                    : acc;
-                }, 0)
-              ).toFixed(2)} ₽
+              {basketStore.totalPrice + DELIVERY_PRICE}₽
             </Typography>
           </Box>
           <Button

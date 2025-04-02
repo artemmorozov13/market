@@ -35,7 +35,9 @@ const ProductsPage: FC = observer(() => {
   const navigate = useNavigate();
   const { user } = userStore;
   const { basketList, totalPrice, totalItems, addItem, removeItem, clearBasket } = basketStore;
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
   const open = Boolean(anchorEl);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = usePagedProductsList({

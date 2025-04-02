@@ -17,8 +17,7 @@ import styles from './ProductCard.module.scss';
 import clsx from 'clsx';
 import { ConfirmRemoveFromBasketModal, basketStore } from '@/entities/Basket';
 import { observer } from 'mobx-react-lite';
-import Lightbox from 'yet-another-react-lightbox';
-import 'yet-another-react-lightbox/styles.css';
+import { ProductModal } from '@/features/ProductModal';
 
 interface ProductCardProps {
   product: ProductType;
@@ -34,9 +33,9 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
 
   const { basketList, increaseProductCount, decreaseProductCount } = basketStore;
 
+  const [isOpenProduct, setIsOpenProduct] = useState(false)
   const [isLoadingAdd, setIsLoadingAdd] = useState<boolean>(false);
   const [isLoadingRemove, setIsLoadingRemove] = useState<boolean>(false);
-  const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
 
   const basketItemIndex = basketList.findIndex((item) => item.productId === product.id);
@@ -94,19 +93,11 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
         onClose={() => setIsRemoveModalOpen(false)}
         basketProduct={basketItem}
       />
-
-      {isLightboxOpen && (
-        <Lightbox
-          open={isLightboxOpen}
-          close={() => setIsLightboxOpen(false)}
-          slides={[{ src: product.image, alt: product.name }]}
-          render={{
-            buttonPrev: () => null,
-            buttonNext: () => null,
-          }}
-        />
-      )}
-
+      <ProductModal
+        open={isOpenProduct}
+        onClose={() => setIsOpenProduct(false)}
+        product={product}
+      />
       <Card className={styles.productCard}>
         <Box className={styles.imageContainer}>
           <CardMedia
@@ -114,7 +105,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
             image={product.image}
             alt={product.name}
             className={styles.image}
-            onClick={() => setIsLightboxOpen(true)}
+            onClick={() => setIsOpenProduct(true)}
           />
           {discountPercentage > 0 && (
             <Box className={styles.discountBadge}>
