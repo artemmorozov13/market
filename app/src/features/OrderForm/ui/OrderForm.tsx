@@ -26,15 +26,15 @@ import ScheduleIcon from "@mui/icons-material/Schedule";
 import PlaceIcon from "@mui/icons-material/Place";
 import { API } from "@/shared/api/API";
 
-const dayOptions = [
-  { value: 'monday', label: 'Понедельник' },
-  { value: 'tuesday', label: 'Вторник' },
-  { value: 'wednesday', label: 'Среда' },
-  { value: 'thursday', label: 'Четверг' },
-  { value: 'friday', label: 'Пятница' },
-  { value: 'saturday', label: 'Суббота' },
-  { value: 'sunday', label: 'Воскресенье' },
-];
+// const dayOptions = [
+//   { value: 'monday', label: 'Понедельник' },
+//   { value: 'tuesday', label: 'Вторник' },
+//   { value: 'wednesday', label: 'Среда' },
+//   { value: 'thursday', label: 'Четверг' },
+//   { value: 'friday', label: 'Пятница' },
+//   { value: 'saturday', label: 'Суббота' },
+//   { value: 'sunday', label: 'Воскресенье' },
+// ];
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;

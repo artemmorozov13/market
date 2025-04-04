@@ -18,11 +18,11 @@ import ActiveOrderPage from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOr
 const queryClient = new QueryClient();
 
 export const App: FC = () => {
-  // if (!WebApp.initData) {
-  //   return (
-  //     <NoTelegramWarning />
-  //   )
-  // }
+  if (!WebApp.initData) {
+    return (
+      <NoTelegramWarning />
+    )
+  }
   return (
     <BrowserRouter basename='/'>
       <QueryClientProvider client={queryClient}>
