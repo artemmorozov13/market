@@ -23,6 +23,11 @@ export class ProductController {
         return this.productService.createProduct(product);
     }
 
+    @Post('revover/:id')
+    rocoverProduct(@Param('id') id: number) {
+        return this.productService.rocoverProduct(id);
+    }
+
     @Patch(':id')
     updateProduct(@Param('id') id: number, @Body() product: UpdateProductDto) {
         return this.productService.updateProduct(id, product);

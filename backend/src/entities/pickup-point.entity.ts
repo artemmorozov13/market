@@ -4,7 +4,8 @@ import {
   Column, 
   OneToMany, 
   CreateDateColumn, 
-  UpdateDateColumn 
+  UpdateDateColumn,
+  DeleteDateColumn 
 } from 'typeorm';
 import { DeliveryTime } from './delivery-time.entity';
 
@@ -22,8 +23,13 @@ export class PickupPoint {
   @Column({ type: 'point', nullable: true, comment: 'Координаты пункта (широта, долгота)' })
   coordinates?: string;
 
-  @Column({ default: true, comment: 'Активен ли пункт выдачи' })
-  isActive: boolean;
+  @Column({ 
+    type: 'enum', 
+    enum: ['active', 'deleted'],
+    default: 'active',
+    comment: 'Статус пункта выдачи' 
+  })
+  status: 'active' | 'deleted';
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
@@ -33,7 +39,6 @@ export class PickupPoint {
 
   @OneToMany(() => DeliveryTime, deliveryTime => deliveryTime.pickupPoint, { 
     cascade: true,
-    eager: false
   })
   deliveryTimes: DeliveryTime[];
 }

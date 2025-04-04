@@ -1,18 +1,26 @@
-import { Body, Controller, Get, Header, Headers, Post, Query, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Query, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GetOrderQueryDto } from './dto/get-order-query.dto';
-import { TelegramUtils } from 'src/utils/telegram.utils';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   getOrdersData(@Query() query: GetOrderQueryDto) {
     return this.orderService.getOrdersListData(query)
+  }
+
+  @Get('current')
+  getCurrentOrders(
+    @Headers('init-data') initData: string,
+  ) {
+    return this.orderService.getCurrentUserOrders(initData);
   }
 
   @Post('create')
@@ -23,11 +31,17 @@ export class OrderController {
     return this.orderService.createOrder(createOrderDto, initData)
   }
 
+  @Post('update-order')
+  updateOrder(
+    @Body() updateOrderDto: UpdateOrderDto,
+    @Headers('init-data') initData: string,
+  ) {
+    return this.orderService.updateOrder(updateOrderDto.id, updateOrderDto, initData)
+  }
+
   @Post('update-status')
   @UseGuards(JwtAuthGuard)
-  updateStatus(
-    @Body() updateStatusDto: UpdateOrderStatusDto
-  ) {
+  updateStatus(@Body() updateStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(updateStatusDto)
   }
 }

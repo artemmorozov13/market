@@ -1,7 +1,8 @@
 include .env
 export
 
-.PHONY: prod dev down restart logs clean
+.PHONY: prod dev down restart logs clean \
+        migration-run migration-generate migration-create migration-revert migration-show
 
 prod:
 	@echo "Building production images..."
@@ -14,10 +15,8 @@ prod:
 	@echo "API:      http://localhost/api"
 
 dev:
-	@echo "Building development images..."
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
 	@echo "Starting development services..."
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+	docker-compose -f docker-compose.dev.yml up --build
 
 down:
 	@echo "Stopping services..."
@@ -34,3 +33,30 @@ logs:
 clean:
 	@echo "Cleaning up..."
 	docker-compose down -v --rmi all --remove-orphans
+
+# Migration commands to run inside container
+migration-run:
+	@echo "Running migrations..."
+	docker-compose exec backend npm run migration:run
+
+migration-generate:
+ifndef name
+	$(error Please specify migration name with make migration-generate name=YourMigrationName)
+endif
+	@echo "Generating migration '$(name)'..."
+	docker-compose exec backend npm run migration:generate --name=$(name)
+
+migration-create:
+ifndef name
+	$(error Please specify migration name with make migration-create name=YourMigrationName)
+endif
+	@echo "Creating new migration '$(name)'..."
+	docker-compose exec backend npm run migration:create --name=$(name)
+
+migration-revert:
+	@echo "Reverting last migration..."
+	docker-compose exec backend npm run migration:revert
+
+migration-show:
+	@echo "Showing all migrations..."
+	docker-compose exec backend npm run migration:show

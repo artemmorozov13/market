@@ -10,6 +10,7 @@ export interface TableOrder {
   createdAt: Date;
   phone: string;
   customerName: string; // Добавил имя клиента
+  deliveryDate: string,
   status: string;
   totalAmount: number; // Добавил общую сумму заказа
   products: Record<number, number>; // productId -> quantity
@@ -50,6 +51,7 @@ export const adaptOrdersToTable = (
       pickupPointName,
       phone: order.phoneNumber || 'не указан',
       customerName: order.user?.name || order.user?.telegram_username || 'не указан',
+      deliveryDate: order.deliveryDate,
       totalAmount,
       products: productsMap,
       comment: order.comment

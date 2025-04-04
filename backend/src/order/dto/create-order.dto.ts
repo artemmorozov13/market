@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsOptional, IsDateString, IsDate } from 'class-validator';
 
 export class CreateOrderDto {
   @IsString()
@@ -10,6 +10,9 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   comment?: string;
+
+  @IsDate()
+  deliveryDate: Date;
 
   @IsNumber()
   pickupPointId: number;

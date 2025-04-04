@@ -11,7 +11,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
-  Button
+  Button,
+  ListSubheader
 } from "@mui/material";
 import styles from "./OrderForm.module.scss";
 import { DeliveryTime, OrderFormInputs, PickupPoint } from "../types/orderFormTypes";
@@ -25,14 +26,72 @@ import ScheduleIcon from "@mui/icons-material/Schedule";
 import PlaceIcon from "@mui/icons-material/Place";
 import { API } from "@/shared/api/API";
 
+const dayOptions = [
+  { value: 'monday', label: 'Понедельник' },
+  { value: 'tuesday', label: 'Вторник' },
+  { value: 'wednesday', label: 'Среда' },
+  { value: 'thursday', label: 'Четверг' },
+  { value: 'friday', label: 'Пятница' },
+  { value: 'saturday', label: 'Суббота' },
+  { value: 'sunday', label: 'Воскресенье' },
+];
+
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
 }
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const months = [
+    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+  ];
+  const month = months[date.getMonth()];
+  const weekday = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'][date.getDay()];
+  return `${weekday}, ${day}.${month}`;
+};
+
+export const getWeekDates = (): Record<string, { date: string; isToday: boolean; formattedDate: string }> => {
+  const now = new Date();
+  const dates: Record<string, { date: string; isToday: boolean; formattedDate: string }> = {};
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + i);
+    const dayOfWeek = date.getDay();
+    const dayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][dayOfWeek];
+    
+    dates[dayKey] = {
+      date: date.toISOString().split('T')[0],
+      isToday: i === 0,
+      formattedDate: formatDate(date.toISOString())
+    };
+  }
+
+  return dates;
+};
+
+export const isTimeSlotAvailable = (
+  timeSlot: DeliveryTime,
+  weekDates: Record<string, { date: string; isToday: boolean; formattedDate: string }>,
+): boolean => {
+  const todayData = weekDates[timeSlot.dayOfWeek];
+  if (!todayData?.isToday) return true;
+
+  const now = new Date();
+  const [hours, minutes] = timeSlot.startTime.split(':').map(Number);
+  const slotTime = new Date(now);
+  slotTime.setHours(hours, minutes, 0, 0);
+
+  return slotTime > now;
+};
 
 export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
+  const [weekDates, setWeekDates] = useState<Record<string, { date: string; isToday: boolean; formattedDate: string }>>({});
 
   const {
     control,
@@ -47,11 +106,30 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       phone: "",
       comment: "",
       pickupPointId: null,
-      deliveryTimeId: null
+      deliveryTimeId: null,
+      deliveryDate: null
     },
   });
 
   const selectedPickupPointId = watch("pickupPointId");
+
+  const availableDeliveryTimes = deliveryTimes.filter(time => 
+    isTimeSlotAvailable(time, weekDates)
+  );
+  
+  const groupedDeliveryTimes = availableDeliveryTimes.reduce((acc, time) => {
+    const day = time.dayOfWeek;
+    if (!acc[day]) acc[day] = [];
+    acc[day].push(time);
+    return acc;
+  }, {} as Record<string, DeliveryTime[]>);
+
+  const confirmForm = (data: OrderFormInputs) => {
+    onSubmit({
+      ...data,
+      deliveryDate: data.deliveryDate,
+    })
+  };
 
   useEffect(() => {
     const fetchPickupPoints = async () => {
@@ -64,7 +142,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         setLoading(false);
       }
     };
-
+    setWeekDates(getWeekDates());
     fetchPickupPoints();
   }, []);
 
@@ -93,7 +171,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       <Typography variant="h6" className={styles.modalTitle} gutterBottom>
         Данные для доставки
       </Typography>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(confirmForm)}>
         <Box mb={2}>
           <FormControl fullWidth margin="normal">
             <InputLabel id="pickup-point-label">Пункт выдачи</InputLabel>
@@ -128,7 +206,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           </FormControl>
         </Box>
 
-        {selectedPickupPointId && (
+        {selectedPickupPointId && deliveryTimes.length > 0 && (
           <Box mb={2}>
             <FormControl fullWidth margin="normal">
               <InputLabel id="delivery-time-label">Время доставки</InputLabel>
@@ -146,12 +224,29 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                         <ScheduleIcon color="action" />
                       </InputAdornment>
                     }
+                    renderValue={(selected) => {
+                      const selectedTime = deliveryTimes.find(time => time.id === selected);
+                      if (!selectedTime) return null;
+                      const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
+                      return `${date}, ${selectedTime.startTime} - ${selectedTime.endTime}`;
+                    }}
                   >
-                    {deliveryTimes.map((time) => (
-                      <MenuItem key={time.id} value={time.id}>
-                        {time.startTime} - {time.endTime}
-                      </MenuItem>
-                    ))}
+                    {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
+                      <ListSubheader key={`header-${day}`}>
+                        {weekDates[day]?.formattedDate}
+                      </ListSubheader>,
+                      ...times.map((time) => (
+                        <MenuItem 
+                          key={time.id} 
+                          value={time.id}
+                          onClick={() => {
+                            setValue("deliveryDate", weekDates[day].date);
+                          }}
+                        >
+                          {time.startTime} - {time.endTime}
+                        </MenuItem>
+                      ))
+                    ])}
                   </Select>
                 )}
               />
@@ -164,6 +259,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           </Box>
         )}
 
+        {/* Остальные поля формы */}
         <Box mb={1}>
           <Controller
             name="address"
@@ -247,5 +343,5 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         </Button>
       </form>
     </Box>
-  );
-});
+  )
+})

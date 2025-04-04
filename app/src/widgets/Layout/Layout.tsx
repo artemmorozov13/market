@@ -1,6 +1,6 @@
 import { DetailedHTMLProps, FC, HTMLAttributes, ReactNode } from "react";
 import { RoutePath } from "@/shared/routes/routeConfig";
-import { ShoppingBasket, Storefront } from "@mui/icons-material";
+import { ShoppingBasket, Storefront, ListAlt } from "@mui/icons-material";
 import { BottomNavigation, BottomNavigationAction, Paper, Badge } from "@mui/material";
 import { basketStore } from "@/entities/Basket";
 import { observer } from "mobx-react-lite";
@@ -21,6 +21,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
 
   const getActiveTab = () => {
     if (location.pathname?.startsWith(RoutePath.basket)) return 2;
+    if (location.pathname?.startsWith(RoutePath.activeOrders)) return 3;
     if (location.pathname?.startsWith(RoutePath.products)) return 1;
     return 0;
   };
@@ -44,6 +45,14 @@ export const Layout: FC<LayoutProps> = observer((props) => {
             icon={<Storefront />}
             label="Products"
             value={1}
+          />
+          <BottomNavigationAction
+            component={Link}
+            to={RoutePath.activeOrders}
+            className={styles.navItem}
+            icon={<ListAlt />}
+            label="Orders"
+            value={3}
           />
           <BottomNavigationAction
             component={Link}

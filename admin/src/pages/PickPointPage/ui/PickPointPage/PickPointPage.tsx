@@ -17,6 +17,7 @@ import { API } from '@shared/api/instance';
 import { PickupPoint, PickupPointFormData, TimeOption } from '../../types/types';
 import { EditPickupPointModal } from '../EditPickupPointModal/EditPickupPointModal';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal';
+import { dayOptions, timeOptions } from '../../consts/intervals';
 
 const defaultTimeOptionStart: TimeOption = {
   value: '09:00',
@@ -44,11 +45,14 @@ const PickPointPage: FC = () => {
       setIsLoading(true);
       try {
         const response = await API.get('/pickup-points');
-        // Преобразуем данные API в наш формат
         const formattedData = response.data.map((point: any) => ({
           ...point,
           deliveryTimes: point.deliveryTimes.map((time: any) => ({
             id: time.id,
+            dayOfWeek: {
+              value: time.dayOfWeek,
+              label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
+            },
             startTime: {
               value: time.startTime,
               label: time.startTime
@@ -66,7 +70,7 @@ const PickPointPage: FC = () => {
         setIsLoading(false);
       }
     };
-
+  
     fetchPickupPoints();
   }, []);
 
@@ -74,8 +78,12 @@ const PickPointPage: FC = () => {
     if (editingPoint) {
       const initialDeliveryTimes = editingPoint.deliveryTimes.length > 0
         ? [...editingPoint.deliveryTimes]
-        : [{ startTime: defaultTimeOptionStart, endTime: defaultTimeOptionEnd }];
-
+        : [{
+            dayOfWeek: dayOptions[0],
+            startTime: defaultTimeOptionStart,
+            endTime: defaultTimeOptionEnd
+          }];
+  
       reset({
         id: editingPoint.id,
         name: editingPoint.name,
@@ -84,7 +92,11 @@ const PickPointPage: FC = () => {
     } else {
       reset({
         name: '',
-        deliveryTimes: [{ startTime: defaultTimeOptionStart, endTime: defaultTimeOptionEnd }]
+        deliveryTimes: [{
+          dayOfWeek: dayOptions[0],
+          startTime: defaultTimeOptionStart,
+          endTime: defaultTimeOptionEnd
+        }]
       });
     }
   }, [editingPoint, reset]);
@@ -92,21 +104,25 @@ const PickPointPage: FC = () => {
   const onSubmit: SubmitHandler<PickupPointFormData> = async (data) => {
     setIsSubmitting(true);
     try {
-      // Преобразуем данные перед отправкой
       const payload = {
         ...data,
         deliveryTimes: data.deliveryTimes.map(time => ({
+          dayOfWeek: time.dayOfWeek.value,
           startTime: time.startTime.value,
           endTime: time.endTime.value
         }))
       };
-
+  
       if (data.id) {
         const response = await API.put(`/pickup-points/${data.id}`, payload);
         setPoints(points.map(point => point.id === data.id ? {
           ...response.data,
           deliveryTimes: response.data.deliveryTimes.map((time: any) => ({
             id: time.id,
+            dayOfWeek: {
+              value: time.dayOfWeek,
+              label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
+            },
             startTime: {
               value: time.startTime,
               label: time.startTime
@@ -123,6 +139,10 @@ const PickPointPage: FC = () => {
           ...response.data,
           deliveryTimes: response.data.deliveryTimes.map((time: any) => ({
             id: time.id,
+            dayOfWeek: {
+              value: time.dayOfWeek,
+              label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
+            },
             startTime: {
               value: time.startTime,
               label: time.startTime
@@ -205,11 +225,21 @@ const PickPointPage: FC = () => {
                   <Divider sx={{ my: 1 }} />
                   <Box>
                     <Typography variant="subtitle2">Время доставки:</Typography>
-                    {point.deliveryTimes.map((time, idx) => (
-                      <Box key={idx} className={styles.deliveryTimeItem}>
-                        <Typography variant="body2">
-                          {time.startTime.label} - {time.endTime.label}
-                        </Typography>
+                    {Object.entries(
+                      point.deliveryTimes.reduce((acc, time) => {
+                        const day = dayOptions.find(d => d.value === time.dayOfWeek.value)?.label || time.dayOfWeek;
+                        if (!acc[day as any]) acc[day as any] = [];
+                        acc[day as any].push(time);
+                        return acc;
+                      }, {} as Record<string, typeof point.deliveryTimes>)
+                    ).map(([day, times]) => (
+                      <Box key={day} sx={{ mb: 1 }}>
+                        <Typography variant="body2" fontWeight="bold">{day}:</Typography>
+                        {times.map((time, idx) => (
+                          <Typography key={idx} variant="body2" sx={{ ml: 1 }}>
+                            {time.startTime.label} - {time.endTime.label}
+                          </Typography>
+                        ))}
                       </Box>
                     ))}
                   </Box>

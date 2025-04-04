@@ -36,6 +36,9 @@ export class ProductEntity {
   @Column()
   unitOfMeasurement: "гр" | "кг" | "шт";
 
+  @Column()
+  is_expired: boolean
+
   @OneToMany(() => SelectedProductEntity, (selectedProduct) => selectedProduct.product)
   selectedProducts: SelectedProductEntity[]
 

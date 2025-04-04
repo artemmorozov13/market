@@ -73,12 +73,24 @@ const Row: FC<RowProps> = ({ order, products, onStatusUpdate }) => {
           {order.priority}
         </TableCell>
         <TableCell>
+          <Typography fontWeight="bold">Дата доставки</Typography>
+          {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана'}
+        </TableCell>
+        <TableCell>
           <Typography fontWeight="bold">Время доставки</Typography>
           {order.deliveryTimeRange || 'Не указано'}
         </TableCell>
         <TableCell>
           <Typography fontWeight="bold">Телефон</Typography>
           {order.phone}
+        </TableCell>
+        <TableCell>
+          <Typography fontWeight="bold">Комментарий</Typography>
+          {order.comment || 'Нет комментария'}
+        </TableCell>
+        <TableCell>
+          <Typography fontWeight="bold">Сумма</Typography>
+          {order.totalAmount} ₽
         </TableCell>
         <TableCell>
           {order.status === StatusEnum.Finished ? (
@@ -95,17 +107,9 @@ const Row: FC<RowProps> = ({ order, products, onStatusUpdate }) => {
             </Button>
           )}
         </TableCell>
-        <TableCell>
-          <Typography fontWeight="bold">Комментарий</Typography>
-          {order.comment || 'Нет комментария'}
-        </TableCell>
-        <TableCell>
-          <Typography fontWeight="bold">Дата создания</Typography>
-          {new Date(order.createdAt).toLocaleDateString("Ru-ru")}
-        </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
               <Typography variant="h6" gutterBottom component="div">
@@ -220,6 +224,12 @@ const OrderTablePage: FC = observer(() => {
           : (b[key] as number) - (a[key] as number);
       }
       
+      if (key === 'deliveryDate') {
+        const aDate = a.deliveryDate ? new Date(a.deliveryDate).getTime() : 0;
+        const bDate = b.deliveryDate ? new Date(b.deliveryDate).getTime() : 0;
+        return direction === 'asc' ? aDate - bDate : bDate - aDate;
+      }
+      
       const aValue = String(a[key as keyof TableOrder]);
       const bValue = String(b[key as keyof TableOrder]);
       
@@ -241,12 +251,12 @@ const OrderTablePage: FC = observer(() => {
       'Адрес', 
       'Пункт выдачи', 
       'Приоритет', 
+      'Дата доставки',
       'Время доставки', 
       'Телефон',
-      'Статус',
       'Комментарий',
-      'Дата создания',
-      'Общая сумма'
+      'Сумма',
+      'Статус'
     ]);
 
     // Данные заказов
@@ -256,12 +266,12 @@ const OrderTablePage: FC = observer(() => {
         order.address,
         order.pickupPointName || 'Не указан',
         order.priority,
+        order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана',
         order.deliveryTimeRange || 'Не указано',
         order.phone,
-        order.status === StatusEnum.Finished ? 'Завершен' : 'Оплачено',
         order.comment || 'Нет комментария',
-        new Date(order.createdAt).toLocaleDateString("Ru-ru"),
-        order.totalAmount.toFixed(2) + ' ₽'
+        order.totalAmount + ' ₽',
+        order.status === StatusEnum.Finished ? 'Завершен' : 'Оплачено'
       ]);
 
       // Товары в заказе
@@ -296,12 +306,7 @@ const OrderTablePage: FC = observer(() => {
       { wch: 15 },
       { wch: 30 },
       { wch: 15 },
-      { wch: 15 },
-      { wch: 5 },
-      { wch: 25 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 10 }
+      { wch: 15 }
     ];
 
     const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
@@ -335,12 +340,12 @@ const OrderTablePage: FC = observer(() => {
       'Адрес', 
       'Пункт выдачи', 
       'Приоритет', 
+      'Дата доставки',
       'Время доставки', 
       'Телефон',
-      'Статус',
       'Комментарий',
-      'Дата создания',
-      'Общая сумма',
+      'Сумма',
+      'Статус',
       // Добавляем заголовки для всех товаров
       ...products.map(p => p.name)
     ];
@@ -353,12 +358,12 @@ const OrderTablePage: FC = observer(() => {
         order.address,
         order.pickupPointName || 'Не указан',
         order.priority,
+        order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана',
         order.deliveryTimeRange || 'Не указано',
         order.phone,
-        order.status === StatusEnum.Finished ? 'Завершен' : 'Оплачено',
         order.comment || 'Нет комментария',
-        new Date(order.createdAt).toLocaleDateString("Ru-ru"),
-        order.totalAmount.toFixed(2) + ' ₽',
+        order.totalAmount + ' ₽',
+        order.status === StatusEnum.Finished ? 'Завершен' : 'Оплачено',
         // Добавляем количество для каждого товара
         ...products.map(product => 
           order.products[product.id] > 0 ? order.products[product.id] : '-'
@@ -366,7 +371,6 @@ const OrderTablePage: FC = observer(() => {
       ];
       excelData.push(rowData);
     });
-
     // Итоговая строка с суммой товаров
     const totalsRow = [
       'Итого', '', '', '', '', '', '', '', '',
@@ -385,12 +389,12 @@ const OrderTablePage: FC = observer(() => {
       { wch: 30 },  // Адрес
       { wch: 20 },  // Пункт выдачи
       { wch: 10 },  // Приоритет
+      { wch: 15 },  // Дата доставки
       { wch: 15 },  // Время доставки
       { wch: 15 },  // Телефон
-      { wch: 15 },  // Статус
       { wch: 30 },  // Комментарий
-      { wch: 15 },  // Дата создания
-      { wch: 15 },  // Общая сумма
+      { wch: 15 },  // Сумма
+      { wch: 15 },  // Статус
       // Ширина для товаров
       ...products.map(() => ({ wch: 10 }))
     ];
@@ -488,11 +492,20 @@ const OrderTablePage: FC = observer(() => {
                       Приор
                     </TableSortLabel>
                   </TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={sortConfig?.key === 'deliveryDate'}
+                      direction={sortConfig?.key === 'deliveryDate' ? sortConfig.direction : 'asc'}
+                      onClick={() => handleSort('deliveryDate')}
+                    >
+                      Дата доставки
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell>Время доставки</TableCell>
                   <TableCell>Телефон</TableCell>
-                  <TableCell>Статус</TableCell>
                   <TableCell>Комментарий</TableCell>
-                  <TableCell>Дата создания</TableCell>
+                  <TableCell>Сумма</TableCell>
+                  <TableCell>Статус</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

@@ -9,6 +9,7 @@ import { SelectedProductEntity } from 'src/entities/selected-product.entity';
 import { OrderedProductsEntity } from 'src/entities/ordered-products.entity';
 import { PickupPoint } from 'src/entities/pickup-point.entity';
 import { DeliveryTime } from 'src/entities/delivery-time.entity';
+import { ProductEntity } from 'src/entities/product.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { DeliveryTime } from 'src/entities/delivery-time.entity';
       SelectedProductEntity,
       OrderedProductsEntity,
       PickupPoint,
-      DeliveryTime
+      DeliveryTime,
+      ProductEntity
     ]),
   ],
   providers: [OrderService],

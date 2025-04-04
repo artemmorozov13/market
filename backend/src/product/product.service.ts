@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { ProductEntity } from 'src/entities/product.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import { ProductResponseDto } from './dto/response-product.dto';
@@ -14,23 +14,31 @@ export class ProductService {
         private readonly productRepository: Repository<ProductEntity>,
     ) {}
 
-    async getProductsList({ limit = 10, skip = 0 }: PaginationDto): Promise<ProductResponseDto> {
-        const [items, total] = await this.productRepository.findAndCount({
-          skip: skip,
-          take: limit,
-          order: { createdAt: "DESC" }
-        });
+    async getProductsList({ limit = 10, skip = 0, is_expired }: PaginationDto): Promise<ProductResponseDto> {
+
+      const whereConditions: FindOptionsWhere<ProductEntity> | FindOptionsWhere<ProductEntity>[] = {};
       
-        return {
-          items: items,
-          pagination: {
-            total,
-            limit,
-            skip,
-            hasMore: skip + limit < total,
-          },
-        };
+      if (typeof is_expired === "boolean") {
+        whereConditions.is_expired = !is_expired;
       }
+    
+      const [items, total] = await this.productRepository.findAndCount({
+        skip: skip,
+        take: limit,
+        order: { createdAt: "DESC" },
+        where: whereConditions
+      });
+    
+      return {
+        items: items,
+        pagination: {
+          total,
+          limit,
+          skip,
+          hasMore: skip + limit < total,
+        },
+      };
+    }
 
     async getProductById(id: number): Promise<ProductEntity> {
         const product = await this.productRepository.findOneBy({ id });
@@ -41,7 +49,10 @@ export class ProductService {
     }
 
     async createProduct(createProductDto: CreateProductDto): Promise<ProductEntity> {
-        const product = this.productRepository.create(createProductDto);
+        const product = this.productRepository.create({
+          ...createProductDto,
+          is_expired: false
+        });
         return this.productRepository.save(product);
     }
 
@@ -52,7 +63,10 @@ export class ProductService {
     }
 
     async deleteProduct(id: number): Promise<void> {
-        const product = await this.getProductById(id);
-        await this.productRepository.remove(product);
+      this.productRepository.update(id, { is_expired: true })
+    }
+
+    async rocoverProduct(id: number): Promise<void> {
+      this.productRepository.update(id, { is_expired: false })
     }
 }

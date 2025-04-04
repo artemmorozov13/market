@@ -1,32 +1,63 @@
 version: '3.8'
 
 services:
-  admin:
-    volumes:
-      - ./admin:/app
-      - /app/node_modules
-    command: npm run dev
+  postgres:
+    image: postgres:13
     environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-
-  app:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./app:/app
-      - /app/node_modules
-    command: npm run dev
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   backend:
+    build:
+      context: ./backend
+      target: dev
+    environment:
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - NODE_ENV=development
     volumes:
       - ./backend:/app
       - /app/node_modules
-    command: npm run start:dev
-    environment:
-      - NODE_ENV=development
     ports:
       - "3000:3000"
-    expose:
-      - 3000
+    depends_on:
+      - postgres
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+    ports:
+      - "3001:3001"
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    ports:
+      - "3002:3002"
+
+volumes:
+  postgres_data:

@@ -1,11 +1,30 @@
-import { IsArray, IsIn, IsNumber, IsOptional } from 'class-validator';
+// update-order.dto.ts
+import { IsArray, IsDateString, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class OrderProductDto {
+  @IsNumber()
+  productId: number;
+
+  @IsNumber()
+  quantity: number;
+}
 
 export class UpdateOrderDto {
-  @IsIn(['waitForPay', 'payConfirm', 'finished'])
+  @IsNumber()
+  id: number
+
+  @IsString()
   @IsOptional()
-  status?: 'waitForPay' | 'payConfirm' | 'finished';
+  comment?: string;
+
+  @IsDateString()
+  @IsOptional()
+  deliveryDate?: Date;
 
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderProductDto)
   @IsOptional()
-  productIds?: number[];
+  products?: OrderProductDto[];
 }

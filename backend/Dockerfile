@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 CMD ["npm", "run", "start:dev"]
+EXPOSE 3000
 
 # Production
 FROM node:20-alpine as builder
