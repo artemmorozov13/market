@@ -11,9 +11,9 @@ export default registerAs('database', (): PostgresConnectionOptions => {
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        synchronize: false,
+        synchronize: true,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         migrations: [`${__dirname}/../../db/migrations/*{.ts,.tsx}`],
-        migrationsTableName: 'migrations'
+        migrationsTableName: 'migrations',
     })
 })
