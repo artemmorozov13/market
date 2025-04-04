@@ -17,6 +17,11 @@ export class UsersController {
         return this.usersService.getUserById(req.user.id)
     }
 
+    @Get('order')
+    getActiveOrders(@Req() req) {
+        return this.usersService.getUserById(req.user.id)
+    }
+
     @UseGuards(JwtAuthGuard)
     @Get("list")
     getUsersList(@Query() query: GetQueryParamsDto) {

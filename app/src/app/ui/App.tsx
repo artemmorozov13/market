@@ -13,15 +13,16 @@ import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
 import { RoutePath } from "@/shared/routes/routeConfig";
 import WebApp from "@twa-dev/sdk";
 import { NoTelegramWarning } from "@/widgets/NoTelegramWarning";
+import ActiveOrderPage from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOrderPage";
 
 const queryClient = new QueryClient();
 
 export const App: FC = () => {
-  if (!WebApp.initData) {
-    return (
-      <NoTelegramWarning />
-    )
-  }
+  // if (!WebApp.initData) {
+  //   return (
+  //     <NoTelegramWarning />
+  //   )
+  // }
   return (
     <BrowserRouter basename='/'>
       <QueryClientProvider client={queryClient}>
@@ -32,6 +33,7 @@ export const App: FC = () => {
               <Route path={RoutePath.products} element={<ProductsPageLazy/>} />
               <Route path={RoutePath.basket} element={<BasketPageLazy/>} />
               <Route path={RoutePath.order} element={<OrderPageLazy/>} />
+              <Route path={RoutePath.activeOrders} element={<ActiveOrderPage/>} />
             </Routes>
           </AuthProvider>
         </ThemeProvider>

@@ -1,3 +1,4 @@
+// EditPickupPointModal.tsx
 import { FC, useState } from 'react';
 import { Control, Controller, useFieldArray } from 'react-hook-form';
 import {
@@ -18,12 +19,8 @@ import {
   Chip
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import { PickupPointFormData, TimeOption, PickupPoint } from '../../types/types';
-
-const timeOptions: TimeOption[] = Array.from({ length: 24 }, (_, i) => ({
-  value: `${i.toString().padStart(2, '0')}:00`,
-  label: `${i.toString().padStart(2, '0')}:00`,
-}));
+import { PickupPointFormData, TimeOption, DayOption, PickupPoint, DeliveryTimeForm } from '../../types/types';
+import { dayOptions, timeOptions } from '../../consts/intervals';
 
 interface EditPickupPointModalProps {
   open: boolean;
@@ -53,21 +50,40 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
 
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newTime, setNewTime] = useState({
-    startTime: timeOptions[9], // 09:00 по умолчанию
-    endTime: timeOptions[12]  // 12:00 по умолчанию
+    dayOfWeek: dayOptions[0],
+    startTime: timeOptions[9],
+    endTime: timeOptions[12]
   });
 
   const handleAddNewTime = () => {
     append({
+      dayOfWeek: newTime.dayOfWeek,
       startTime: newTime.startTime,
       endTime: newTime.endTime
     });
     setIsAddingNew(false);
     setNewTime({
+      dayOfWeek: dayOptions[0],
       startTime: timeOptions[9],
       endTime: timeOptions[12]
     });
   };
+
+  const groupByDay = () => {
+    const grouped: Record<string, DeliveryTimeForm[]> = {};
+    
+    fields.forEach(field => {
+      const day = field.dayOfWeek.value;
+      if (!grouped[day]) {
+        grouped[day] = [];
+      }
+      grouped[day].push(field);
+    });
+    
+    return grouped;
+  };
+
+  const groupedTimes = groupByDay();
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -92,84 +108,131 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
           />
 
           <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            Временные интервалы доставки
+            Временные интервалы доставки по дням недели
           </Typography>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
-            {fields.map((field, index) => (
-              <Box key={field.id} sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                p: 1,
-                border: '1px solid #e0e0e0',
-                borderRadius: 1
-              }}>
-                <Typography>
-                  {field.startTime.label} - {field.endTime.label}
-                </Typography>
-                <IconButton
-                  onClick={() => remove(index)}
-                  color="error"
-                  size="small"
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
+          {Object.entries(groupedTimes).map(([day, times]) => (
+            <Box key={day} sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                {dayOptions.find(d => d.value === day)?.label}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {times.map((time, index) => (
+                  <Box 
+                    key={`${time.dayOfWeek}${time.startTime}`} 
+                    sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      p: 1,
+                      border: '1px solid #e0e0e0',
+                      borderRadius: 1
+                    }}
+                  >
+                    <Typography>
+                      {time.startTime.label} - {time.endTime.label}
+                    </Typography>
+                    <IconButton
+                      onClick={() => {
+                        const fieldIndex = fields.findIndex(
+                          f => f.dayOfWeek.value === day && 
+                          f.startTime.value === time.startTime.value && 
+                          f.endTime.value === time.endTime.value
+                        );
+                        if (fieldIndex !== -1) remove(fieldIndex);
+                      }}
+                      color="error"
+                      size="small"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
               </Box>
-            ))}
-          </Box>
+            </Box>
+          ))}
 
           {isAddingNew ? (
             <>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-                    <FormControl fullWidth>
-                        <InputLabel>Время начала</InputLabel>
-                        <Select
-                        value={newTime.startTime.value}
-                        label="Время начала"
-                        onChange={(e) => {
-                            const selectedOption = timeOptions.find(opt => opt.value === e.target.value);
-                            if (selectedOption) {
-                            setNewTime(prev => ({ ...prev, startTime: selectedOption }));
-                            }
-                        }}
-                        >
-                        {timeOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                            </MenuItem>
-                        ))}
-                        </Select>
-                    </FormControl>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+                <FormControl fullWidth>
+                  <InputLabel>День недели</InputLabel>
+                  <Select
+                    value={newTime.dayOfWeek.value}
+                    label="День недели"
+                    onChange={(e) => {
+                      const selectedOption = dayOptions.find(opt => opt.value === e.target.value);
+                      if (selectedOption) {
+                        setNewTime(prev => ({ ...prev, dayOfWeek: selectedOption }));
+                      }
+                    }}
+                  >
+                    {dayOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-                    <FormControl fullWidth>
-                        <InputLabel>Время окончания</InputLabel>
-                        <Select
-                        value={newTime.endTime.value}
-                        label="Время окончания"
-                        onChange={(e) => {
-                            const selectedOption = timeOptions.find(opt => opt.value === e.target.value);
-                            if (selectedOption) {
-                            setNewTime(prev => ({ ...prev, endTime: selectedOption }));
-                            }
-                        }}
-                        >
-                        {timeOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                            </MenuItem>
-                        ))}
-                        </Select>
-                    </FormControl>
-                    </Box>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleAddNewTime}
-                        fullWidth
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Время начала</InputLabel>
+                    <Select
+                      value={newTime.startTime.value}
+                      label="Время начала"
+                      onChange={(e) => {
+                        const selectedOption = timeOptions.find(opt => opt.value === e.target.value);
+                        if (selectedOption) {
+                          setNewTime(prev => ({ ...prev, startTime: selectedOption }));
+                        }
+                      }}
                     >
-                        Добавить
-                    </Button>
+                      {timeOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth>
+                    <InputLabel>Время окончания</InputLabel>
+                    <Select
+                      value={newTime.endTime.value}
+                      label="Время окончания"
+                      onChange={(e) => {
+                        const selectedOption = timeOptions.find(opt => opt.value === e.target.value);
+                        if (selectedOption) {
+                          setNewTime(prev => ({ ...prev, endTime: selectedOption }));
+                        }
+                      }}
+                    >
+                      {timeOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddNewTime}
+                fullWidth
+                sx={{ mb: 2 }}
+              >
+                Добавить интервал
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setIsAddingNew(false)}
+                fullWidth
+              >
+                Отмена
+              </Button>
             </>
           ) : (
             <Button
@@ -179,7 +242,7 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
               sx={{ mt: 1 }}
               fullWidth
             >
-              Добавить интервал
+              Добавить интервал для дня
             </Button>
           )}
         </DialogContent>

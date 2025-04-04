@@ -18,6 +18,7 @@ export const createOrder = async (options: CreateOrderOptions) => {
             comment: data.contact.comment,
             pickupPointId: data.contact.pickupPointId,
             deliveryTimeId: data.contact.deliveryTimeId,
+            deliveryDate: data.contact.deliveryDate
         }
 
         const response = await API.post("/order/create", body)
@@ -25,8 +26,8 @@ export const createOrder = async (options: CreateOrderOptions) => {
         toast("Заказ успешно создан!", { type: "success" })
 
         return response.data
-    } catch {
-        toast("Ошибка при создании заказа", { type: "error" })
+    } catch(error) {
+        toast((error as any).response.data.message, { type: "error" })
         throw new Error()
     }
 }

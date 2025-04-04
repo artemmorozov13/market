@@ -7,20 +7,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductModule } from 'src/product/product.module';
 import { OrderModule } from 'src/order/order.module';
 import { FileUploaderModule } from 'src/file-uploader/file-uploader.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { PickupPointModule } from 'src/pickup-point/pickup-point.module';
-import dbConfig from 'src/config/db.config';
+import { DatabaseConfig } from 'src/config';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       expandVariables: true,
-      load: [dbConfig]
+      load: [DatabaseConfig]
     }),
     TypeOrmModule.forRootAsync({
-      useFactory: dbConfig
+      useFactory: (configService: ConfigService) => ({
+        ...configService.get('database')
+      }),
+      inject: [ConfigService]
     }),
     UsersModule,
     RolesModule,

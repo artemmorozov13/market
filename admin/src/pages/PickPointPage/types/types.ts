@@ -1,28 +1,39 @@
 export interface DeliveryTime {
     id?: number;
-    startTime: {
-      value: string;
-      label: string;
-    };
-    endTime: {
-      value: string;
-      label: string;
-    };
+    dayOfWeek: DayOption;
+    startTime: TimeOption;
+    endTime: TimeOption;
   }
   
-  export interface PickupPoint {
+export interface PickupPoint {
     id: number;
     name: string;
+    address?: string;
+    coordinates?: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
     deliveryTimes: DeliveryTime[];
-  }
+}
+
+export interface DeliveryTimeForm {
+  dayOfWeek: DayOption;
+  startTime: TimeOption;
+  endTime: TimeOption;
+}
   
-  export interface PickupPointFormData {
-    id?: number;
-    name: string;
-    deliveryTimes: DeliveryTime[];
-  }
+export interface PickupPointFormData {
+  id?: number;
+  name: string;
+  deliveryTimes: DeliveryTimeForm[];
+}
   
-  export type TimeOption = {
+export interface TimeOption {
     value: string;
     label: string;
-  };
+}
+  
+export interface DayOption {
+    value: string;
+    label: string;
+}

@@ -13,6 +13,11 @@ export class DeliveryTime {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'enum', enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'], 
+    comment: 'День недели' 
+  })
+  dayOfWeek: string;
+
   @Column({ type: 'time', comment: 'Время начала доставки в формате HH:MM' })
   startTime: string;
 

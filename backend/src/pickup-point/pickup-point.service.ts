@@ -38,6 +38,9 @@ export class PickupPointService {
       order: {
         createdAt: "ASC"
       },
+      where: {
+        status: "active"
+      },
       relations: ['deliveryTimes']
     });
   }
@@ -58,21 +61,8 @@ export class PickupPointService {
   async update(id: number, updateDto: UpdatePickupPointDto): Promise<PickupPoint> {
     const point = await this.findOne(id);
 
-    if (updateDto.name) {
-      point.name = updateDto.name;
-    }
-
     if (updateDto.deliveryTimes) {
-      await this.deliveryTimeRepository.delete({ pickupPoint: { id } });
-
-      const deliveryTimes = updateDto.deliveryTimes.map(timeDto =>
-        this.deliveryTimeRepository.create({
-          ...timeDto,
-          pickupPoint: point,
-        })
-      );
-
-      point.deliveryTimes = await this.deliveryTimeRepository.save(deliveryTimes);
+      point.deliveryTimes = await this.deliveryTimeRepository.save(updateDto.deliveryTimes);
     }
 
     return this.pickupPointRepository.save(point);
@@ -88,8 +78,10 @@ export class PickupPointService {
       throw new NotFoundException('Pickup point not found');
     }
   
-    await this.deliveryTimeRepository.remove(point.deliveryTimes);
+    // await this.deliveryTimeRepository.remove(point.deliveryTimes);
     
-    await this.pickupPointRepository.remove(point);
+    await this.pickupPointRepository.update(id, {
+      status: 'deleted'
+    });
   }
 }

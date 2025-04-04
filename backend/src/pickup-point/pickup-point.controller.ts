@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Patch } from '@nestjs/common';
 import { PickupPointService } from './pickup-point.service';
 import { CreatePickupPointDto } from './dto/create-pickup-point.dto';
-import { PickupPoint } from 'src/entities/pickup-point.entity';
+import { PickupPoint } from '../entities/pickup-point.entity';
 import { UpdatePickupPointDto } from './dto/update-pickup-point.dto';
 
 @Controller('pickup-points')
@@ -32,7 +32,7 @@ export class PickupPointController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.pickupPointService.remove(+id);
+  remove(@Param('id') id: string) {
+    this.pickupPointService.remove(+id);
   }
 }

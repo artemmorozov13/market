@@ -17,6 +17,7 @@ export interface OrderType {
   address: string;
   phoneNumber?: string;
   comment?: string;
+  deliveryDate: string
   user: StoreOwnerUserType;
   ordered_products: OrderedProductType[];
   pickupPoint?: {

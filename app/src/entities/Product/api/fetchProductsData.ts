@@ -14,6 +14,7 @@ export const fetchProductsData = async (options: FetchProductsDataOptions) => {
         params: {
             skip: options?.skip,
             limit: options?.take,
+            is_expired: false
         },
     }
     const response = await API.get(`/product`, config);
