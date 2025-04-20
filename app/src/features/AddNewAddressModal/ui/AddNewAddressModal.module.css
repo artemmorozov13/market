@@ -2,69 +2,82 @@
     margin-bottom: 80px;
 }
 
+.modal {
+  margin: 0 auto;
+  max-width: 600px;
+}
+
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
+  padding: 10px;
+  transform: translateY(-50%);
+  position: relative;
+  top: 50%;
+  overflow: auto;
+  max-height: 100%;
+}
 
 .addressCard {
-    padding: 1rem;
+  padding: 1rem;
 }
   
-  .formWrapper {
-    width: 100%;
-    max-width: 600px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-  }
+.formWrapper {
+  width: 100%;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
   
-  .title {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #333;
-  }
+.title {
+  display: block;
+  padding-bottom: 1rem;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  margin-bottom: 10px;
+  color: #333;
+  text-align: center;
+}
   
-  .subtitle {
-    font-size: 18px;
-    font-weight: 500;
-    margin-bottom: 20px;
-    color: #666;
-  }
-  
-  .inputField {
-    margin-bottom: 20px;
-  }
-  
-  .button {
-    width: 100%;
-    background-color: #0070f3;
-    color: white;
-    font-size: 16px;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-family: "Roboto";
-  }
-  
-  .button:hover {
-    background-color: #005bb5;
-  }
-
-.row {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+.subtitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: #666;
 }
   
 .inputField {
-    flex: 1;
-    min-width: 200px;
+  margin-bottom: 20px;
+}
+
+.button {
+  width: 100%;
+  background-color: #0070f3;
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: "Roboto";
+}
+
+.button:hover {
+  background-color: #005bb5;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+  
+.inputField {
+  flex: 1;
+  min-width: 200px;
+
+  @media(max-width < 480px) {
+    margin-bottom: .5rem;
+  }
 }
   

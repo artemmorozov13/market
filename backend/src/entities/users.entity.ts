@@ -1,10 +1,10 @@
 import { BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { BasketEntity } from "./basket.entity";
 import { OrderEntity } from "./order.entity";
-import { AddressEntity } from "./address.entity";
 import { SelectedProductEntity } from "./selected-product.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
 import * as bcrypt from "bcrypt"
+import { AddressesEntity } from "./addresses.entity";
 
 @Entity({ name: "users" })
 export class UsersEntity {
@@ -47,8 +47,8 @@ export class UsersEntity {
     @OneToMany(() => OrderEntity, (order) => order.user)
     orders: OrderEntity[]
 
-    @OneToMany(() => AddressEntity, (address) => address.user)
-    addresses: AddressEntity[]
+    @OneToMany(() => AddressesEntity, (address) => address.user)
+    addresses: AddressesEntity[]
 
     @OneToMany(() => SelectedProductEntity, (selectedProductEntity) => selectedProductEntity.user)
     selectedProducts: SelectedProductEntity[]

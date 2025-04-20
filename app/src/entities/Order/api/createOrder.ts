@@ -3,9 +3,7 @@ import { API } from "@/shared/api/API"
 import { toast } from "react-toastify"
 
 export interface CreateOrderOptions {
-    data: {
-        contact: OrderFormInputs,
-    }
+    data: OrderFormInputs
 }
 
 export const createOrder = async (options: CreateOrderOptions) => {
@@ -13,12 +11,13 @@ export const createOrder = async (options: CreateOrderOptions) => {
 
     try {
         const body = {
-            phoneNumber: data.contact.phone,
-            address: data.contact.address,
-            comment: data.contact.comment,
-            pickupPointId: data.contact.pickupPointId,
-            deliveryTimeId: data.contact.deliveryTimeId,
-            deliveryDate: data.contact.deliveryDate
+            phoneNumber: data.phone,
+            fullAddress: data.address?.fullAddress,
+            address: data.address?.id,
+            comment: data.comment,
+            pickupPointId: data.pickupPointId,
+            deliveryTimeId: data.deliveryTimeId,
+            deliveryDate: data.deliveryDate
         }
 
         const response = await API.post("/order/create", body)

@@ -22,7 +22,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     BasketModule,
   ],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
   providers: [AuthService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}

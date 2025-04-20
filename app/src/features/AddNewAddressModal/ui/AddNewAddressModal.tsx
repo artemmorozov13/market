@@ -1,185 +1,298 @@
-import { FC } from "react";
+import { FC, useEffect, useState, useCallback, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { TextField, Typography, Modal, Button } from "@mui/material";
+import { 
+  TextField, 
+  Typography, 
+  Modal, 
+  Button,
+  Autocomplete,
+  CircularProgress,
+  Box,
+  Stack
+} from "@mui/material";
 import styles from "./AddNewAddressModal.module.css";
-import { putNewAddress } from "../api/putNewAddress";
-import { AddressFormSchema } from "../types/addressesTypes";
+import { useAddressSuggestions } from "../api/queryAdreess";
+import { useSaveAddress } from "../api/putNewAddress";
+import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
+import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 
-// Схема валидации
-const schema = yup.object().shape({
-  city: yup.string().required("Город обязателен").min(2, "Город должен содержать минимум 2 символа"),
-  street: yup.string().required("Улица обязательна").min(3, "Улица должна содержать минимум 3 символа"),
-  house: yup.string().required("Дом обязателен"),
-  entrance: yup.string().required("Подъезд обязателен"),
-  floor: yup.string().required("Этаж обязателен"),
-  apartment: yup.string().required("Квартира обязательна"),
-  intercom: yup.string().required("Домофон обязателен"),
-});
+interface AddressSuggestion {
+  value: string;
+  data: {
+    [key: string]: any;
+    house_type_full?: string;
+    // другие поля данных адреса
+  };
+}
+
+interface AddressFormValues {
+  fullAddress: string;
+  entrance: string;
+  floor: string;
+  apartment: string;
+  intercom: string;
+  addressData?: any;
+}
+
+
 
 interface AddNewAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({ isOpen, onClose }) => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AddressFormSchema>({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      city: "",
-      street: "",
-      house: "",
-      entrance: "",
-      floor: "",
-      apartment: "",
-      intercom: "",
-    },
+const validationSchema = yup.object().shape({
+  fullAddress: yup.string().required("Адрес обязателен"),
+  entrance: yup.string(),
+  floor: yup.string(),
+  apartment: yup.string(),
+  intercom: yup.string(),
+});
+
+const defaultValues: AddressFormValues = {
+  fullAddress: '',
+  entrance: '',
+  floor: '',
+  apartment: '',
+  intercom: '',
+  addressData: null,
+};
+
+export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
+  const { 
+    isOpen, 
+    onClose 
+  } = props
+
+  const [inputValue, setInputValue] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [lastSelectedValue, setLastSelectedValue] = useState<AddressSuggestion | null>(null);
+  
+  const { control, handleSubmit, formState, reset, setValue } = useForm<AddressFormValues>({
+    resolver: yupResolver(validationSchema) as any,
+    defaultValues,
+    mode: 'onChange'
   });
 
-  const onSubmit = (data: AddressFormSchema) => {
-    const result = putNewAddress(data)
-    if (!!result) {
-      onClose()
+  const { errors, isValid } = formState;
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedQuery(inputValue);
+    }, 300);
+  
+    return () => clearTimeout(timerId);
+  }, [inputValue]);
+
+  const { user } = useUser()
+  const { refetch } = useUserAddresses(user?.user.id)
+  const { suggestions, isLoading } = useAddressSuggestions(debouncedQuery);
+  const { saveAddress, isSaving } = useSaveAddress();
+  
+
+  const handleClose = useCallback(() => {
+    setInputValue('');
+    setLastSelectedValue(null);
+    reset();
+    onClose();
+  }, [onClose, reset]);
+
+  const onSubmit = useCallback(async (data: AddressFormValues) => {
+    try {
+      await saveAddress(data as any);
+      await refetch()
+      handleClose();
+    } catch (error) {
+      console.error('Ошибка при сохранении адреса:', error);
     }
-  };
+  }, [saveAddress, handleClose]);
+
+  const addressOptions = useMemo(() => suggestions.map(suggestion => ({
+    label: suggestion.value,
+    value: suggestion.value,
+    data: suggestion.data
+  })), [suggestions]);
+
+  const isHouseSelected = useMemo(() => {
+    if (!lastSelectedValue) return false;
+    
+    return lastSelectedValue.data?.house_type_full === 'дом' || 
+           /(^|\s)(д|дом)(\s|$)/i.test(lastSelectedValue.value);
+  }, [lastSelectedValue]);
 
   return (
-    <Modal open={isOpen} onClose={onClose}>
-      <div className={styles.container}>
-        <div className={styles.formWrapper}>
-          <Typography className={styles.title}>Добавить адрес</Typography>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className={styles.row}>
-              <div className={styles.inputField}>
-                <Controller
-                  name="city"
-                  control={control}
-                  render={({ field }) => (
+    <Modal 
+      open={isOpen} 
+      onClose={handleClose}
+      aria-labelledby="address-modal-title"
+      className={styles.modal}
+    >
+      <Box className={styles.container}>
+        <Box className={styles.formWrapper} component="form" onSubmit={handleSubmit(onSubmit)}>
+          <Typography 
+            variant="h6" 
+            id="address-modal-title"
+            className={styles.title}
+            gutterBottom
+          >
+            Добавить адрес
+          </Typography>
+          
+          <Stack spacing={2} mt={2}>
+            <Controller
+              name="fullAddress"
+              control={control}
+              render={({ field: { value, onChange, ...field } }) => (
+                <Autocomplete
+                  freeSolo
+                  options={isHouseSelected ? [] : addressOptions}
+                  getOptionLabel={(option) => 
+                    typeof option === 'string' ? option : option.label
+                  }
+                  value={value}
+                  inputValue={inputValue}
+                  onInputChange={(_, newValue, reason) => {
+                    setInputValue(newValue);
+                    if (reason !== 'reset') {
+                      onChange(newValue);
+                    }
+                  }}
+                  onChange={(_, newValue) => {
+                    if (typeof newValue === 'string') {
+                      onChange(newValue);
+                      setLastSelectedValue({
+                        value: newValue,
+                        data: {}
+                      });
+                      setValue('addressData', null);
+                    } else if (newValue) {
+                      onChange(newValue.value);
+                      setLastSelectedValue({
+                        value: newValue.value,
+                        data: newValue.data
+                      });
+                      setValue('addressData', newValue.data);
+                      
+                      // Автоматическое заполнение дополнительных полей
+                      if (newValue.data) {
+                        // Пример:
+                        // setValue('entrance', newValue.data.entrance || '');
+                        // setValue('floor', newValue.data.floor || '');
+                      }
+                    } else {
+                      onChange('');
+                      setLastSelectedValue(null);
+                      setValue('addressData', null);
+                    }
+                  }}
+                  loading={isLoading}
+                  filterOptions={(options) => {
+                    return inputValue.trim() ? options : [];
+                  }}
+                  renderInput={(params) => (
                     <TextField
+                      {...params}
                       {...field}
-                      label="Город"
-                      variant="outlined"
-                      error={!!errors.city}
-                      helperText={errors.city?.message}
+                      label="Полный адрес *"
+                      error={!!errors.fullAddress}
+                      helperText={errors.fullAddress?.message || "Введите адрес в Санкт-Петербурге или Ленинградской области"}
                       fullWidth
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {isLoading && <CircularProgress size={20} />}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
                     />
                   )}
+                  noOptionsText={
+                    isHouseSelected 
+                      ? 'Адрес дома выбран'
+                      : inputValue.trim() 
+                        ? isLoading 
+                          ? 'Загрузка...' 
+                          : 'Ничего не найдено'
+                        : 'Введите адрес для поиска'
+                  }
                 />
-              </div>
-              <div className={styles.inputField}>
-                <Controller
-                  name="street"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Улица"
-                      variant="outlined"
-                      error={!!errors.street}
-                      helperText={errors.street?.message}
-                      fullWidth
-                    />
-                  )}
+              )}
+            />
+
+            {/* Остальные поля формы */}
+            <Controller
+              name="entrance"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Подъезд"
+                  error={!!errors.entrance}
+                  helperText={errors.entrance?.message}
+                  fullWidth
                 />
-              </div>
-            </div>
-            <div className={styles.row}>
-              <div className={styles.inputField}>
-                <Controller
-                  name="house"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Дом"
-                      variant="outlined"
-                      error={!!errors.house}
-                      helperText={errors.house?.message}
-                      fullWidth
-                    />
-                  )}
+              )}
+            />
+
+            <Controller
+              name="floor"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Этаж"
+                  error={!!errors.floor}
+                  helperText={errors.floor?.message}
+                  fullWidth
                 />
-              </div>
-              <div className={styles.inputField}>
-                <Controller
-                  name="entrance"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Подъезд"
-                      variant="outlined"
-                      error={!!errors.entrance}
-                      helperText={errors.entrance?.message}
-                      fullWidth
-                    />
-                  )}
+              )}
+            />
+
+            <Controller
+              name="apartment"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Квартира"
+                  error={!!errors.apartment}
+                  helperText={errors.apartment?.message}
+                  fullWidth
                 />
-              </div>
-            </div>
-            <div className={styles.row}>
-              <div className={styles.inputField}>
-                <Controller
-                  name="floor"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Этаж"
-                      variant="outlined"
-                      error={!!errors.floor}
-                      helperText={errors.floor?.message}
-                      fullWidth
-                    />
-                  )}
+              )}
+            />
+
+            <Controller
+              name="intercom"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Домофон"
+                  error={!!errors.intercom}
+                  helperText={errors.intercom?.message}
+                  fullWidth
                 />
-              </div>
-              <div className={styles.inputField}>
-                <Controller
-                  name="apartment"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Квартира"
-                      variant="outlined"
-                      error={!!errors.apartment}
-                      helperText={errors.apartment?.message}
-                      fullWidth
-                    />
-                  )}
-                />
-              </div>
-            </div>
-            <div className={styles.row}>
-              <div className={styles.inputField}>
-                <Controller
-                  name="intercom"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Домофон"
-                      variant="outlined"
-                      error={!!errors.intercom}
-                      helperText={errors.intercom?.message}
-                      fullWidth
-                    />
-                  )}
-                />
-              </div>
-            </div>
-            <Button type="submit" className={styles.button} variant="contained" fullWidth>
-              Сохранить адрес
+              )}
+            />
+
+            <Button 
+              type="submit" 
+              variant="contained" 
+              size="large"
+              disabled={!isValid || isSaving}
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              {isSaving ? <CircularProgress size={24} /> : 'Сохранить адрес'}
             </Button>
-          </form>
-        </div>
-      </div>
+          </Stack>
+        </Box>
+      </Box>
     </Modal>
   );
 };

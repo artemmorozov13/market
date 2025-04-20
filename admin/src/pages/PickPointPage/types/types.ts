@@ -8,8 +8,12 @@ export interface DeliveryTime {
 export interface PickupPoint {
     id: number;
     name: string;
-    address?: string;
-    coordinates?: string;
+    fullAddress?: string;
+    fias_id: string;
+    geo_lat: string;
+    status: 'active';
+    geo_lon: string;
+    postal_code: string
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -21,10 +25,16 @@ export interface DeliveryTimeForm {
   startTime: TimeOption;
   endTime: TimeOption;
 }
-  
+
 export interface PickupPointFormData {
   id?: number;
   name: string;
+  address: string;
+  postal_code: string;
+  fias_id: string;
+  geo_lat: string;
+  geo_lon: string;
+  status: 'active' | 'deleted';
   deliveryTimes: DeliveryTimeForm[];
 }
   

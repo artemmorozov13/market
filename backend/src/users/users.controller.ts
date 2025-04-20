@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
 import { TelegramLoginDto } from './dto/telegram-login.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+// import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {

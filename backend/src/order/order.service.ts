@@ -156,6 +156,7 @@ export class OrderService {
 
     const order = this.orderRepository.create({
       address: createOrderDto.address,
+      fullAddress: createOrderDto.fullAddress,
       phoneNumber: createOrderDto.phoneNumber,
       status: "waitForPay",
       comment: createOrderDto.comment,

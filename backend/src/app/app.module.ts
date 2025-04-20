@@ -11,6 +11,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { PickupPointModule } from 'src/pickup-point/pickup-point.module';
 import { DatabaseConfig } from 'src/config';
+import { DadataModule } from 'src/dadata/dadata.module';
+import { AddressesModule } from 'src/addresses/addresses.module';
 
 
 @Module({
@@ -32,7 +34,9 @@ import { DatabaseConfig } from 'src/config';
     OrderModule,
     FileUploaderModule,
     AuthModule,
-    PickupPointModule
+    PickupPointModule,
+    DadataModule,
+    AddressesModule
   ],
   controllers: [AppController],
   providers: [AppService],

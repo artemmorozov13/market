@@ -3,7 +3,7 @@ import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GetOrderQueryDto } from './dto/get-order-query.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+// import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Controller('order')
@@ -11,7 +11,7 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   getOrdersData(@Query() query: GetOrderQueryDto) {
     return this.orderService.getOrdersListData(query)
   }
@@ -40,7 +40,7 @@ export class OrderController {
   }
 
   @Post('update-status')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   updateStatus(@Body() updateStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(updateStatusDto)
   }

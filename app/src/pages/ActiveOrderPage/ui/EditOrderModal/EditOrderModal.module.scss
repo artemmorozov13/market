@@ -1,0 +1,65 @@
+// EditOrderModal.module.scss
+
+.modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 24px;
+    outline: none;
+  
+    @media (min-width: 600px) {
+      width: 80%;
+    }
+  }
+  
+  .title {
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #212121;
+    text-align: center;
+  }
+  
+  .form {
+    margin-top: 16px;
+  }
+  
+  .buttons {
+    margin-top: 24px;
+  
+    button {
+      text-transform: none;
+      font-weight: 500;
+      padding: 10px 16px;
+      border-radius: 8px;
+    }
+  }
+  
+  // Стили для полей ввода
+  .textField {
+    & label {
+      color: #616161;
+      
+      &.Mui-focused {
+        color: #1976d2;
+      }
+    }
+  
+    & .MuiOutlinedInput-root {
+      border-radius: 8px;
+  
+      &:hover .MuiOutlinedInput-notchedOutline {
+        border-color: rgba(0, 0, 0, 0.23);
+      }
+  
+      &.Mui-focused .MuiOutlinedInput-notchedOutline {
+        border-color: #1976d2;
+        border-width: 1px;
+      }
+    }
+  }

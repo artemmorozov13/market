@@ -1,7 +1,7 @@
 import * as yup from "yup";
 
 export const orderFormSchema = yup.object({
-  address: yup.string().required("Укажите адрес доставки"),
+  // address: yup.string().required("Укажите адрес доставки"),
   phone: yup
     .string()
     .matches(

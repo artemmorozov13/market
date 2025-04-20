@@ -38,6 +38,9 @@ import {
   
       @Column({ type: 'varchar', length: 255 })
       address: string;
+
+      @Column({ type: 'varchar', nullable: true, length: 255 })
+      fullAddress: string;
   
       @Column({ type: 'varchar', length: 20 })
       phoneNumber: string;

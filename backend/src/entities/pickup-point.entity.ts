@@ -17,11 +17,20 @@ export class PickupPoint {
   @Column({ comment: 'Название пункта выдачи' })
   name: string;
 
-  @Column({ type: 'text', nullable: true, comment: 'Адрес пункта выдачи' })
-  address?: string;
+  @Column({ nullable: true })
+  fullAddress: string;
 
-  @Column({ type: 'point', nullable: true, comment: 'Координаты пункта (широта, долгота)' })
-  coordinates?: string;
+  @Column({ type: 'varchar', nullable: true })
+  postal_code: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  fias_id: string
+
+  @Column({ type: 'varchar', nullable: true })
+  geo_lat: string
+
+  @Column({ type: 'varchar', nullable: true })
+  geo_lon: string
 
   @Column({ 
     type: 'enum', 

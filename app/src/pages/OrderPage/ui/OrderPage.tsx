@@ -21,9 +21,7 @@ const OrderPage: FC = observer(() => {
       setComplitedForm(formData);
   
       const options: CreateOrderOptions = {
-        data: {
-          contact: formData,
-        },
+        data: formData,
       };
       
       createOrder(options)

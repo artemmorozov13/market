@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, ControllerRenderProps } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { 
   TextField, 
@@ -19,22 +19,14 @@ import { DeliveryTime, OrderFormInputs, PickupPoint } from "../types/orderFormTy
 import { orderFormSchema } from "../lib/orderFormSchema";
 import { observer } from "mobx-react-lite";
 import { formatToRussianPhone } from "@/shared/helpers/formatRussianPhone";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CommentIcon from "@mui/icons-material/Comment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import PlaceIcon from "@mui/icons-material/Place";
 import { API } from "@/shared/api/API";
-
-// const dayOptions = [
-//   { value: 'monday', label: 'Понедельник' },
-//   { value: 'tuesday', label: 'Вторник' },
-//   { value: 'wednesday', label: 'Среда' },
-//   { value: 'thursday', label: 'Четверг' },
-//   { value: 'friday', label: 'Пятница' },
-//   { value: 'saturday', label: 'Суббота' },
-//   { value: 'sunday', label: 'Воскресенье' },
-// ];
+import { AddNewAddressModal } from "@/features/AddNewAddressModal";
+import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
+import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -92,6 +84,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [loading, setLoading] = useState(true);
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
   const [weekDates, setWeekDates] = useState<Record<string, { date: string; isToday: boolean; formattedDate: string }>>({});
+  const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false)
 
   const {
     control,
@@ -102,7 +95,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   } = useForm<OrderFormInputs>({
     resolver: yupResolver(orderFormSchema) as any,
     defaultValues: {
-      address: "",
+      address: null,
       phone: "",
       comment: "",
       pickupPointId: null,
@@ -110,6 +103,9 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       deliveryDate: null
     },
   });
+
+  const { user } = useUser()
+  const { addresses, options } = useUserAddresses(user?.user.id)
 
   const selectedPickupPointId = watch("pickupPointId");
 
@@ -129,6 +125,68 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       ...data,
       deliveryDate: data.deliveryDate,
     })
+  };
+
+  const handleOpenAddAdressModal = () => {
+    setIsOpenAddAdressModal(true)
+  }
+
+  // Функция для расчета расстояния между двумя точками по координатам (формула гаверсинусов)
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Радиус Земли в км
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const handleSelectAddress = (field: ControllerRenderProps<OrderFormInputs, "address">) => (event: any) => {
+    // Вызываем оригинальное изменение поля адреса
+    
+    const address = addresses?.find(item => item.id === event?.target?.value);
+
+    field.onChange(address);
+
+    if (address && pickupPoints) {
+      const pointsWithCoords = pickupPoints.filter(
+        point => point.geo_lat && point.geo_lon
+      );
+      
+      if (pointsWithCoords.length > 0) {
+        const addressLat = parseFloat(address.geo_lat);
+        const addressLon = parseFloat(address.geo_lon);
+        
+        const pointsWithDistance = pointsWithCoords.map(point => ({
+          ...point,
+          distance: calculateDistance(
+            addressLat,
+            addressLon,
+            parseFloat(point.geo_lat),
+            parseFloat(point.geo_lon)
+          )
+        }));
+        
+        const nearestPoint = pointsWithDistance.sort((a, b) => a.distance - b.distance)[0];
+        
+        console.log('Ближайший пункт выдачи:', nearestPoint);
+        console.log('Расстояние:', nearestPoint.distance, 'км');
+        
+        // Устанавливаем значение ближайшего пункта выдачи в форму
+        setValue("pickupPointId", nearestPoint.id);
+        
+        // Также можно сбросить выбранное время доставки
+        setValue("deliveryTimeId", null);
+      } else {
+        console.log('Нет пунктов выдачи с координатами');
+        // Если нет пунктов с координатами, сбрасываем выбор
+        setValue("pickupPointId", null);
+        setValue("deliveryTimeId", null);
+      }
+    }
   };
 
   useEffect(() => {
@@ -167,181 +225,192 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   }
 
   return (
-    <Box className={styles.modalContainer}>
-      <Typography variant="h6" className={styles.modalTitle} gutterBottom>
-        Данные для доставки
-      </Typography>
-      <form onSubmit={handleSubmit(confirmForm)}>
-        <Box mb={2}>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="pickup-point-label">Пункт выдачи</InputLabel>
-            <Controller
-              name="pickupPointId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  labelId="pickup-point-label"
-                  label="Пункт выдачи"
-                  error={!!errors.pickupPointId}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <PlaceIcon color="action" />
-                    </InputAdornment>
-                  }
-                >
-                  {pickupPoints.map((point) => (
-                    <MenuItem key={point.id} value={point.id}>
-                      {point.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-            />
-            {errors.pickupPointId && (
-              <Typography color="error" variant="body2">
-                {errors.pickupPointId.message}
-              </Typography>
-            )}
-          </FormControl>
-        </Box>
-
-        {selectedPickupPointId && deliveryTimes.length > 0 && (
+    <>
+      <AddNewAddressModal
+        isOpen={isOpenAddAdressModal}
+        onClose={() => setIsOpenAddAdressModal(false)}
+      />
+      <Box className={styles.modalContainer}>
+        <Typography variant="h6" className={styles.modalTitle} gutterBottom>
+          Данные для доставки
+        </Typography>
+        <form onSubmit={handleSubmit(confirmForm)}>
           <Box mb={2}>
             <FormControl fullWidth margin="normal">
-              <InputLabel id="delivery-time-label">Время доставки</InputLabel>
+              <InputLabel id="address-label">Адрес доставки</InputLabel>
               <Controller
-                name="deliveryTimeId"
+                name="address"
                 control={control}
                 render={({ field }) => (
                   <Select
-                    {...field}
-                    labelId="delivery-time-label"
-                    label="Время доставки"
-                    error={!!errors.deliveryTimeId}
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <ScheduleIcon color="action" />
-                      </InputAdornment>
-                    }
-                    renderValue={(selected) => {
-                      const selectedTime = deliveryTimes.find(time => time.id === selected);
-                      if (!selectedTime) return null;
-                      const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
-                      return `${date}, ${selectedTime.startTime} - ${selectedTime.endTime}`;
-                    }}
+                    value={field.value?.id}
+                    onChange={handleSelectAddress(field)}
+                    labelId="address-label"
+                    label="Адрес доставки"
+                    error={!!errors.address}
                   >
-                    {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
-                      <ListSubheader key={`header-${day}`}>
-                        {weekDates[day]?.formattedDate}
-                      </ListSubheader>,
-                      ...times.map((time) => (
-                        <MenuItem 
-                          key={time.id} 
-                          value={time.id}
-                          onClick={() => {
-                            setValue("deliveryDate", weekDates[day].date);
-                          }}
-                        >
-                          {time.startTime} - {time.endTime}
-                        </MenuItem>
-                      ))
-                    ])}
+                    {options?.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
                   </Select>
                 )}
               />
-              {errors.deliveryTimeId && (
+              {errors.address && (
                 <Typography color="error" variant="body2">
-                  {errors.deliveryTimeId.message}
+                  {errors.address.message}
                 </Typography>
               )}
             </FormControl>
           </Box>
-        )}
+          <Button onClick={handleOpenAddAdressModal} className={styles.addAdressBtn} variant="outlined" color="info" fullWidth>Добавить новый адрес</Button>
 
-        {/* Остальные поля формы */}
-        <Box mb={1}>
-          <Controller
-            name="address"
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                value={value}
-                onChange={onChange}
-                label="Адрес доставки"
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                error={!!errors.address}
-                helperText={errors.address?.message}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LocationOnIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  placeholder: "Введите полный адрес доставки",
-                }}
+          <Box mb={2}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="pickup-point-label">Пункт выдачи</InputLabel>
+              <Controller
+                name="pickupPointId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    labelId="pickup-point-label"
+                    disabled
+                    label="Пункт выдачи"
+                    error={!!errors.pickupPointId}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <PlaceIcon color="action" />
+                      </InputAdornment>
+                    }
+                  >
+                    {pickupPoints.map((point) => (
+                      <MenuItem key={point.id} value={point.id}>
+                        {point.name}
+                      </MenuItem> 
+                    ))}
+                  </Select>
+                )}
               />
-            )}
-          />
-        </Box>
+              {errors.pickupPointId && (
+                <Typography color="error" variant="body2">
+                  {errors.pickupPointId.message}
+                </Typography>
+              )}
+            </FormControl>
+          </Box>
 
-        <Box mb={1}>
-          <Controller
-            name="phone"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <TextField
-                value={formatToRussianPhone(value)}
-                onChange={(e) => onChange(formatToRussianPhone(e.target.value))}
-                label="Номер телефона"
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PhoneIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            )}
-          />
-        </Box>
+          {selectedPickupPointId && deliveryTimes.length > 0 && (
+            <Box mb={2}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="delivery-time-label">Время доставки</InputLabel>
+                <Controller
+                  name="deliveryTimeId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      labelId="delivery-time-label"
+                      label="Время доставки"
+                      error={!!errors.deliveryTimeId}
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <ScheduleIcon color="action" />
+                        </InputAdornment>
+                      }
+                      renderValue={(selected) => {
+                        const selectedTime = deliveryTimes.find(time => time.id === selected);
+                        if (!selectedTime) return null;
+                        const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
+                        return `${date}, ${selectedTime.startTime} - ${selectedTime.endTime}`;
+                      }}
+                    >
+                      {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
+                        <ListSubheader key={`header-${day}`}>
+                          {weekDates[day]?.formattedDate}
+                        </ListSubheader>,
+                        ...times.map((time) => (
+                          <MenuItem 
+                            key={time.id} 
+                            value={time.id}
+                            onClick={() => {
+                              setValue("deliveryDate", weekDates[day].date);
+                            }}
+                          >
+                            {time.startTime} - {time.endTime}
+                          </MenuItem>
+                        ))
+                      ])}
+                    </Select>
+                  )}
+                />
+                {errors.deliveryTimeId && (
+                  <Typography color="error" variant="body2">
+                    {errors.deliveryTimeId.message}
+                  </Typography>
+                )}
+              </FormControl>
+            </Box>
+          )}
 
-        <Box mb={1}>
-          <Controller
-            name="comment"
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                value={value}
-                onChange={onChange}
-                label="Комментарий к заказу (необязательно)"
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                multiline
-                rows={3}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CommentIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            )}
-          />
-        </Box>
-        <Button type="submit" variant="contained" fullWidth>
-          Заказать
-        </Button>
-      </form>
-    </Box>
+          <Box mb={1}>
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <TextField
+                  value={formatToRussianPhone(value)}
+                  onChange={(e) => onChange(formatToRussianPhone(e.target.value))}
+                  label="Номер телефона"
+                  fullWidth
+                  variant="outlined"
+                  margin="normal"
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
+          </Box>
+
+          <Box mb={1}>
+            <Controller
+              name="comment"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  value={value}
+                  onChange={onChange}
+                  label="Комментарий к заказу (необязательно)"
+                  fullWidth
+                  variant="outlined"
+                  margin="normal"
+                  multiline
+                  rows={3}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CommentIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
+          </Box>
+          <Button type="submit" variant="contained" fullWidth>
+            Заказать
+          </Button>
+        </form>
+      </Box>
+    </>
+    
   )
 })

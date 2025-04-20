@@ -1,100 +1,68 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import { Layout } from "@/widgets/Layout";
-import { Button, Card, CardContent, Typography, CircularProgress, Container } from "@mui/material";
+import { Button, Card, CircularProgress, Container } from "@mui/material";
 import styles from "./ActiveOrderPage.module.scss";
-import { API } from "@/shared/api/API";
+import { useActiveOrder } from "../../api/useActiveOrder";
+import { Order } from "../../types/activeOrderTypes";
 import { OrderDetails } from "../OrderDetails/OrderDetails";
-import { OrderProductsModal } from "../OrderProductsModal/OrderProductsModal";
 import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
 
-const ActiveOrderPage: FC = () => {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+export const ActiveOrderPage: FC = () => {
+  const { data: orders, isLoading } = useActiveOrder();
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await API.get("/order/current");
-        setOrders(response.data);
-      } catch (error) {
-        console.error("Ошибка при загрузке заказов", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
-
-  const handleOpenEditModal = (order: any) => {
+  const handleOpenEditModal = (order: Order) => {
     setSelectedOrder(order);
     setIsEditModalOpen(true);
   };
 
-  const handleOpenProductsModal = (order: any) => {
-    setSelectedOrder(order);
-    setIsProductsModalOpen(true);
-  };
-
   const handleCloseModals = () => {
     setIsEditModalOpen(false);
-    setIsProductsModalOpen(false);
     setSelectedOrder(null);
   };
 
   return (
     <Layout>
-      <Container>
+      <Container maxWidth="md">
         <div className={styles.container}>
-          <Typography variant="h4" className={styles.title}>
-            Управление активными заказами
-          </Typography>
-          {loading ? (
-            <CircularProgress />
-          ) : orders.length > 0 ? (
-            <div className={styles.list}>
-              {orders.map((order) => (
-                <Card key={order.id} className={styles.card}>
-                  <CardContent>
-                    <OrderDetails order={order} />
-                    <div className={styles.actions}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleOpenProductsModal(order)}
-                        className={styles.button}
-                        disabled
-                      >
-                        Добавить / изменить товары
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={() => handleOpenEditModal(order)}
-                        className={styles.button}
-                        disabled
-                      >
-                        Редактировать
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+          <h1 className={styles.title}>Активный заказ</h1>
+
+          {isLoading ? (
+            <div className={styles.loading}>
+              <CircularProgress />
             </div>
+          ) : orders && orders.length > 0 ? (
+            <Card className={styles.card}>
+              <OrderDetails order={orders[0]} />
+              <div className={styles.actions}>
+                <Button
+                  variant="contained"
+                  onClick={() => handleOpenEditModal(orders[0])}
+                  className={styles.editButton}
+                  disabled
+                  sx={{ m: 1 }}
+                >
+                  Добавить товары
+                </Button>
+              </div>
+            </Card>
           ) : (
-            <Typography variant="h6" className={styles.noOrders}>
-              У вас нет активных заказов
-            </Typography>
+            <div className={styles.empty}>
+              <h2>У вас нет активных заказов</h2>
+              <p>Вы можете оформить новый заказ в каталоге товаров</p>
+            </div>
           )}
-          <OrderProductsModal open={isProductsModalOpen} onClose={handleCloseModals} order={selectedOrder} />
-          <EditOrderModal open={isEditModalOpen} onClose={handleCloseModals} order={selectedOrder} />
+
+          {selectedOrder && (
+            <EditOrderModal
+              open={isEditModalOpen}
+              onClose={handleCloseModals}
+              order={selectedOrder}
+            />
+          )}
         </div>
       </Container>
     </Layout>
   );
 };
-
-export default ActiveOrderPage;

@@ -13,7 +13,7 @@ import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
 import { RoutePath } from "@/shared/routes/routeConfig";
 import WebApp from "@twa-dev/sdk";
 import { NoTelegramWarning } from "@/widgets/NoTelegramWarning";
-import ActiveOrderPage from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOrderPage";
+import { ActiveOrderPage } from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOrderPage";
 
 const queryClient = new QueryClient();
 

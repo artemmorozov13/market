@@ -38,7 +38,7 @@ const PickPointPage: FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { control, handleSubmit, reset } = useForm<PickupPointFormData>();
+  const { control, handleSubmit, reset, setValue } = useForm<PickupPointFormData>();
 
   useEffect(() => {
     const fetchPickupPoints = async () => {
@@ -87,11 +87,21 @@ const PickPointPage: FC = () => {
       reset({
         id: editingPoint.id,
         name: editingPoint.name,
+        address: editingPoint.fullAddress,
+        fias_id: editingPoint.fias_id,
+        postal_code: editingPoint.postal_code,
+        geo_lat: editingPoint.geo_lat,
+        geo_lon: editingPoint.geo_lon,
         deliveryTimes: initialDeliveryTimes
       });
     } else {
       reset({
         name: '',
+        address: '',
+        fias_id: '',
+        postal_code: '',
+        geo_lat: '',
+        geo_lon: '',
         deliveryTimes: [{
           dayOfWeek: dayOptions[0],
           startTime: defaultTimeOptionStart,
@@ -105,7 +115,14 @@ const PickPointPage: FC = () => {
     setIsSubmitting(true);
     try {
       const payload = {
-        ...data,
+        name: data.name,
+        address: {
+          fullAddress: data.address,
+          postal_code: data.postal_code,
+          fias_id: data.fias_id,
+          geo_lat: data.geo_lat,
+          geo_lon: data.geo_lon,
+        },
         deliveryTimes: data.deliveryTimes.map(time => ({
           dayOfWeek: time.dayOfWeek.value,
           startTime: time.startTime.value,
@@ -258,6 +275,7 @@ const PickPointPage: FC = () => {
           onSubmit={handleSubmit(onSubmit)}
           control={control}
           errors={{}}
+          setValue={setValue}
           isSubmitting={isSubmitting}
           isEditing={!!editingPoint}
           selectedPoint={editingPoint}

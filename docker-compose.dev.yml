@@ -4,9 +4,11 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres
+    env_file:
+      - ./.env.dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -17,12 +19,9 @@ services:
       context: ./backend
       target: dev
     environment:
-      - PORT=3000
-      - DB_HOST=postgres
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
       - NODE_ENV=development
+    env_file:
+      - ./.env.dev
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -30,6 +29,7 @@ services:
       - "3000:3000"
     depends_on:
       - postgres
+    command: ["/wait-for-it.sh", "postgres:5432", "--", "npm", "run", "start:dev"]
 
   admin:
     build:

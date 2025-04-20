@@ -31,8 +31,16 @@ export class PickupPointController {
     return this.pickupPointService.update(+id, updateDto);
   }
 
+  @Patch(':id')
+  partialUpdate(
+    @Param('id') id: string,
+    @Body() updateDto: UpdatePickupPointDto,
+  ): Promise<PickupPoint> {
+    return this.pickupPointService.update(+id, updateDto);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
-    this.pickupPointService.remove(+id);
+    return this.pickupPointService.remove(+id);
   }
 }

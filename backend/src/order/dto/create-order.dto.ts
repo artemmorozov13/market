@@ -5,6 +5,9 @@ export class CreateOrderDto {
   address: string;
 
   @IsString()
+  fullAddress: string;
+
+  @IsString()
   phoneNumber: string;
 
   @IsString()

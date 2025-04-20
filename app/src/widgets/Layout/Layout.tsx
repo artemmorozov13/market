@@ -43,7 +43,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
             to={RoutePath.products}
             className={styles.navItem}
             icon={<Storefront />}
-            label="Products"
+            label="Продукты"
             value={1}
           />
           <BottomNavigationAction
@@ -51,7 +51,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
             to={RoutePath.activeOrders}
             className={styles.navItem}
             icon={<ListAlt />}
-            label="Orders"
+            label="Заказы"
             value={3}
           />
           <BottomNavigationAction
@@ -69,7 +69,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
                 <ShoppingBasket />
               </Badge>
             }
-            label="Basket"
+            label="Корзина"
           />
         </BottomNavigation>
       </Paper>
