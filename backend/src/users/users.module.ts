@@ -14,7 +14,7 @@ import { OrderEntity } from 'src/entities/order.entity';
       OrderEntity
     ]),
     BasketModule,
-    forwardRef(() => AuthModule), // Используем forwardRef
+    forwardRef(() => AuthModule),
   ],
   providers: [UsersService],
   controllers: [UsersController],

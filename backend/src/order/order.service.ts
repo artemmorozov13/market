@@ -13,6 +13,7 @@ import { PickupPoint } from 'src/entities/pickup-point.entity';
 import { DeliveryTime } from 'src/entities/delivery-time.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductEntity } from 'src/entities/product.entity';
+import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 
 @Injectable()
 export class OrderService {
@@ -95,10 +96,9 @@ export class OrderService {
     return await this.orderRepository.update(orderId, { status: "finished" })
   }
   
-  async createOrder(createOrderDto: CreateOrderDto, initData: string) {
-    const telegramUser = TelegramUtils.parseInitData(initData);
+  async createOrder(createOrderDto: CreateOrderDto, userData: AuthJwtPayload) {
     const user = await this.usersRepository.findOne({
-      where: { telegram_id: telegramUser.id }
+      where: { id: userData.sub }
     });
 
     if (!user) {
@@ -138,7 +138,7 @@ export class OrderService {
     }
 
     const selectedProducts = await this.selectedProductsRepository.find({
-      where: { userTgchatId: telegramUser.id },
+      where: { userTgchatId: user.telegram_id },
       relations: ["product"]
     });
 
@@ -154,6 +154,15 @@ export class OrderService {
       throw new NotFoundException('Пункт выдачи не найден');
     }
 
+    // Получаем объект DeliveryTime по ID
+    const deliveryTime = await this.deliveryTimeRepository.findOne({
+      where: { id: createOrderDto.deliveryTimeId }
+    });
+
+    if (!deliveryTime) {
+      throw new NotFoundException('Время доставки не найдено');
+    }
+
     const order = this.orderRepository.create({
       address: createOrderDto.address,
       fullAddress: createOrderDto.fullAddress,
@@ -163,6 +172,7 @@ export class OrderService {
       user: user,
       pickupPoint: pickupPoint,
       deliveryDate: createOrderDto.deliveryDate,
+      deliveryTime: deliveryTime,
     });
 
     const savedOrder = await this.orderRepository.save(order);
@@ -178,7 +188,7 @@ export class OrderService {
     });
 
     await this.orderedProductsRepository.save(orderedProducts);
-    await this.selectedProductsRepository.delete({ userTgchatId: telegramUser.id });
+    await this.selectedProductsRepository.delete({ userTgchatId: user.telegram_id });
 
     return savedOrder;
   }

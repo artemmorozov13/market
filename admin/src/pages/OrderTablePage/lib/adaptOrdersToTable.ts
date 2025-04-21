@@ -4,6 +4,7 @@ import { ProductType } from "@entities/Product";
 export interface TableOrder {
   id: number;
   address: string;
+  fullAddress: string
   priority: number;
   deliveryTimeRange: string; // Изменил название для ясности
   pickupPointName: string; // Добавил информацию о пункте выдачи
@@ -44,6 +45,7 @@ export const adaptOrdersToTable = (
     return {
       id: order.id,
       address: order.address,
+      fullAddress: order.fullAddress,
       createdAt: order.created_at,
       status: order.status,
       priority: calculatePriority(order),

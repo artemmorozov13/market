@@ -15,6 +15,7 @@ export interface OrderType {
   created_at: Date;
   updated_at: Date;
   address: string;
+  fullAddress: string;
   phoneNumber?: string;
   comment?: string;
   deliveryDate: string

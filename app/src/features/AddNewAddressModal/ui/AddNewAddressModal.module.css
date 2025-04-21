@@ -80,4 +80,41 @@
     margin-bottom: .5rem;
   }
 }
-  
+
+/* Стили для Autocomplete */
+.autocompleteContainer {  
+  position: relative;
+}
+
+/* Стили для выпадающего списка */
+.autocompletePaper {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  background-color: white;
+  border: 1px solid;
+  border-top: none;
+  border-radius: 4px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Стили для каждой опции в списке */
+.autocompleteOption {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  padding: 8px 16px !important;
+}
+
+/* Стили для текстового поля ввода */
+.autocompleteInput {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  min-height: 56px; /* Высота для многострочного ввода */
+  align-items: flex-start !important; /* Выравнивание по верху */
+}
+
+/* Стили для многострочного ввода */
+.autocompleteInputRoot {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}

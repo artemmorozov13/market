@@ -22,7 +22,8 @@ import { AuthModule } from 'src/auth/auth.module';
       PickupPoint,
       DeliveryTime,
       ProductEntity
-    ])
+    ]),
+    AuthModule
   ],
   providers: [OrderService],
   controllers: [OrderController],

@@ -5,6 +5,9 @@ import { GetOrderQueryDto } from './dto/get-order-query.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { User } from 'src/decorators/user.decorator';
+import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 
 @Controller('order')
 export class OrderController {
@@ -24,11 +27,12 @@ export class OrderController {
   }
 
   @Post('create')
+  @UseGuards(JwtAuthGuard)
   createOrder(
     @Body() createOrderDto: CreateOrderDto,
-    @Headers('init-data') initData: string,
+    @User() user: AuthJwtPayload,
   ) {
-    return this.orderService.createOrder(createOrderDto, initData)
+    return this.orderService.createOrder(createOrderDto, user)
   }
 
   @Post('update-order')

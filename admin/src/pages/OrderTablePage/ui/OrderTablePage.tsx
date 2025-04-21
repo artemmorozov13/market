@@ -62,7 +62,7 @@ const Row: FC<RowProps> = ({ order, products, onStatusUpdate }) => {
         </TableCell>
         <TableCell>
           <Typography fontWeight="bold">Адрес</Typography>
-          {order.address}
+          {order.fullAddress}
         </TableCell>
         <TableCell>
           <Typography fontWeight="bold">Пункт выдачи</Typography>
@@ -263,7 +263,7 @@ const OrderTablePage: FC = observer(() => {
     tableOrders.forEach((order) => {
       excelData.push([
         order.id,
-        order.address,
+        order.fullAddress,
         order.pickupPointName || 'Не указан',
         order.priority,
         order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана',
@@ -355,7 +355,7 @@ const OrderTablePage: FC = observer(() => {
     tableOrders.forEach((order) => {
       const rowData = [
         order.id,
-        order.address,
+        order.fullAddress,
         order.pickupPointName || 'Не указан',
         order.priority,
         order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана',

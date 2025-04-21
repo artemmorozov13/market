@@ -174,13 +174,6 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
                         data: newValue.data
                       });
                       setValue('addressData', newValue.data);
-                      
-                      // Автоматическое заполнение дополнительных полей
-                      if (newValue.data) {
-                        // Пример:
-                        // setValue('entrance', newValue.data.entrance || '');
-                        // setValue('floor', newValue.data.floor || '');
-                      }
                     } else {
                       onChange('');
                       setLastSelectedValue(null);
@@ -191,6 +184,17 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
                   filterOptions={(options) => {
                     return inputValue.trim() ? options : [];
                   }}
+                  className={styles.autocompleteContainer}
+                  PaperComponent={({ children }) => (
+                    <div className={styles.autocompletePaper}>
+                      {children}
+                    </div>
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props} className={styles.autocompleteOption}>
+                      {typeof option === 'string' ? option : option.label}
+                    </li>
+                  )}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -199,8 +203,14 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
                       error={!!errors.fullAddress}
                       helperText={errors.fullAddress?.message || "Введите адрес в Санкт-Петербурге или Ленинградской области"}
                       fullWidth
+                      multiline // Добавляем поддержку многострочного ввода
+                      maxRows={4} // Максимальное количество строк до появления скролла
                       InputProps={{
                         ...params.InputProps,
+                        classes: {
+                          root: styles.autocompleteInputRoot,
+                          input: styles.autocompleteInput,
+                        },
                         endAdornment: (
                           <>
                             {isLoading && <CircularProgress size={20} />}
