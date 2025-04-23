@@ -21,8 +21,8 @@ import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 export class AddressesController {
     constructor(private readonly addressesService: AddressesService) {}
     
-    @UseGuards(JwtAuthGuard)
     @Post()
+    @UseGuards(JwtAuthGuard)
     create(
         @User() user: AuthJwtPayload,
         @Body() createAddressDto: CreateAddressDto
@@ -30,8 +30,8 @@ export class AddressesController {
       return this.addressesService.create(user, createAddressDto);
     } 
     
-    @UseGuards(JwtAuthGuard)
     @Get()
+    @UseGuards(JwtAuthGuard)
     findAll(@User() user: AuthJwtPayload) {
       return this.addressesService.findAllByUser(user);
     }

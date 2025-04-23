@@ -10,3 +10,11 @@ export const API = axios.create({
         ["init-data"]: WebApp.initData
     }
 })
+
+API.interceptors.request.use((config) => {
+    const token = Cookies.get(ACCESS_TOKEN);
+    if (token) {
+      config.headers.authorization = `Bearer ${token}`;
+    }
+    return config;
+});
