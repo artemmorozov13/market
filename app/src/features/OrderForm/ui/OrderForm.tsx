@@ -24,12 +24,43 @@ import CommentIcon from "@mui/icons-material/Comment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import PlaceIcon from "@mui/icons-material/Place";
 import { API } from "@/shared/api/API";
+import clsx from "clsx"
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
+}
+
+function getAvailableDeliveryDates(
+  deliveryDays: number[], // напр., [1, 4, 5]
+  currentDate: Date = new Date()
+): Date[] {
+  const result: Date[] = [];
+  const now = new Date(currentDate);
+  const currentDay = now.getDay() === 0 ? 7 : now.getDay(); // воскресенье = 7
+  const currentTime = now.getTime();
+
+  for (let i = 1; i <= 7; i++) {
+    // Начинаем с понедельника (1) по воскресенье (7)
+    if (i <= currentDay) continue; // только дни после сегодняшнего
+    if (i === 1) continue; // исключаем понедельник (доставка в понедельник невозможна)
+
+    if (deliveryDays.includes(i)) {
+      const targetDate = new Date(now);
+      const daysToAdd = i - currentDay;
+      targetDate.setDate(now.getDate() + daysToAdd);
+      targetDate.setHours(0, 0, 0, 0);
+
+      // Проверка на 24 часа
+      if (targetDate.getTime() - currentTime >= 24 * 60 * 60 * 1000) {
+        result.push(targetDate);
+      }
+    }
+  }
+
+  return result;
 }
 
 const formatDate = (dateString: string): string => {
@@ -44,39 +75,34 @@ const formatDate = (dateString: string): string => {
   return `${weekday}, ${day}.${month}`;
 };
 
-export const getWeekDates = (): Record<string, { date: string; isToday: boolean; formattedDate: string }> => {
-  const now = new Date();
+export const getWeekDates = (deliveryTimes: DeliveryTime[], currentDate: Date = new Date()): Record<string, { date: string; isToday: boolean; formattedDate: string }> => {
+  const now = new Date(currentDate);
+  const currentDay = now.getDay(); // 0 (воскресенье) до 6 (суббота)
   const dates: Record<string, { date: string; isToday: boolean; formattedDate: string }> = {};
 
-  for (let i = 0; i < 7; i++) {
+  // Получаем уникальные дни недели, для которых есть доставка
+  const availableDays = Array.from(new Set(deliveryTimes.map(time => time.dayOfWeek)));
+
+  availableDays.forEach(dayKey => {
+    const dayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(dayKey);
+    
+    // Вычисляем разницу дней между текущим днем и днем доставки
+    let dayDiff = dayIndex - currentDay;
+    
+    // Если день доставки уже прошел на этой неделе или это сегодня (доставка день в день не работает)
+    if (dayDiff <= 0) return;
+    
     const date = new Date(now);
-    date.setDate(now.getDate() + i);
-    const dayOfWeek = date.getDay();
-    const dayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][dayOfWeek];
+    date.setDate(now.getDate() + dayDiff);
     
     dates[dayKey] = {
       date: date.toISOString().split('T')[0],
-      isToday: i === 0,
+      isToday: false, // У нас никогда не будет isToday=true, так как dayDiff <= 0 отсекается
       formattedDate: formatDate(date.toISOString())
     };
-  }
+  });
 
   return dates;
-};
-
-export const isTimeSlotAvailable = (
-  timeSlot: DeliveryTime,
-  weekDates: Record<string, { date: string; isToday: boolean; formattedDate: string }>,
-): boolean => {
-  const todayData = weekDates[timeSlot.dayOfWeek];
-  if (!todayData?.isToday) return true;
-
-  const now = new Date();
-  const [hours, minutes] = timeSlot.startTime.split(':').map(Number);
-  const slotTime = new Date(now);
-  slotTime.setHours(hours, minutes, 0, 0);
-
-  return slotTime > now;
 };
 
 export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
@@ -84,7 +110,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [loading, setLoading] = useState(true);
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
   const [weekDates, setWeekDates] = useState<Record<string, { date: string; isToday: boolean; formattedDate: string }>>({});
-  const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false)
+  const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
 
   const {
     control,
@@ -104,15 +130,16 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { user } = useUser()
-  const { addresses, options } = useUserAddresses(user?.user.id)
-
+  const { user } = useUser();
+  const { addresses, options } = useUserAddresses(user?.user.id);
   const selectedPickupPointId = watch("pickupPointId");
 
+  // Все временные слоты в weekDates уже доступны
   const availableDeliveryTimes = deliveryTimes.filter(time => 
-    isTimeSlotAvailable(time, weekDates)
+    weekDates[time.dayOfWeek] !== undefined
   );
   
+  // Группируем временные слоты по дням недели
   const groupedDeliveryTimes = availableDeliveryTimes.reduce((acc, time) => {
     const day = time.dayOfWeek;
     if (!acc[day]) acc[day] = [];
@@ -124,16 +151,15 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     onSubmit({
       ...data,
       deliveryDate: data.deliveryDate,
-    })
+    });
   };
 
   const handleOpenAddAdressModal = () => {
-    setIsOpenAddAdressModal(true)
-  }
+    setIsOpenAddAdressModal(true);
+  };
 
-  // Функция для расчета расстояния между двумя точками по координатам (формула гаверсинусов)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Радиус Земли в км
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -145,10 +171,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   };
 
   const handleSelectAddress = (field: ControllerRenderProps<OrderFormInputs, "address">) => (event: any) => {
-    // Вызываем оригинальное изменение поля адреса
-    
     const address = addresses?.find(item => item.id === event?.target?.value);
-
     field.onChange(address);
 
     if (address && pickupPoints) {
@@ -172,17 +195,9 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         
         const nearestPoint = pointsWithDistance.sort((a, b) => a.distance - b.distance)[0];
         
-        console.log('Ближайший пункт выдачи:', nearestPoint);
-        console.log('Расстояние:', nearestPoint.distance, 'км');
-        
-        // Устанавливаем значение ближайшего пункта выдачи в форму
         setValue("pickupPointId", nearestPoint.id);
-        
-        // Также можно сбросить выбранное время доставки
         setValue("deliveryTimeId", null);
       } else {
-        console.log('Нет пунктов выдачи с координатами');
-        // Если нет пунктов с координатами, сбрасываем выбор
         setValue("pickupPointId", null);
         setValue("deliveryTimeId", null);
       }
@@ -200,7 +215,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         setLoading(false);
       }
     };
-    setWeekDates(getWeekDates());
     fetchPickupPoints();
   }, []);
 
@@ -208,13 +222,35 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     if (selectedPickupPointId) {
       const selectedPoint = pickupPoints.find(p => p.id === selectedPickupPointId);
       if (selectedPoint) {
-        setDeliveryTimes(selectedPoint.deliveryTimes);
+        const deliveryTimes = selectedPoint.deliveryTimes;
+        setDeliveryTimes(deliveryTimes);
+  
+        const deliveryDays = deliveryTimes.map(time => {
+          const dayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(time.dayOfWeek);
+          return dayIndex === 0 ? 7 : dayIndex; // Приводим к 1-7
+        });
+  
+        const availableDates = getAvailableDeliveryDates(deliveryDays);
+        
+        const formattedDates = availableDates.reduce((acc, date) => {
+          const dayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
+          acc[dayKey] = {
+            date: date.toISOString().split("T")[0],
+            isToday: false,
+            formattedDate: formatDate(date.toISOString())
+          };
+          return acc;
+        }, {} as Record<string, { date: string; isToday: boolean; formattedDate: string }>);
+  
+        setWeekDates(formattedDates);
         setValue("deliveryTimeId", null);
       }
     } else {
       setDeliveryTimes([]);
+      setWeekDates({});
     }
   }, [selectedPickupPointId, pickupPoints, setValue]);
+  
 
   if (loading) {
     return (
@@ -227,44 +263,65 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   return (
     <>
       <AddNewAddressModal
+        key={isOpenAddAdressModal ? 'open' : 'closed'}
         isOpen={isOpenAddAdressModal}
         onClose={() => setIsOpenAddAdressModal(false)}
+        setAddressValue={setValue}
       />
       <Box className={styles.modalContainer}>
         <Typography variant="h6" className={styles.modalTitle} gutterBottom>
           Данные для доставки
         </Typography>
         <form onSubmit={handleSubmit(confirmForm)}>
-          <Box mb={2}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="address-label">Адрес доставки</InputLabel>
-              <Controller
-                name="address"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value?.id}
-                    onChange={handleSelectAddress(field)}
-                    labelId="address-label"
-                    label="Адрес доставки"
-                    error={!!errors.address}
-                  >
-                    {options?.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
+          {!!options?.length ? (
+            <div className={styles.addressInput}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="address-label">
+                  Выберите адрес доставки
+                </InputLabel>
+                <Controller
+                  name="address"
+                  control={control}
+                  defaultValue={options[0].value}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value?.id}
+                      onChange={handleSelectAddress(field)}
+                      labelId="address-label"
+                      label={!options?.length ? 'Нет доступных адресов' : 'Выберите адрес доставки'}
+                      error={!!errors.address}
+                      MenuProps={{
+                        classes: {
+                          paper: clsx(styles.menuPaper, styles.paperRoot),
+                          list: styles.addressesList
+                        }
+                      }}
+                    >
+                      {options?.map((option) => (
+                        <MenuItem key={option.value} value={option.value} className={styles.menuItem}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors.address && (
+                  <Typography color="error" variant="body2">
+                    {errors.address.message}
+                  </Typography>
                 )}
-              />
-              {errors.address && (
-                <Typography color="error" variant="body2">
-                  {errors.address.message}
-                </Typography>
-              )}
-            </FormControl>
-          </Box>
-          <Button onClick={handleOpenAddAdressModal} className={styles.addAdressBtn} variant="outlined" color="info" fullWidth>Добавить новый адрес</Button>
+              </FormControl>
+            </div>
+          ) : null}
+          <Button
+            onClick={handleOpenAddAdressModal}
+            className={styles.addAdressBtn}
+            variant="outlined"
+            color="info"
+            fullWidth
+          >
+            Добавить новый адрес
+          </Button>
 
           <Box mb={2}>
             <FormControl fullWidth margin="normal">
@@ -293,65 +350,71 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   </Select>
                 )}
               />
-              {errors.pickupPointId && (
-                <Typography color="error" variant="body2">
-                  {errors.pickupPointId.message}
-                </Typography>
-              )}
             </FormControl>
           </Box>
 
           {selectedPickupPointId && deliveryTimes.length > 0 && (
-            <Box mb={2}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel id="delivery-time-label">Время доставки</InputLabel>
-                <Controller
-                  name="deliveryTimeId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="delivery-time-label"
-                      label="Время доставки"
-                      error={!!errors.deliveryTimeId}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <ScheduleIcon color="action" />
-                        </InputAdornment>
-                      }
-                      renderValue={(selected) => {
-                        const selectedTime = deliveryTimes.find(time => time.id === selected);
-                        if (!selectedTime) return null;
-                        const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
-                        return `${date}, ${selectedTime.startTime} - ${selectedTime.endTime}`;
-                      }}
-                    >
-                      {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
-                        <ListSubheader key={`header-${day}`}>
-                          {weekDates[day]?.formattedDate}
-                        </ListSubheader>,
-                        ...times.map((time) => (
-                          <MenuItem 
-                            key={time.id} 
-                            value={time.id}
-                            onClick={() => {
-                              setValue("deliveryDate", weekDates[day].date);
-                            }}
-                          >
-                            {time.startTime} - {time.endTime}
-                          </MenuItem>
-                        ))
-                      ])}
-                    </Select>
+            Object.keys(weekDates).length > 0 ? (
+              <Box mb={2}>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel id="delivery-time-label">Время доставки</InputLabel>
+                  <Controller
+                    name="deliveryTimeId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        labelId="delivery-time-label"
+                        label="Время доставки"
+                        error={!!errors.deliveryTimeId}
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <ScheduleIcon color="action" />
+                          </InputAdornment>
+                        }
+                        renderValue={(selected) => {
+                          const selectedTime = deliveryTimes.find(time => time.id === selected);
+                          if (!selectedTime) return null;
+                          const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
+                          return `${date}, ${selectedTime.startTime} - ${selectedTime.endTime}`;
+                        }}
+                      >
+                        {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
+                          <ListSubheader key={`header-${day}`}>
+                            {weekDates[day]?.formattedDate}
+                          </ListSubheader>,
+                          ...times.map((time) => (
+                            <MenuItem 
+                              key={time.id} 
+                              value={time.id}
+                              onClick={() => {
+                                setValue("deliveryDate", weekDates[day].date);
+                              }}
+                            >
+                              {time.startTime} - {time.endTime}
+                            </MenuItem>
+                          ))
+                        ])}
+                      </Select>
+                    )}
+                  />
+                  {errors.deliveryTimeId && (
+                    <Typography color="error" variant="body2">
+                      {errors.deliveryTimeId.message}
+                    </Typography>
                   )}
-                />
-                {errors.deliveryTimeId && (
-                  <Typography color="error" variant="body2">
-                    {errors.deliveryTimeId.message}
-                  </Typography>
-                )}
-              </FormControl>
-            </Box>
+                </FormControl>
+              </Box>
+            ) : (
+              <Box mb={2} textAlign="center" py={2}>
+                <Typography variant="body1" color="textSecondary">
+                  Доставка на этой неделе по вашему адресу закончилась
+                </Typography>
+                <Typography variant="body2" color="textSecondary" mt={1}>
+                  Пожалуйста, выберите другой пункт выдачи или попробуйте позже
+                </Typography>
+              </Box>
+            )
           )}
 
           <Box mb={1}>
@@ -411,6 +474,5 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         </form>
       </Box>
     </>
-    
-  )
-})
+  );
+});

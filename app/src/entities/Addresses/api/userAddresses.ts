@@ -24,6 +24,7 @@ export const useUserAddresses = (userId?: number) => {
   
   return {
     ...query,
+    refetchAddresses: query.refetch,
     addresses: query.data,
     options: addressOptions
   }

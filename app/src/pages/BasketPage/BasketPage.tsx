@@ -8,9 +8,8 @@ import { basketStore } from "@/entities/Basket";
 import { Layout } from "@/widgets/Layout";
 import { RoutePath } from "@/shared/routes/routeConfig";
 import { BasketCard } from "@/entities/Basket/ui/BasketCard/BasketCard";
-import { Link, useNavigate } from "react-router";
-
-const DELIVERY_PRICE = 100;
+import { useNavigate } from "react-router";
+import { DELIVERY_PRICE } from "@/shared/consts/applicationConsts";
 
 const BasketPage: FC = observer(() => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -71,8 +70,7 @@ const BasketPage: FC = observer(() => {
           <Button
             variant="contained"
             className={styles.checkoutButton}
-            component={Link}
-            to={RoutePath.order}
+            onClick={() => navigate(RoutePath.order)}
           >
             Оформить заказ
           </Button>
@@ -120,8 +118,7 @@ const BasketPage: FC = observer(() => {
           <Button
             variant="contained"
             className={styles.checkoutButtonMobile}
-            component={Link}
-            to={RoutePath.order}
+            onClick={() => navigate(RoutePath.order)}
           >
             Оформить заказ
           </Button>

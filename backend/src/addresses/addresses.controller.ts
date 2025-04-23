@@ -14,6 +14,7 @@ import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
+import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 
   
 @Controller('addresses')
@@ -23,7 +24,7 @@ export class AddressesController {
     @UseGuards(JwtAuthGuard)
     @Post()
     create(
-        @User() user: any,
+        @User() user: AuthJwtPayload,
         @Body() createAddressDto: CreateAddressDto
     ) {
       return this.addressesService.create(user, createAddressDto);
@@ -31,7 +32,7 @@ export class AddressesController {
     
     @UseGuards(JwtAuthGuard)
     @Get()
-    findAll(@User() user: any,) {
+    findAll(@User() user: AuthJwtPayload) {
       return this.addressesService.findAllByUser(user);
     }
     

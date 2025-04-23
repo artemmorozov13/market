@@ -82,10 +82,6 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
     }
   };
 
-  const classes: Record<string, boolean> = {
-    [styles.added]: isInBasket,
-  };
-
   return (
     <>
       <ConfirmRemoveFromBasketModal
@@ -175,7 +171,6 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
             <Button
               variant="contained"
               size="medium"
-              className={clsx(styles.button, classes)}
               onClick={handleToggleBasketStatus}
               disabled={isLoadingAdd || isLoadingRemove}
               fullWidth

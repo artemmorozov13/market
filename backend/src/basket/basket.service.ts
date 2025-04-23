@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { RemoveProductFromBasketDto } from './dto/remove-product-to-basket.dto';
 import { SelectedProductEntity } from 'src/entities/selected-product.entity';
 import { TelegramUtils } from 'src/utils/telegram.utils';
+import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 
 @Injectable()
 export class BasketService {
@@ -29,10 +30,11 @@ export class BasketService {
     return this.basketRepository.save(basket);
   }
 
-  async clearBasket(initData: string) {
-    const telegramUser = TelegramUtils.parseInitData(initData)
+  async clearBasket(user: AuthJwtPayload) {
     return await this.selectedProductRepository.delete({
-      userTgchatId: telegramUser.id
+      user: {
+        id: user.sub
+      }
     });
   }
 

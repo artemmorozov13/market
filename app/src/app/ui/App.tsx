@@ -24,38 +24,38 @@ export const App: FC = () => {
     )
   }
   return (
-    <BrowserRouter basename='/'>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={yellowOrangeTheme}>
-          <AuthProvider>
-            <Routes>
-              <Route path={RoutePath.home} element={<ProductsPageLazy/>} />
-              <Route path={RoutePath.products} element={<ProductsPageLazy/>} />
-              <Route path={RoutePath.basket} element={<BasketPageLazy/>} />
-              <Route path={RoutePath.order} element={<OrderPageLazy/>} />
-              <Route path={RoutePath.activeOrders} element={<ActiveOrderPage/>} />
-            </Routes>
-          </AuthProvider>
-        </ThemeProvider>
-        <CssBaseline />
-        <ToastContainer
-          position="bottom-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          toastStyle={{
-            backgroundColor: "#FFFFFF",
-            borderLeft: "4px solid #FFA000",
-            color: "#212121",
-          }}
-        />
-      </QueryClientProvider>
-    </BrowserRouter>
+    <ThemeProvider theme={yellowOrangeTheme}>
+      <BrowserRouter basename='/'>
+        <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <Routes>
+                <Route path={RoutePath.home} element={<ProductsPageLazy/>} />
+                <Route path={RoutePath.products} element={<ProductsPageLazy/>} />
+                <Route path={RoutePath.basket} element={<BasketPageLazy/>} />
+                <Route path={RoutePath.order} element={<OrderPageLazy/>} />
+                <Route path={RoutePath.activeOrders} element={<ActiveOrderPage/>} />
+              </Routes>
+            </AuthProvider>
+          <CssBaseline />
+          <ToastContainer
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+            toastStyle={{
+              backgroundColor: "#FFFFFF",
+              borderLeft: "4px solid #FFA000",
+              color: "#212121",
+            }}
+          />
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };

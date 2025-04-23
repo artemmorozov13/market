@@ -1,5 +1,6 @@
 import { IsString, IsNotEmpty, IsOptional, IsObject, ValidateNested } from 'class-validator';
 import { AddressDataDto } from './address-data.dto';
+import { Optional } from '@nestjs/common';
 
 export class CreateAddressDto {
   @IsString()
@@ -11,15 +12,15 @@ export class CreateAddressDto {
   entrance: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   floor: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   apartment: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   intercom: string;
 
   @IsString()

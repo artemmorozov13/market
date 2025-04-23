@@ -1,5 +1,5 @@
 import { FC, useEffect, useState, useCallback, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, UseFormSetValue } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { 
@@ -17,6 +17,7 @@ import { useAddressSuggestions } from "../api/queryAdreess";
 import { useSaveAddress } from "../api/putNewAddress";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
+import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes";
 
 interface AddressSuggestion {
   value: string;
@@ -30,9 +31,9 @@ interface AddressSuggestion {
 interface AddressFormValues {
   fullAddress: string;
   entrance: string;
-  floor: string;
-  apartment: string;
-  intercom: string;
+  floor?: string;
+  apartment?: string;
+  intercom?: string;
   addressData?: any;
 }
 
@@ -41,14 +42,15 @@ interface AddressFormValues {
 interface AddNewAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
+  setAddressValue: UseFormSetValue<OrderFormInputs>
 }
 
 const validationSchema = yup.object().shape({
   fullAddress: yup.string().required("Адрес обязателен"),
   entrance: yup.string(),
-  floor: yup.string(),
-  apartment: yup.string(),
-  intercom: yup.string(),
+  // floor: yup.string(),
+  // apartment: yup.string(),
+  // intercom: yup.string(),
 });
 
 const defaultValues: AddressFormValues = {
@@ -63,7 +65,8 @@ const defaultValues: AddressFormValues = {
 export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
   const { 
     isOpen, 
-    onClose 
+    onClose,
+    setAddressValue
   } = props
 
   const [inputValue, setInputValue] = useState('');
@@ -101,13 +104,35 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
 
   const onSubmit = useCallback(async (data: AddressFormValues) => {
     try {
-      await saveAddress(data as any);
-      await refetch()
+      const response = await saveAddress(data as any);
+      const addressValue = {
+        id: response.id,
+        apartment: response.apartment,
+        comment: response.comment,
+        entrance: response.entrance,
+        fias_id: response.fias_id,
+        floor: response.floor,
+        fullAddress: response.fullAddress,
+        geo_lat: response.geo_lat,
+        geo_lon: response.geo_lon,
+        intercom: response.intercom,
+        postal_code: response.postal_code,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
+      };
+      
+      // Обновляем список адресов
+      await refetch();
+      
+      // Устанавливаем новый адрес как выбранный
+      setAddressValue("address", addressValue);
+      
+      // Закрываем модальное окно
       handleClose();
     } catch (error) {
       console.error('Ошибка при сохранении адреса:', error);
     }
-  }, [saveAddress, handleClose]);
+  }, [saveAddress, handleClose, refetch, setAddressValue]);
 
   const addressOptions = useMemo(() => suggestions.map(suggestion => ({
     label: suggestion.value,
@@ -240,7 +265,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Подъезд"
+                  label="Парадная"
                   error={!!errors.entrance}
                   helperText={errors.entrance?.message}
                   fullWidth
@@ -248,7 +273,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
               )}
             />
 
-            <Controller
+            {/* <Controller
               name="floor"
               control={control}
               render={({ field }) => (
@@ -288,7 +313,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
                   fullWidth
                 />
               )}
-            />
+            /> */}
 
             <Button 
               type="submit" 

@@ -1,7 +1,10 @@
-import { Controller, Get, Param, Post, Delete, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Param, Post, Delete, Body, Headers, UseGuards } from '@nestjs/common';
 import { BasketService } from './basket.service';
 import { AddProductToBasketDto } from './dto/add-product-to-basket.dto';
 import { RemoveProductFromBasketDto } from './dto/remove-product-to-basket.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { User } from 'src/decorators/user.decorator';
+import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 
 @Controller('basket')
 export class BasketController {
@@ -13,8 +16,9 @@ export class BasketController {
   }
 
   @Post('clear')
-  clearBasket(@Headers('init-data') initData: string,) {
-    return this.basketService.clearBasket(initData)
+  @UseGuards(JwtAuthGuard)
+  clearBasket(@User() user: AuthJwtPayload) {
+    return this.basketService.clearBasket(user)
   }
 
   @Post('add-product')

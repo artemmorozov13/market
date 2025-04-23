@@ -17,7 +17,7 @@ import {
 import styles from "./ProductsPage.module.scss";
 import { useInView } from 'react-intersection-observer';
 import { Layout } from "@/widgets/Layout";
-import { basketStore } from "@/entities/Basket";
+import { basketStore, postClearBasket } from "@/entities/Basket";
 import { observer } from "mobx-react-lite";
 import { ProductCard, ProductType, usePagedProductsList } from "@/entities/Product";
 import { userStore } from "@/entities/User";
@@ -96,7 +96,8 @@ const ProductsPage: FC = observer(() => {
   };
 
   const handleClearBasket = () => {
-    clearBasket();
+    postClearBasket()
+      .then(() => clearBasket())
     handleMenuClose();
   };
 

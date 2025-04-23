@@ -130,3 +130,14 @@
     box-shadow: none;
   }
 }
+
+.menuItem {
+  text-wrap: auto !important;
+}
+
+.menuPaper.paperRoot {
+  max-width: min-content;
+  transform: translateX(-50%) !important;
+  position: relative;
+  left: 50% !important;
+}

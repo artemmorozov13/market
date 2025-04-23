@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { Layout } from "@/widgets/Layout";
-import { Button, Card, CircularProgress, Container } from "@mui/material";
+import { Card, CircularProgress, Container } from "@mui/material";
 import styles from "./ActiveOrderPage.module.scss";
 import { useActiveOrder } from "../../api/useActiveOrder";
 import { Order } from "../../types/activeOrderTypes";
@@ -12,10 +12,10 @@ export const ActiveOrderPage: FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleOpenEditModal = (order: Order) => {
-    setSelectedOrder(order);
-    setIsEditModalOpen(true);
-  };
+  // const handleOpenEditModal = (order: Order) => {
+  //   setSelectedOrder(order);
+  //   setIsEditModalOpen(true);
+  // };
 
   const handleCloseModals = () => {
     setIsEditModalOpen(false);
@@ -33,20 +33,24 @@ export const ActiveOrderPage: FC = () => {
               <CircularProgress />
             </div>
           ) : orders && orders.length > 0 ? (
-            <Card className={styles.card}>
-              <OrderDetails order={orders[0]} />
-              <div className={styles.actions}>
-                <Button
-                  variant="contained"
-                  onClick={() => handleOpenEditModal(orders[0])}
-                  className={styles.editButton}
-                  disabled
-                  sx={{ m: 1 }}
-                >
-                  Добавить товары
-                </Button>
-              </div>
-            </Card>
+            <div>
+              {orders.map(order => (
+                <Card className={styles.card}>
+                  <OrderDetails order={order} />
+                  {/* <div className={styles.actions}>
+                    <Button
+                      variant="contained"
+                      onClick={() => handleOpenEditModal(orders[0])}
+                      className={styles.editButton}
+                      disabled
+                      fullWidth
+                    >
+                      Добавить товары
+                    </Button>
+                  </div> */}
+                </Card>
+              ))}
+            </div>
           ) : (
             <div className={styles.empty}>
               <h2>У вас нет активных заказов</h2>

@@ -24,7 +24,7 @@ export class AddressesEntity {
   @Column({ nullable: true })
   comment?: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: true })
   postal_code: string;
 
   @Column({ type: 'varchar', nullable: false })

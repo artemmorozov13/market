@@ -19,7 +19,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     TypeOrmModule.forFeature([UsersEntity, BasketEntity]),
     ConfigModule.forFeature(jwtConfig),
     forwardRef(() => UsersModule),
-    BasketModule,
+    forwardRef(() => BasketModule),
   ],
   controllers: [AuthController],
   exports: [AuthService, JwtModule],

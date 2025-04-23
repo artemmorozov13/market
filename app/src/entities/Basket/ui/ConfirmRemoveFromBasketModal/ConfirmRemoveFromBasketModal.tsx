@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Button, Modal, Paper } from '@mui/material';
+import { Button, Modal, Paper, Typography } from '@mui/material';
 
 import styles from './ConfirmRemoveFromBasketModal.module.scss';
 import { BasketType, basketStore } from '../..';
@@ -27,10 +27,10 @@ export const ConfirmRemoveFromBasketModal: FC<ConfirmRemoveFromBasketModalProps>
     return (
         <Modal open={isOpen} onClose={onClose} className={styles.modal}>
             <Paper className={styles.paper}>
-                <span className={styles.title}>Убрать из корзины?</span>
+                <Typography variant='h5' className={styles.title}>Убрать из корзины?</Typography>
                 <div className={styles.actions}>
-                    <Button variant='contained' color='info' onClick={handleRemoveFromBasket}>Убрать</Button>
-                    <Button variant='outlined' color='info' onClick={handleSaveInBasket}>Оставить</Button>
+                    <Button variant='contained' onClick={handleRemoveFromBasket}>Убрать</Button>
+                    <Button variant='outlined' onClick={handleSaveInBasket}>Оставить</Button>
                 </div>
             </Paper>
         </Modal>

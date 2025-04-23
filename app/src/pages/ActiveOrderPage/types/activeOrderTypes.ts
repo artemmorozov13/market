@@ -41,6 +41,9 @@ export interface Order {
     totalAmount: string;
     paymentMethod: string | null;
     ordered_products: OrderedProduct[];
-    deliveryTime: string | null;
+    deliveryTime: {
+        startTime: string
+        endTime: string
+    };
     pickupPoint: PickupPoint;
 }
