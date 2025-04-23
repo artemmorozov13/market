@@ -13,9 +13,11 @@ export const fetchUserData = async () => {
     const { setUserData } = userStore
     const { fetchBasketList } = basketStore
 
-    await fetchBasketList()
-    setUserData(response.data)
     Cookies.set(ACCESS_TOKEN, response.data.token)
+    setUserData(response.data)
+
+    await fetchBasketList()
+    
     return response.data
 }
 

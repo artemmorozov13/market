@@ -109,7 +109,7 @@ export class OrderService {
     const activeOrdersCount = await this.orderRepository.count({
       where: {
         user: { id: user.id },
-        status: Not("finished")
+        status: "waitForPay"
       }
     });
 
