@@ -28,6 +28,7 @@ import clsx from "clsx"
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
+import { AddressType } from "@/entities/Addresses";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -170,10 +171,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     return R * c;
   };
 
-  const handleSelectAddress = (field: ControllerRenderProps<OrderFormInputs, "address">) => (event: any) => {
-    const address = addresses?.find(item => item.id === event?.target?.value);
-    field.onChange(address);
-
+  const settingPickPoint = (address: AddressType) => {
     if (address && pickupPoints) {
       const pointsWithCoords = pickupPoints.filter(
         point => point.geo_lat && point.geo_lon
@@ -201,6 +199,15 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         setValue("pickupPointId", null);
         setValue("deliveryTimeId", null);
       }
+    }
+  }
+
+  const handleSelectAddress = (field: ControllerRenderProps<OrderFormInputs, "address">) => (event: any) => {
+    const address = addresses?.find(item => item.id === event?.target?.value);
+    
+    if (address) {
+      field.onChange(address);
+      settingPickPoint(address)
     }
   };
 
@@ -267,6 +274,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         isOpen={isOpenAddAdressModal}
         onClose={() => setIsOpenAddAdressModal(false)}
         setAddressValue={setValue}
+        settingPickPoint={settingPickPoint}
       />
       <Box className={styles.modalContainer}>
         <Typography variant="h6" className={styles.modalTitle} gutterBottom>

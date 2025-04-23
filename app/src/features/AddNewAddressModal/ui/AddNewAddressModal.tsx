@@ -18,6 +18,7 @@ import { useSaveAddress } from "../api/putNewAddress";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes";
+import { AddressType } from "@/entities/Addresses";
 
 interface AddressSuggestion {
   value: string;
@@ -43,6 +44,7 @@ interface AddNewAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
   setAddressValue: UseFormSetValue<OrderFormInputs>
+  settingPickPoint: (address: AddressType) => void
 }
 
 const validationSchema = yup.object().shape({
@@ -66,7 +68,8 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
   const { 
     isOpen, 
     onClose,
-    setAddressValue
+    setAddressValue,
+    settingPickPoint
   } = props
 
   const [inputValue, setInputValue] = useState('');
@@ -123,9 +126,12 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
       
       // Обновляем список адресов
       await refetch();
+
+      settingPickPoint(addressValue)
       
       // Устанавливаем новый адрес как выбранный
       setAddressValue("address", addressValue);
+
       
       // Закрываем модальное окно
       handleClose();
