@@ -12,7 +12,7 @@ interface OrderedProductType {
 export interface OrderType {
   id: number;
   status: StatusEnum.Finished | StatusEnum.WaitForPay;
-  created_at: Date;
+  createdAt: Date;
   updated_at: Date;
   address: string;
   fullAddress: string;

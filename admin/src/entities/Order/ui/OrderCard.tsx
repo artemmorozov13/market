@@ -68,15 +68,12 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
           />
         </Typography>
 
-        <Typography variant="body2" className={styles.orderDate}>
-          Дата создания: {new Date(order.created_at).toLocaleDateString()}
-        </Typography>
-        <Typography variant="body2" className={styles.orderDate}>
-          Дата обновления: {new Date(order.updated_at).toLocaleDateString()}
+        <Typography variant="body2" className={styles.orderAddress}>
+          Адрес доставки: {order.fullAddress}
         </Typography>
 
         <Typography variant="body2" className={styles.orderAddress}>
-          Адрес доставки: {order.address}
+          Номер телефона: {order.phoneNumber}
         </Typography>
 
         <Typography variant="body2" className={styles.userInfo}>
@@ -89,8 +86,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
             {order.user.telegram_username}
           </Link>)
         </Typography>
-        <Typography variant="body2" className={styles.userInfo}>
-          Email: {order.user.email}
+
+        <Typography variant="body2" className={styles.orderDate}>
+          Дата создания: {new Date(order.createdAt).toLocaleDateString()}
         </Typography>
 
         <Accordion defaultExpanded className={styles.productsAccordion}>

@@ -46,7 +46,7 @@ export const adaptOrdersToTable = (
       id: order.id,
       address: order.address,
       fullAddress: order.fullAddress,
-      createdAt: order.created_at,
+      createdAt: order.createdAt,
       status: order.status,
       priority: calculatePriority(order),
       deliveryTimeRange,

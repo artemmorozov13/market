@@ -14,7 +14,7 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   getOrdersData(@Query() query: GetOrderQueryDto) {
     return this.orderService.getOrdersListData(query)
   }
