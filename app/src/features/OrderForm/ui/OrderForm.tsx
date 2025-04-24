@@ -22,7 +22,7 @@ import { formatToRussianPhone } from "@/shared/helpers/formatRussianPhone";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CommentIcon from "@mui/icons-material/Comment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
-import PlaceIcon from "@mui/icons-material/Place";
+// import PlaceIcon from "@mui/icons-material/Place";
 import { API } from "@/shared/api/API";
 import clsx from "clsx"
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
@@ -331,7 +331,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             Добавить новый адрес
           </Button>
 
-          <Box mb={2}>
+          {/* <Box mb={2}>
             <FormControl fullWidth margin="normal">
               <InputLabel id="pickup-point-label">Пункт выдачи</InputLabel>
               <Controller
@@ -359,7 +359,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                 )}
               />
             </FormControl>
-          </Box>
+          </Box> */}
 
           {selectedPickupPointId && deliveryTimes.length > 0 && (
             Object.keys(weekDates).length > 0 ? (
