@@ -14,10 +14,13 @@ import { DeliveryTime } from 'src/entities/delivery-time.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductEntity } from 'src/entities/product.entity';
 import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
+import { TelegramService } from 'src/telegram/telegram.service';
+import { formatUserOrderMessage } from './notifications/formatUserOrderMessage';
 
 @Injectable()
 export class OrderService {
   constructor(
+    private telegramService: TelegramService,
     @InjectRepository(OrderEntity)
     private readonly orderRepository: Repository<OrderEntity>,
     @InjectRepository(UsersEntity)
@@ -33,16 +36,6 @@ export class OrderService {
     @InjectRepository(DeliveryTime)
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
   ) {}
-
-  private readonly dayOfWeekMap = {
-    'monday': 1,
-    'tuesday': 2,
-    'wednesday': 3,
-    'thursday': 4,
-    'friday': 5,
-    'saturday': 6,
-    'sunday': 0
-  };
 
   async getOrdersListData({ limit = 10, skip }: GetOrderQueryDto) {
     const [items, total] = await this.orderRepository.findAndCount({
@@ -113,9 +106,9 @@ export class OrderService {
       }
     });
 
-    if (activeOrdersCount >= 2) {
-      throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
-    }
+    // if (activeOrdersCount >= 2) {
+    //   throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
+    // }
 
     // Проверяем дату доставки (должна быть в будущем)
     const deliveryDate = new Date(createOrderDto.deliveryDate);
@@ -133,9 +126,9 @@ export class OrderService {
       }
     });
 
-    if (existingOrderOnSameDate) {
-      throw new BadRequestException("У вас уже есть заказ на выбранную дату");
-    }
+    // if (existingOrderOnSameDate) {
+    //   throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+    // }
 
     const selectedProducts = await this.selectedProductsRepository.find({
       where: { userTgchatId: user.telegram_id },
@@ -189,6 +182,14 @@ export class OrderService {
 
     await this.orderedProductsRepository.save(orderedProducts);
     await this.selectedProductsRepository.delete({ userTgchatId: user.telegram_id });
+
+    if (user.telegram_id) {
+      const userMessage = formatUserOrderMessage(order, orderedProducts, pickupPoint, deliveryTime);
+      await this.telegramService.sendHtmlMessage(
+          user.telegram_id.toString(),
+          userMessage
+      );
+    }
 
     return savedOrder;
   }

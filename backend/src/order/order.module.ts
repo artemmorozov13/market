@@ -11,6 +11,7 @@ import { PickupPoint } from 'src/entities/pickup-point.entity';
 import { DeliveryTime } from 'src/entities/delivery-time.entity';
 import { ProductEntity } from 'src/entities/product.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { TelegramModule } from 'src/telegram/telegram.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { AuthModule } from 'src/auth/auth.module';
       DeliveryTime,
       ProductEntity
     ]),
-    AuthModule
+    AuthModule,
+    TelegramModule
   ],
   providers: [OrderService],
   controllers: [OrderController],
