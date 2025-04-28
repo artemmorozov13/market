@@ -8,6 +8,7 @@ import { observer } from "mobx-react-lite";
 
 interface BasketToolsProps {
     basketItem: BasketType
+    className?: string
     totalPrice: number
     isInBasket: boolean
     isLoadingAdd: boolean
@@ -18,7 +19,7 @@ interface BasketToolsProps {
 }
 
 export const BasketTools: FC<BasketToolsProps> = observer((props) => {
-    const { basketItem, totalPrice, isInBasket, isLoadingAdd, isLoadingRemove, handleToggleBasketStatus, handleMinusProduct, handlePlusProduct } = props
+    const { basketItem, totalPrice, isInBasket, isLoadingAdd, isLoadingRemove, className, handleToggleBasketStatus, handleMinusProduct, handlePlusProduct } = props
 
     return (
         <>
@@ -59,6 +60,7 @@ export const BasketTools: FC<BasketToolsProps> = observer((props) => {
                     size="medium"
                     onClick={handleToggleBasketStatus}
                     disabled={isLoadingAdd || isLoadingRemove}
+                    className={className}
                     fullWidth
                     startIcon={isLoadingAdd || isLoadingRemove ? <CircularProgress size={16} /> : null}
                 >

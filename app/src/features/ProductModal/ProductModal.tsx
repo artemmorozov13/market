@@ -202,16 +202,19 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
               </Box>
             </Box>
           </Box>
-          <BasketTools
-            basketItem={basketItem}
-            totalPrice={totalPrice}
-            isInBasket={isInBasket}
-            isLoadingAdd={isLoadingAdd}
-            isLoadingRemove={isLoadingRemove}
-            handleMinusProduct={handleMinusProduct}
-            handlePlusProduct={handlePlusProduct}
-            handleToggleBasketStatus={handleToggleBasketStatus}
-          />
+          <div className={styles.basketToolsWrapper}>
+            <BasketTools
+              basketItem={basketItem}
+              className={styles.addProduct}
+              totalPrice={totalPrice}
+              isInBasket={isInBasket}
+              isLoadingAdd={isLoadingAdd}
+              isLoadingRemove={isLoadingRemove}
+              handleMinusProduct={handleMinusProduct}
+              handlePlusProduct={handlePlusProduct}
+              handleToggleBasketStatus={handleToggleBasketStatus}
+            />
+          </div>
         </DialogContent>
 
         <DialogActions className={styles.modalActions}>
