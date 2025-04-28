@@ -131,14 +131,9 @@
 .checkoutButton {
   padding: 12px 24px;
   font-weight: 600;
-  background-color: #1976d2;
   color: white;
   border-radius: 8px;
   text-transform: none;
-
-  &:hover {
-    background-color: #1565c0;
-  }
 }
 
 .checkoutButtonMobile {
@@ -147,14 +142,9 @@
   padding: 12px;
   font-weight: 600;
   margin-top: 16px;
-  background-color: #1976d2;
   color: white;
   border-radius: 8px;
   text-transform: none;
-
-  &:hover {
-    background-color: #1565c0;
-  }
 }
 
 .emptyContainer {

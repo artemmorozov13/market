@@ -1,23 +1,19 @@
 import { FC, useState } from 'react';
 import {
-  Button,
   Card,
   CardContent,
   CardMedia,
-  IconButton,
   Typography,
-  Tooltip,
-  CircularProgress,
   Box,
 } from '@mui/material';
 import { ProductType } from '..';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import styles from './ProductCard.module.scss';
 import clsx from 'clsx';
 import { ConfirmRemoveFromBasketModal, basketStore } from '@/entities/Basket';
 import { observer } from 'mobx-react-lite';
 import { ProductModal } from '@/features/ProductModal';
+import { BasketTools } from '@/shared/ui/BasketTools';
+import { MINIMUM_QUANTITY_TO_BE_IN_BASKET } from '@/shared/consts/applicationConsts';
 
 interface ProductCardProps {
   product: ProductType;
@@ -25,8 +21,6 @@ interface ProductCardProps {
   onAddItemBasket: (product: ProductType) => Promise<void>;
   onRemoveBasketItem: (product: ProductType) => Promise<void>;
 }
-
-const MINIMUM_QUANTITY_TO_BE_IN_BASKET = 1;
 
 export const ProductCard: FC<ProductCardProps> = observer((props) => {
   const { product, isInBasket = false, onAddItemBasket, onRemoveBasketItem } = props;
@@ -90,6 +84,9 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
         basketProduct={basketItem}
       />
       <ProductModal
+        isInBasket={isInBasket}
+        onAddItemBasket={onAddItemBasket}
+        onRemoveBasketItem={onRemoveBasketItem}
         open={isOpenProduct}
         onClose={() => setIsOpenProduct(false)}
         product={product}
@@ -136,49 +133,16 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
             </Box>
           </Box>
 
-          {isInBasket ? (
-            <Box className={styles.basketControls}>
-              <Box className={styles.quantityControls}>
-                <Tooltip title="Уменьшить количество">
-                  <IconButton
-                    size="small"
-                    onClick={handleMinusProduct}
-                    disabled={isLoadingRemove}
-                    className={styles.quantityButton}
-                  >
-                    {isLoadingRemove ? <CircularProgress size={20} /> : <RemoveCircleOutlineIcon />}
-                  </IconButton>
-                </Tooltip>
-                <Typography className={styles.quantityValue}>
-                  {basketItem.quantity}
-                </Typography>
-                <Tooltip title="Увеличить количество">
-                  <IconButton
-                    size="small"
-                    onClick={handlePlusProduct}
-                    disabled={isLoadingAdd}
-                    className={styles.quantityButton}
-                  >
-                    {isLoadingAdd ? <CircularProgress size={20} /> : <AddCircleOutlineIcon />}
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Typography className={styles.totalPrice}>
-                {`${totalPrice}₽`}
-              </Typography>
-            </Box>
-          ) : (
-            <Button
-              variant="contained"
-              size="medium"
-              onClick={handleToggleBasketStatus}
-              disabled={isLoadingAdd || isLoadingRemove}
-              fullWidth
-              startIcon={isLoadingAdd || isLoadingRemove ? <CircularProgress size={16} /> : null}
-            >
-              {isLoadingAdd || isLoadingRemove ? "" : "Добавить"}
-            </Button>
-          )}
+          <BasketTools
+            basketItem={basketItem}
+            totalPrice={totalPrice}
+            isInBasket={isInBasket}
+            isLoadingAdd={isLoadingAdd}
+            isLoadingRemove={isLoadingRemove}
+            handleToggleBasketStatus={handleToggleBasketStatus}
+            handleMinusProduct={handleMinusProduct}
+            handlePlusProduct={handlePlusProduct}
+          />
         </CardContent>
       </Card>
     </>

@@ -109,9 +109,9 @@ export class OrderService {
       }
     });
 
-    // if (activeOrdersCount >= 2) {
-    //   throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
-    // }
+    if (activeOrdersCount >= 2) {
+      throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
+    }
 
     // Проверяем дату доставки (должна быть в будущем)
     const deliveryDate = new Date(createOrderDto.deliveryDate);
@@ -129,9 +129,9 @@ export class OrderService {
       }
     });
 
-    // if (existingOrderOnSameDate) {
-    //   throw new BadRequestException("У вас уже есть заказ на выбранную дату");
-    // }
+    if (existingOrderOnSameDate) {
+      throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+    }
 
     const selectedProducts = await this.selectedProductsRepository.find({
       where: { userTgchatId: user.telegram_id },

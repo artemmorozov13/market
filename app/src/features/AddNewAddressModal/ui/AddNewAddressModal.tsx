@@ -48,11 +48,17 @@ interface AddNewAddressModalProps {
 }
 
 const validationSchema = yup.object().shape({
-  fullAddress: yup.string().required("Адрес обязателен"),
-  entrance: yup.string(),
-  // floor: yup.string(),
-  // apartment: yup.string(),
-  // intercom: yup.string(),
+  fullAddress: yup
+    .object({
+      value: yup
+        .string()
+        .required("Обязательно выберите адрес из списка"),
+    })
+    .typeError("Обязательно выберите адрес из списка")
+    .required("Обязательно выберите адрес из списка"),
+  entrance: yup
+    .string()
+    .matches(/^[0-9]*$/, "Можно вводить только цифры"),
 });
 
 const defaultValues: AddressFormValues = {
@@ -79,10 +85,10 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
   const { control, handleSubmit, formState, reset, setValue } = useForm<AddressFormValues>({
     resolver: yupResolver(validationSchema) as any,
     defaultValues,
-    mode: 'onChange'
+    mode: 'onSubmit'
   });
 
-  const { errors, isValid } = formState;
+  const { errors } = formState;
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -279,55 +285,12 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
               )}
             />
 
-            {/* <Controller
-              name="floor"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Этаж"
-                  error={!!errors.floor}
-                  helperText={errors.floor?.message}
-                  fullWidth
-                />
-              )}
-            />
-
-            <Controller
-              name="apartment"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Квартира"
-                  error={!!errors.apartment}
-                  helperText={errors.apartment?.message}
-                  fullWidth
-                />
-              )}
-            />
-
-            <Controller
-              name="intercom"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Домофон"
-                  error={!!errors.intercom}
-                  helperText={errors.intercom?.message}
-                  fullWidth
-                />
-              )}
-            /> */}
-
             <Button 
               type="submit" 
               variant="contained" 
               size="large"
-              disabled={!isValid || isSaving}
+              disabled={isSaving}
               fullWidth
-              sx={{ mt: 2 }}
             >
               {isSaving ? <CircularProgress size={24} /> : 'Сохранить адрес'}
             </Button>
