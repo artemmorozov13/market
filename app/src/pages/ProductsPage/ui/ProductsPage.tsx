@@ -171,21 +171,27 @@ const ProductsPage: FC = observer(() => {
 
       <Box className={styles.container}>
         <Box className={styles.productList}>
-          <Box className={styles.grid}>
-            {products.map((product, index) => (
-              <ProductCard
-                key={index}
-                product={product}
-                isInBasket={selectedProducts.includes(product.id)}
-                onAddItemBasket={handleAddProduct}
-                onRemoveBasketItem={handleRemoveProduct}
-              />
-            ))}
+            {!products.length ? (
+              <span className={styles.noProductsTitle}>Товары закончились, скоро обновим ассортимент :)</span>
+            ) : (
+              <Box className={styles.grid}>
+                {products.map((product, index) => (
+                  <ProductCard
+                    key={index}
+                    product={product}
+                    isInBasket={selectedProducts.includes(product.id)}
+                    onAddItemBasket={handleAddProduct}
+                    onRemoveBasketItem={handleRemoveProduct}
+                  />
+                ))}
+              </Box>
+            )}
 
             {isFetchingNextPage && Array.from({ length: PRODUCTS_PER_PAGE }).map((_, idx) => (
-              <Skeleton key={idx} variant="rectangular" height={200} />
+              <Box className={styles.grid}>
+                <Skeleton key={idx} variant="rectangular" height={200} />
+              </Box>
             ))}
-          </Box>
 
           <Box ref={ref} className={styles.refetchBlock} />
         </Box>

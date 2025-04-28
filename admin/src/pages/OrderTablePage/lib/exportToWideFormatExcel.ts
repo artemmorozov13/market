@@ -12,6 +12,9 @@ interface TableExportOptions {
 export const exportToWideFormatExcel = (options: TableExportOptions) => {
     const { products, tableOrders } = options
     
+    // Фильтруем заказы, оставляем только с статусом waitForPay
+    const filteredOrders = tableOrders.filter(order => order.status === StatusEnum.WaitForPay);
+
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([]);
 
@@ -34,8 +37,8 @@ export const exportToWideFormatExcel = (options: TableExportOptions) => {
     ];
     excelData.push(headers);
 
-    // Данные заказов
-    tableOrders.forEach((order) => {
+    // Данные заказов (только waitForPay)
+    filteredOrders.forEach((order) => {
       const rowData = [
         order.id,
         order.fullAddress,
@@ -46,7 +49,7 @@ export const exportToWideFormatExcel = (options: TableExportOptions) => {
         order.phone,
         order.comment || 'Нет комментария',
         order.totalAmount + ' ₽',
-        order.status === StatusEnum.Finished ? 'Завершен' : 'Оплачено',
+        'Ожидает оплаты', // Явно указываем статус
         // Добавляем количество для каждого товара
         ...products.map(product => 
           order.products[product.id] > 0 ? order.products[product.id] : '-'
@@ -54,12 +57,13 @@ export const exportToWideFormatExcel = (options: TableExportOptions) => {
       ];
       excelData.push(rowData);
     });
-    // Итоговая строка с суммой товаров
+
+    // Итоговая строка с суммой товаров (только по отфильтрованным заказам)
     const totalsRow = [
       'Итого', '', '', '', '', '', '', '', '',
-      tableOrders.reduce((sum, order) => sum + order.totalAmount, 0).toFixed(2) + ' ₽',
+      filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0).toFixed(2) + ' ₽',
       ...products.map(product => 
-        tableOrders.reduce((sum, order) => sum + (order.products[product.id] || 0), 0)
+        filteredOrders.reduce((sum, order) => sum + (order.products[product.id] || 0), 0)
       )
     ];
     excelData.push(totalsRow);
@@ -99,11 +103,11 @@ export const exportToWideFormatExcel = (options: TableExportOptions) => {
       }
     }
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Заказы_широкий_формат");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Заказы_ожидающие_оплаты");
 
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], { 
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
     });
-    saveAs(data, `заказы_широкий_формат_${new Date().toLocaleDateString()}.xlsx`);
-  };
+    saveAs(data, `заказы_ожидающие_оплаты_широкий_формат_${new Date().toLocaleDateString()}.xlsx`);
+};

@@ -12,6 +12,9 @@ interface TableExportOptions {
 export const exportToExcel = (options: TableExportOptions) => {
     const { tableOrders, products } = options
 
+    // Фильтруем заказы, оставляем только с статусом waitForPay
+    const filteredOrders = tableOrders.filter(order => order.status === StatusEnum.WaitForPay);
+
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([]);
 
@@ -31,8 +34,8 @@ export const exportToExcel = (options: TableExportOptions) => {
       'Статус'
     ]);
 
-    // Данные заказов
-    tableOrders.forEach((order) => {
+    // Данные заказов (только waitForPay)
+    filteredOrders.forEach((order) => {
       excelData.push([
         order.id,
         order.fullAddress,
@@ -43,7 +46,7 @@ export const exportToExcel = (options: TableExportOptions) => {
         order.phone,
         order.comment || 'Нет комментария',
         order.totalAmount + ' ₽',
-        order.status === StatusEnum.Finished ? 'Завершен' : 'Оплачено'
+        'Ожидает оплаты' // Так как мы фильтровали по waitForPay, можно явно указать статус
       ]);
 
       // Товары в заказе
@@ -97,5 +100,5 @@ export const exportToExcel = (options: TableExportOptions) => {
     const data = new Blob([excelBuffer], { 
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
     });
-    saveAs(data, `заказы_${new Date().toLocaleDateString()}.xlsx`);
+    saveAs(data, `заказы_ожидающие_оплаты_${new Date().toLocaleDateString()}.xlsx`);
   };
