@@ -41,7 +41,7 @@ function getAvailableDeliveryDates(
   const result: Date[] = [];
   const now = new Date(currentDate);
   const currentDay = now.getDay() === 0 ? 7 : now.getDay(); // воскресенье = 7
-  // const currentTime = now.getTime();
+  const currentTime = now.getTime();
 
   for (let i = 1; i <= 7; i++) {
     // Начинаем с понедельника (1) по воскресенье (7)
@@ -54,11 +54,10 @@ function getAvailableDeliveryDates(
       targetDate.setDate(now.getDate() + daysToAdd);
       targetDate.setHours(0, 0, 0, 0);
 
-      // Проверка на 24 часа
-      // if (targetDate.getTime() - currentTime >= 24 * 60 * 60 * 1000) {
-      //   result.push(targetDate);
-      // }
-      result.push(targetDate);
+      // Проверка на 8 часа
+      if (targetDate.getTime() - currentTime >= 8 * 60 * 60 * 1000) {
+        result.push(targetDate);
+      }
     }
   }
 
