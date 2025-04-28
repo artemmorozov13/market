@@ -48,14 +48,7 @@ interface AddNewAddressModalProps {
 }
 
 const validationSchema = yup.object().shape({
-  fullAddress: yup
-    .object({
-      value: yup
-        .string()
-        .required("Обязательно выберите адрес из списка"),
-    })
-    .typeError("Обязательно выберите адрес из списка")
-    .required("Обязательно выберите адрес из списка"),
+  fullAddress: yup.string(),
   entrance: yup
     .string()
     .matches(/^[0-9]*$/, "Можно вводить только цифры"),

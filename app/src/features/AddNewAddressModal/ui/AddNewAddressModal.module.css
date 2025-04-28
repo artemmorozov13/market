@@ -15,18 +15,19 @@
 }
 
 .container {
-padding: 20px;
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-width: 90%;
-max-width: 600px;
-max-height: 90vh;
-overflow-y: auto;
-background-color: white;
-border-radius: 8px;
-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-height: 700px) {
@@ -40,20 +41,20 @@ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .formWrapper {
-width: 100%;
+  width: 100%;
 }
 
 .addressCard {
-padding: 1rem;
+  padding: 1rem;
 }
 
 .title {
-display: block;
-font-size: 24px !important;
-font-weight: 600 !important;
-margin-bottom: 10px;
-color: #333;
-text-align: center;
+  display: block;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  margin-bottom: 10px;
+  color: #333;
+  text-align: center;
 }
 
 .subtitle {
