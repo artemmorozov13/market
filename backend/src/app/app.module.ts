@@ -13,6 +13,9 @@ import { PickupPointModule } from 'src/pickup-point/pickup-point.module';
 import { DatabaseConfig } from 'src/config';
 import { DadataModule } from 'src/dadata/dadata.module';
 import { AddressesModule } from 'src/addresses/addresses.module';
+import { TelegramModule } from 'src/telegram/telegram.module';
+import { APP_FILTER } from '@nestjs/core';
+import { GlobalExceptionFilter } from 'src/filters/global-exception.filter';
 
 
 @Module({
@@ -31,6 +34,7 @@ import { AddressesModule } from 'src/addresses/addresses.module';
     UsersModule,
     RolesModule,
     ProductModule,
+    TelegramModule,
     OrderModule,
     FileUploaderModule,
     AuthModule,
@@ -39,6 +43,12 @@ import { AddressesModule } from 'src/addresses/addresses.module';
     AddressesModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

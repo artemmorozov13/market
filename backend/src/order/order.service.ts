@@ -51,6 +51,8 @@ export class OrderService {
         "deliveryTime"
       ]
     });
+
+    throw new NotFoundException("Test")
   
     return {
       items: items,
