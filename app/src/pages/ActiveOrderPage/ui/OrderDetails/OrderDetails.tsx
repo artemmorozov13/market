@@ -30,11 +30,11 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
         <Box className={styles.infoBlock}>
           <span>Дата:</span>
-          <span>{new Date(order.deliveryDate).toLocaleDateString("ru-RU")}</span>
+          <span>{new Date(order.deliveryDate)?.toLocaleDateString("ru-RU")}</span>
         </Box>
         <Box className={styles.infoBlock}>
           <span>Время:</span>
-          <span>{`${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}`}</span>
+          <span>{`${order?.deliveryTime?.startTime} - ${order?.deliveryTime?.endTime}`}</span>
         </Box>
         {order.pickupPoint && (
           <Box className={styles.infoBlock}>

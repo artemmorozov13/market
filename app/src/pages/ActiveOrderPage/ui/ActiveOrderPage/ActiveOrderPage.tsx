@@ -32,9 +32,9 @@ export const ActiveOrderPage: FC = () => {
             <div className={styles.loading}>
               <CircularProgress />
             </div>
-          ) : orders && orders.length > 0 ? (
+          ) : orders && orders?.length > 0 ? (
             <div>
-              {orders.map(order => (
+              {orders?.map(order => (
                 <Card className={styles.card}>
                   <OrderDetails order={order} />
                   {/* <div className={styles.actions}>
