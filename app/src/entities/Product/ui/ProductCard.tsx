@@ -108,7 +108,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
         </Box>
         
         <CardContent className={styles.content}>
-          <Box className={styles.infoSection}>
+          <div className={styles.infoSection} onClick={() => setIsOpenProduct(true)}>
             <Typography variant="h6" className={styles.name} noWrap>
               {product.name}
             </Typography>
@@ -131,7 +131,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
                 {`${product.unitValue}${product.unitOfMeasurement}`}
               </Typography>
             </Box>
-          </Box>
+          </div>
 
           <BasketTools
             basketItem={basketItem}
