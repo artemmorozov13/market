@@ -113,14 +113,6 @@ export class OrderService {
       throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
     }
 
-    // Проверяем дату доставки (должна быть в будущем)
-    const deliveryDate = new Date(createOrderDto.deliveryDate);
-    const currentDate = new Date();
-    
-    if (deliveryDate <= currentDate) {
-      throw new BadRequestException("Дата доставки должна быть в будущем");
-    }
-
     // Проверяем, есть ли уже заказ на выбранную дату
     const existingOrderOnSameDate = await this.orderRepository.findOne({
       where: {
