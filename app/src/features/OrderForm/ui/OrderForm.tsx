@@ -55,7 +55,7 @@ function getAvailableDeliveryDates(
       targetDate.setHours(0, 0, 0, 0);
 
       // Проверка на 8 часа
-      if (targetDate.getTime() - currentTime >= 8 * 60 * 60 * 1000) {
+      if (targetDate.getTime() - currentTime >= 1 * 60 * 60 * 1000) {
         result.push(targetDate);
       }
     }
