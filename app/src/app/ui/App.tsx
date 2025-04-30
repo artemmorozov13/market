@@ -18,11 +18,11 @@ import { ActiveOrderPage } from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/Acti
 const queryClient = new QueryClient();
 
 export const App: FC = () => {
-  // if (!WebApp.initData) {
-  //   return (
-  //     <NoTelegramWarning />
-  //   )
-  // }
+  if (!WebApp.initData) {
+    return (
+      <NoTelegramWarning />
+    )
+  }
   return (
     <ThemeProvider theme={yellowOrangeTheme}>
       <BrowserRouter basename='/'>
