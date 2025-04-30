@@ -51,8 +51,8 @@ export const exportToWideFormatExcel = (options: TableExportOptions) => {
         order.totalAmount + ' ₽',
         'Ожидает оплаты', // Явно указываем статус
         // Добавляем количество для каждого товара
-        ...products.map(product => 
-          order.products[product.id] > 0 ? order.products[product.id] : '-'
+        ...order.ordered_products.map(product => 
+          product.quantity > 0 ? product.quantity : '-'
         )
       ];
       excelData.push(rowData);
@@ -60,11 +60,8 @@ export const exportToWideFormatExcel = (options: TableExportOptions) => {
 
     // Итоговая строка с суммой товаров (только по отфильтрованным заказам)
     const totalsRow = [
-      'Итого', '', '', '', '', '', '', '', '',
-      filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0).toFixed(2) + ' ₽',
-      ...products.map(product => 
-        filteredOrders.reduce((sum, order) => sum + (order.products[product.id] || 0), 0)
-      )
+      'Итого:', '', '', '', '', '', '', '',
+      `${filteredOrders.reduce((acc, order) => (acc + Number(order.totalAmount)), 0)} ₽`,
     ];
     excelData.push(totalsRow);
 

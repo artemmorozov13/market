@@ -1,5 +1,6 @@
 export const routeConfig = {
     "home": "/admin",
+    "statistic": "/admin/statistic",
     "login": "/admin/login",
     "product": "/admin/product",
     "product/create": "/admin/product/create",

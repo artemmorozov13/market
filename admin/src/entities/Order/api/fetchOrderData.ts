@@ -1,6 +1,5 @@
 import { API } from "@shared/api/instance";
 import { AxiosRequestConfig } from "axios";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { OrderType } from "../types/orderTypes";
 
 interface FetchOrdersDataOptions {
@@ -18,7 +17,7 @@ interface OrderResponse {
   }
 }
 
-export const fetchOrderData = async (options: FetchOrdersDataOptions) => {
+export const fetchOrderData = async (options?: FetchOrdersDataOptions) => {
   try {
     const config: AxiosRequestConfig = {
       params: {

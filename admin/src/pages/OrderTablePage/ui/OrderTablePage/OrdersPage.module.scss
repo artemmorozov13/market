@@ -64,6 +64,11 @@
   }
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+}
+
 .MuiTableRow-hover:hover {
   background-color: #f8fafc !important;
 }

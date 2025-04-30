@@ -50,7 +50,7 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
     const menuListTop = [
         {
           label: "Статистика",
-          href: "#",
+          href: routeConfig['statistic'],
           icon: <StatsIcon />
         },
     ]

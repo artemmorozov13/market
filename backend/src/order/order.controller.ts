@@ -20,10 +20,11 @@ export class OrderController {
   }
 
   @Get('current')
+  @UseGuards(JwtAuthGuard)
   getCurrentOrders(
-    @Headers('init-data') initData: string,
+    @User() user: AuthJwtPayload,
   ) {
-    return this.orderService.getCurrentUserOrders(initData);
+    return this.orderService.getCurrentUserOrders(user);
   }
 
   @Post('create')

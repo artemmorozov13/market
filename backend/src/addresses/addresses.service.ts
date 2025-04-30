@@ -61,9 +61,14 @@ export class AddressesService {
     });
   }
 
-  async findOne(id: string, userId: number): Promise<AddressesEntity> {
+  async findOne(userPayload: AuthJwtPayload, addressId: string): Promise<AddressesEntity> {
     const address = await this.addressRepository.findOne({
-      where: { id, user: { id: userId } },
+      where: {
+        id: addressId,
+        user: {
+          id: userPayload.sub
+        }
+      },
     });
 
     if (!address) {
@@ -74,19 +79,18 @@ export class AddressesService {
   }
 
   async update(
-    id: string,
-    userId: number,
+    user: AuthJwtPayload,
     updateAddressDto: UpdateAddressDto,
   ): Promise<AddressesEntity> {
-    const address = await this.findOne(id, userId);
+    const address = await this.findOne(user, updateAddressDto.id);
     return this.addressRepository.save({
       ...address,
       ...updateAddressDto,
     });
   }
 
-  async remove(id: string, userId: number): Promise<void> {
-    const address = await this.findOne(id, userId);
+  async remove(addressId: string, user: AuthJwtPayload): Promise<void> {
+    const address = await this.findOne(user, addressId);
     await this.addressRepository.remove(address);
   }
 }

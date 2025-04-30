@@ -38,21 +38,30 @@ export class AddressesController {
     
 
     @Get(':id')
-    findOne(@Req() req, @Param('id') id: string) {
-      return this.addressesService.findOne(id, req.user.id);
+    @UseGuards(JwtAuthGuard)
+    findOne(
+      @User() user: AuthJwtPayload,
+      @Param('id') id: string
+    ) {
+      return this.addressesService.findOne(user, id);
     }
   
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     update(
-      @Req() req,
+      @User() user: AuthJwtPayload,
       @Param('id') id: string,
       @Body() updateAddressDto: UpdateAddressDto,
     ) {
-      return this.addressesService.update(id, req.user.id, updateAddressDto);
+      return this.addressesService.update(user, updateAddressDto);
     }
   
     @Delete(':id')
-    remove(@Req() req, @Param('id') id: string) {
-      return this.addressesService.remove(id, req.user.id);
+    @UseGuards(JwtAuthGuard)
+    remove(
+      @User() user: AuthJwtPayload,
+      @Param('id') id: string
+    ) {
+      return this.addressesService.remove(id, user);
     }
 }

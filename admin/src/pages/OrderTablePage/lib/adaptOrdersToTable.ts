@@ -1,4 +1,4 @@
-import { OrderType } from "@entities/Order";
+import { OrderType, OrderedProductType } from "@entities/Order";
 import { ProductType } from "@entities/Product";
 
 export interface TableOrder {
@@ -8,38 +8,22 @@ export interface TableOrder {
   priority: number;
   deliveryTimeRange: string; // Изменил название для ясности
   pickupPointName: string; // Добавил информацию о пункте выдачи
+  ordered_products: OrderedProductType[];
   createdAt: Date;
   phone: string;
   customerName: string; // Добавил имя клиента
   deliveryDate: string,
   status: string;
-  totalAmount: number; // Добавил общую сумму заказа
-  products: Record<number, number>; // productId -> quantity
+  totalAmount: string; // Добавил общую сумму заказа
   comment?: string; // Добавил комментарий к заказу
 }
 
-export const adaptOrdersToTable = (
-  orders: OrderType[],
-  allProducts: ProductType[]
-): TableOrder[] => {
+export const adaptOrdersToTable = (orders: OrderType[]): TableOrder[] => {
   return orders.map(order => {
-    // Создаем маппинг productId -> quantity для этого заказа
-    const productsMap: Record<number, number> = {};
-    let totalAmount = 0;
-
-    order.ordered_products?.forEach(op => {
-      if (op.product) {
-        productsMap[op.product.id] = op.quantity;
-        totalAmount += Number(op.product.price) * op.quantity;
-      }
-    });
-
-    // Форматируем время доставки
     const deliveryTimeRange = order.deliveryTime 
       ? `${order.deliveryTime.startTime}-${order.deliveryTime.endTime}`
       : 'не указано';
 
-    // Получаем информацию о пункте выдачи
     const pickupPointName = order.pickupPoint?.name || 'не указан';
 
     return {
@@ -52,18 +36,17 @@ export const adaptOrdersToTable = (
       deliveryTimeRange,
       pickupPointName,
       phone: order.phoneNumber || 'не указан',
+      ordered_products: order.ordered_products,
       customerName: order.user?.name || order.user?.telegram_username || 'не указан',
       deliveryDate: order.deliveryDate,
-      totalAmount,
-      products: productsMap,
+      totalAmount: order.totalAmount,
       comment: order.comment
     };
   });
 };
 
 const calculatePriority = (order: OrderType): number => {
-  // Пример логики: срочные заказы получают более высокий приоритет
   if (order.status === 'waitForPay') return 1;
   if (order.status === 'finished') return 2;
-  return 3; // для 'finished' и других статусов
+  return 3;
 };

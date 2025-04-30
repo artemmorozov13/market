@@ -2,7 +2,7 @@ import { ProductType } from "@entities/Product";
 import { StoreOwnerUserType } from "@entities/User/types/userTypes";
 
 
-interface OrderedProductType {
+export interface OrderedProductType {
   id: number
   telegram_id: number
   quantity: number
@@ -19,6 +19,7 @@ export interface OrderType {
   phoneNumber?: string;
   comment?: string;
   deliveryDate: string
+  totalAmount: string
   user: StoreOwnerUserType;
   ordered_products: OrderedProductType[];
   pickupPoint?: {

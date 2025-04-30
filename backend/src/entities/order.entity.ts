@@ -47,6 +47,12 @@ import {
   
       @Column({ type: 'text', nullable: true })
       comment?: string;
+
+      @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+      totalAmount: number;
+  
+      @Column({ type: 'varchar', length: 50, nullable: true })
+      paymentMethod?: string;
   
       @ManyToOne(() => PickupPoint, { onDelete: 'SET NULL' })
       pickupPoint: PickupPoint;
@@ -59,13 +65,7 @@ import {
   
       @OneToMany(() => OrderedProductsEntity, (orderedProducts) => orderedProducts.order, { 
         cascade: true,
-        eager: false // Рекомендуется false для производительности
+        eager: false
       })
       ordered_products: OrderedProductsEntity[];
-  
-      @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-      totalAmount: number;
-  
-      @Column({ type: 'varchar', length: 50, nullable: true })
-      paymentMethod?: string;
   }

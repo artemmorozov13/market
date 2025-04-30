@@ -16,6 +16,7 @@ import { ProductEntity } from 'src/entities/product.entity';
 import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 import { TelegramService } from 'src/telegram/telegram.service';
 import { formatUserOrderMessage } from './notifications/formatUserOrderMessage';
+import { DELIVERY_PRICE } from 'src/utils/constants';
 
 @Injectable()
 export class OrderService {
@@ -63,10 +64,9 @@ export class OrderService {
     };
   }
 
-  async getCurrentUserOrders(initData: string): Promise<OrderEntity[]> {
-    const telegramUser = TelegramUtils.parseInitData(initData);
+  async getCurrentUserOrders(userPayload: AuthJwtPayload): Promise<OrderEntity[]> {
     const user = await this.usersRepository.findOne({
-      where: { telegram_id: telegramUser.id }
+      where: { id: userPayload.sub }
     });
   
     if (!user) {
@@ -109,9 +109,9 @@ export class OrderService {
       }
     });
 
-    if (activeOrdersCount >= 2) {
-      throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
-    }
+    // if (activeOrdersCount >= 2) {
+    //   throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
+    // }
 
     // Проверяем, есть ли уже заказ на выбранную дату
     const existingOrderOnSameDate = await this.orderRepository.findOne({
@@ -121,9 +121,9 @@ export class OrderService {
       }
     });
 
-    if (existingOrderOnSameDate) {
-      throw new BadRequestException("У вас уже есть заказ на выбранную дату");
-    }
+    // if (existingOrderOnSameDate) {
+    //   throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+    // }
 
     const selectedProducts = await this.selectedProductsRepository.find({
       where: { userTgchatId: user.telegram_id },
@@ -151,16 +151,22 @@ export class OrderService {
       throw new NotFoundException('Время доставки не найдено');
     }
 
+    const totalAmount = selectedProducts.reduce(
+      (acc, product) => (acc + product.quantity * product.product.price),
+      0
+    )
+
     const order = this.orderRepository.create({
       address: createOrderDto.address,
       fullAddress: createOrderDto.fullAddress,
       phoneNumber: createOrderDto.phoneNumber,
-      status: "waitForPay",
       comment: createOrderDto.comment,
-      user: user,
-      pickupPoint: pickupPoint,
       deliveryDate: createOrderDto.deliveryDate,
+      status: "waitForPay",
+      totalAmount: totalAmount + DELIVERY_PRICE,
+      pickupPoint: pickupPoint,
       deliveryTime: deliveryTime,
+      user: user,
     });
 
     const savedOrder = await this.orderRepository.save(order);

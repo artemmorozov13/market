@@ -30,7 +30,7 @@ const OrderTablePage: FC = observer(() => {
 
   const products = productsData?.items || [];
   const orders = ordersData?.items || [];
-  const tableOrders = adaptOrdersToTable(orders, products);
+  const tableOrders = adaptOrdersToTable(orders);
   
   const isLoading = isProductsLoading || isOrdersLoading;
   const error = productsError || ordersError;
@@ -48,7 +48,7 @@ const OrderTablePage: FC = observer(() => {
             <Button
               variant="contained" 
               color="primary"
-              onClick={() => exportToExcel({ products, tableOrders })}
+              onClick={() => exportToExcel({ tableOrders })}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
@@ -110,8 +110,7 @@ const OrderTablePage: FC = observer(() => {
                 {tableOrders.map((order) => (
                   <Row
                     key={order.id} 
-                    order={order} 
-                    products={products} 
+                    order={order}
                     onStatusUpdate={() => handleStatusUpdate(order.id)}
                   />
                 ))}
