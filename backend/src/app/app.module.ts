@@ -16,6 +16,7 @@ import { AddressesModule } from 'src/addresses/addresses.module';
 import { TelegramModule } from 'src/telegram/telegram.module';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/filters/global-exception.filter';
+import { StatisticModule } from 'src/statistic/statistic.module';
 
 
 @Module({
@@ -36,6 +37,7 @@ import { GlobalExceptionFilter } from 'src/filters/global-exception.filter';
     ProductModule,
     TelegramModule,
     OrderModule,
+    StatisticModule,
     FileUploaderModule,
     AuthModule,
     PickupPointModule,

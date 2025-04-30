@@ -6,13 +6,11 @@ import { saveAs } from 'file-saver';
 
 interface TableExportOptions {
     tableOrders: TableOrder[]
-    products: ProductType[]
 }
 
 export const exportToExcel = (options: TableExportOptions) => {
-    const { tableOrders, products } = options
+    const { tableOrders } = options
 
-    // Фильтруем заказы, оставляем только с статусом waitForPay
     const filteredOrders = tableOrders.filter(order => order.status === StatusEnum.WaitForPay);
 
     const workbook = XLSX.utils.book_new();
@@ -54,16 +52,15 @@ export const exportToExcel = (options: TableExportOptions) => {
       excelData.push(['', 'Товары в заказе:']);
       excelData.push(['', 'Наименование', 'Цена', 'Количество', 'Скидка', 'Сумма']);
 
-      products.filter(p => order.products[p.id] > 0).forEach(product => {
+      order.ordered_products.forEach(product => {
         excelData.push([
           '',
-          product.name,
-          product.price + ' ₽',
-          order.products[product.id],
-          product.discount + '%',
-          (parseFloat(product.price) * order.products[product.id] * 
-          (1 - parseFloat(product.discount)/100)).toFixed(2) + ' ₽'
-        ]);
+          product.product.name,
+          product.product.price + ' ₽',
+          product.quantity,
+          product.product.discount + '%',
+          product.quantity * Number(product.product.price),
+        ])
       });
 
       excelData.push([]);

@@ -110,7 +110,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
-  const [weekDates, setWeekDates] = useState<Record<string, { date: string; isToday: boolean; formattedDate: string }>>({});
+  const [weekDates, setWeekDates] = useState<Record<string, { date: Date; isToday: boolean; formattedDate: string }>>({});
   const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
 
   const {
@@ -242,12 +242,12 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         const formattedDates = availableDates.reduce((acc, date) => {
           const dayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
           acc[dayKey] = {
-            date: date.toISOString().split("T")[0],
+            date: date,
             isToday: false,
-            formattedDate: formatDate(date.toISOString())
+            formattedDate: formatDate(date.toString())
           };
           return acc;
-        }, {} as Record<string, { date: string; isToday: boolean; formattedDate: string }>);
+        }, {} as Record<string, { date: Date; isToday: boolean; formattedDate: string }>);
   
         setWeekDates(formattedDates);
         setValue("deliveryTimeId", null);

@@ -1,11 +1,13 @@
 import { FC, useState } from "react";
 import { Layout } from "@/widgets/Layout";
-import { Card, CircularProgress, Container } from "@mui/material";
-import styles from "./ActiveOrderPage.module.scss";
+import { Card, CircularProgress, Container, Typography } from "@mui/material";
 import { useActiveOrder } from "../../api/useActiveOrder";
 import { Order } from "../../types/activeOrderTypes";
 import { OrderDetails } from "../OrderDetails/OrderDetails";
 import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
+import clsx from 'clsx';
+
+import styles from "./ActiveOrderPage.module.scss";
 
 export const ActiveOrderPage: FC = () => {
   const { data: orders, isLoading } = useActiveOrder();
@@ -26,7 +28,9 @@ export const ActiveOrderPage: FC = () => {
     <Layout>
       <Container maxWidth="md">
         <div className={styles.container}>
-          <h1 className={styles.title}>Активный заказ</h1>
+          <Typography variant="h4" className={clsx(styles.rootTitle, styles.title)}>
+            Активный заказ
+          </Typography>
 
           {isLoading ? (
             <div className={styles.loading}>

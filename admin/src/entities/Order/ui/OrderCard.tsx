@@ -22,34 +22,6 @@ interface OrderCardProps {
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
-  const calculateProductTotal = (price: string, quantity: number, discount: string) => {
-    const priceNumber = parseFloat(price);
-    const discountNumber = parseFloat(discount);
-    const total = priceNumber * quantity;
-    const discountedTotal = total * (1 - discountNumber / 100);
-    return { total, discountedTotal };
-  };
-
-  const calculateOrderTotal = () => {
-    let total = 0;
-    let discountedTotal = 0;
-
-    order.ordered_products.forEach((product) => {
-      const { total: productTotal, discountedTotal: productDiscountedTotal } =
-        calculateProductTotal(
-          product.product.price,
-          product.quantity,
-          product.product.discount
-        );
-      total += productTotal;
-      discountedTotal += productDiscountedTotal;
-    });
-
-    return { total, discountedTotal };
-  };
-
-  const { total, discountedTotal } = calculateOrderTotal();
-
   return (
     <Card className={styles.orderCard}>
       <CardContent>
@@ -104,13 +76,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
           <AccordionDetails>
             <List className={styles.productsList}>
               {order.ordered_products.map((product) => {
-                const { total: productTotal, discountedTotal: productDiscountedTotal } =
-                  calculateProductTotal(
-                    product.product.price,
-                    product.quantity,
-                    product.product.discount
-                  );
-
                 return (
                   <React.Fragment key={product.id}>
                     <ListItem className={styles.productItem}>
@@ -131,10 +96,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
                               Вес: {product.product.unitValue} {product.product.unitOfMeasurement}
                             </Typography>
                             <Typography variant="body2" className={styles.productDetail}>
-                              Сумма: {productTotal.toFixed(2)} руб.
-                            </Typography>
-                            <Typography variant="body2" className={styles.productDetail}>
-                              Сумма со скидкой: {productDiscountedTotal.toFixed(2)} руб.
+                              Сумма: {product.quantity * Number(product.product.price)} руб.
                             </Typography>
                           </>
                         }
@@ -149,10 +111,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         </Accordion>
 
         <Typography variant="body2" className={styles.orderTotal}>
-          Общая стоимость без скидки: {total.toFixed(2)} руб.
-        </Typography>
-        <Typography variant="body2" className={styles.orderTotal}>
-          Общая стоимость со скидкой: {discountedTotal.toFixed(2)} руб.
+          Общая стоимость: {order.totalAmount} руб.
         </Typography>
       </CardContent>
     </Card>

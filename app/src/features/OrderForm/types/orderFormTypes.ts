@@ -29,5 +29,5 @@ export interface OrderFormInputs {
   comment: string;
   pickupPointId: number | null;
   deliveryTimeId: number | null;
-  deliveryDate: string | null;
+  deliveryDate: Date | null;
 }

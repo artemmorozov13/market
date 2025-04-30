@@ -5,6 +5,10 @@ import { AddressDataDto } from './address-data.dto';
 export class UpdateAddressDto {
   @IsString()
   @IsNotEmpty()
+  id: string
+
+  @IsString()
+  @IsNotEmpty()
   fullAddress: string;
 
   @IsString()

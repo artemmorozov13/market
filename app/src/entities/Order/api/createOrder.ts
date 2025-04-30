@@ -1,5 +1,6 @@
 import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes"
 import { API } from "@/shared/api/API"
+import { formatDateToYYYYMMDD } from "@/shared/helpers/formatDateToYYYYMMDD"
 import { toast } from "react-toastify"
 
 export interface CreateOrderOptions {
@@ -17,7 +18,7 @@ export const createOrder = async (options: CreateOrderOptions) => {
             comment: data.comment,
             pickupPointId: data.pickupPointId,
             deliveryTimeId: data.deliveryTimeId,
-            deliveryDate: data.deliveryDate
+            deliveryDate: data.deliveryDate ? formatDateToYYYYMMDD(data.deliveryDate) : null
         }
 
         const response = await API.post("/order/create", body)
@@ -26,6 +27,7 @@ export const createOrder = async (options: CreateOrderOptions) => {
 
         return response.data
     } catch(error) {
+        console.log(error)
         toast((error as any).response.data.message, { type: "error" })
         throw new Error()
     }

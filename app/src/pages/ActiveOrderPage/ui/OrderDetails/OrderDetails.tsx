@@ -2,17 +2,14 @@ import { FC } from "react";
 import { Typography, Box, Divider } from "@mui/material";
 import styles from "./OrderDetails.module.scss";
 import { Order } from "../../types/activeOrderTypes";
-import { DELIVERY_PRICE } from "@/shared/consts/applicationConsts";
+import { useAddressById } from "@/entities/Addresses";
 
 interface OrderDetailsProps {
   order: Order;
 }
 
 export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
-  const totalPrice = order.ordered_products.reduce(
-    (sum, item) => sum + parseFloat(item.product.price) * item.quantity,
-    0
-  );
+  const { address } = useAddressById({ addressId: order.address })
 
   return (
     <Box className={styles.container}>
@@ -46,6 +43,12 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
           <span>Адрес:</span>
           <span>{order.fullAddress}</span>
         </Box>
+        {!!address?.entrance && (
+          <Box className={styles.infoBlock}>
+            <span>Парадная:</span>
+            <span>{address.entrance}</span>
+          </Box>
+        )}
         <Box className={styles.infoBlock}>
           <span>Телефон:</span>
           <span>{order.phoneNumber}</span>
@@ -61,7 +64,10 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
       <Divider className={styles.divider} />
 
       <Box className={styles.section}>
-        <Typography className={styles.sectionTitle}>Товары</Typography>
+        <Typography
+          variant="h5"
+          className={styles.sectionTitle}
+        >Список товаров</Typography>
         {order.ordered_products.map((item) => (
           <Box key={item.id} className={styles.productItem}>
             <img
@@ -81,12 +87,10 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
           </Box>
         ))}
       </Box>
-
       <Divider className={styles.divider} />
-
       <Box className={styles.totalSection}>
         <Typography variant="h6">
-          Итого: {(totalPrice + DELIVERY_PRICE).toFixed(2)} ₽
+          Итого: {order.totalAmount}₽
         </Typography>
       </Box>
     </Box>

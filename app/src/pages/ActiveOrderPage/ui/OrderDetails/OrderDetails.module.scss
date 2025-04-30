@@ -17,13 +17,6 @@
     margin-bottom: 16px;
   }
   
-  .sectionTitle {
-    margin-bottom: 12px;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #444;
-  }
-  
   .infoBlock {
     display: flex;
     justify-content: space-between;
@@ -82,14 +75,9 @@
   
   @media (max-width: 600px) {
     .productItem {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
       gap: 8px;
-    }
-  
-    .productImage {
-      width: 100%;
-      height: auto;
     }
   
     .infoBlock {

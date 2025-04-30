@@ -12,21 +12,19 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { ProductType } from "@entities/Product";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { StatusEnum } from "@entities/Order";
-import { TableOrder } from "@pages/OrderTablePage/lib/adaptOrdersToTable";
+import { OrderedProductType, StatusEnum } from "@entities/Order";
+import { TableOrder } from "../../lib/adaptOrdersToTable";
 
 import styles from "./TableRow.module.scss";
 
 interface RowProps {
     order: TableOrder;
-    products: ProductType[];
     onStatusUpdate: (orderId: number) => void
 }
   
-export const Row: FC<RowProps> = ({ order, products, onStatusUpdate }) => {
+export const Row: FC<RowProps> = ({ order, onStatusUpdate }) => {
     const [open, setOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
@@ -49,39 +47,39 @@ export const Row: FC<RowProps> = ({ order, products, onStatusUpdate }) => {
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">№</Typography>
-            {order.id}
+                {order.id}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Адрес</Typography>
-            {order.fullAddress}
+                {order.fullAddress}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Пункт выдачи</Typography>
-            {order.pickupPointName || 'Не указан'}
+                {order.pickupPointName || 'Не указан'}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Приоритет</Typography>
-            {order.priority}
+                {order.priority}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Дата доставки</Typography>
-            {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана'}
+                {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана'}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Время доставки</Typography>
-            {order.deliveryTimeRange || 'Не указано'}
+                {order.deliveryTimeRange || 'Не указано'}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Телефон</Typography>
-            {order.phone}
+                {order.phone}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Комментарий</Typography>
-            {order.comment || 'Нет комментария'}
+                {order.comment || 'Нет комментария'}
             </TableCell>
             <TableCell>
             <Typography fontWeight="bold">Сумма</Typography>
-            {order.totalAmount} ₽
+                {order.totalAmount} ₽
             </TableCell>
             <TableCell>
             {order.status === StatusEnum.Finished ? (
@@ -117,28 +115,25 @@ export const Row: FC<RowProps> = ({ order, products, onStatusUpdate }) => {
                     </TableRow>
                     </TableHead>
                     <TableBody>
-                    {products.filter(p => order.products[p.id] > 0).map(product => (
-                        <TableRow key={product.id}>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell align="right">{product.price} ₽</TableCell>
-                        <TableCell align="right">{order.products[product.id]}</TableCell>
-                        <TableCell align="right">{product.discount}%</TableCell>
-                        <TableCell align="right">
-                            {(parseFloat(product.price) * order.products[product.id] * 
-                            (1 - parseFloat(product.discount)/100)).toFixed(2)} ₽
-                        </TableCell>
-                        </TableRow>
-                    ))}
+                        {order.ordered_products.map(product => (
+                            <TableRow key={product.id}>
+                                <TableCell>{product.product.name}</TableCell>
+                                <TableCell align="right">{product.product.price} ₽</TableCell>
+                                <TableCell align="right">{product.quantity}</TableCell>
+                                <TableCell align="right">{product.product.discount}%</TableCell>
+                                <TableCell align="right">
+                                    {order.totalAmount}
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     <TableRow>
-                        <TableCell colSpan={4} align="right"><strong>Итого:</strong></TableCell>
+                        <TableCell colSpan={4} align="right">
+                            <strong>Итого:</strong>
+                        </TableCell>
                         <TableCell align="right">
-                        <strong>
-                            {products
-                            .reduce((sum, product) => sum + 
-                                (parseFloat(product.price) * order.products[product.id] * 
-                                (1 - parseFloat(product.discount)/100)), 0)
-                            .toFixed(2)} ₽
-                        </strong>
+                            <strong>
+                                {order.totalAmount} ₽
+                            </strong>
                         </TableCell>
                     </TableRow>
                     </TableBody>
