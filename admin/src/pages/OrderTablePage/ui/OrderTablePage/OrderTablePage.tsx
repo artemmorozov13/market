@@ -14,12 +14,12 @@ import {
 } from "@mui/material";
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import { adaptOrdersToTable } from "../../lib/adaptOrdersToTable";
-import { exportToExcel } from "../../lib/exportToExcel";
 import { Row } from "../TableRow/TableRow";
-import { exportToWideFormatExcel } from "../../lib/exportToWideFormatExcel";
 import { useUpdateOrderStatus } from "../../api/useUpdateOrderStatus";
 import { useOrders } from "@pages/OrderTablePage/api/useOrders";
 import { useProducts } from "@pages/OrderTablePage/api/useProducts";
+import { exportOrdersWithInnerTable } from "../../api/exportOrders";
+import { exportOrdersWide } from "../../api/exportOrdersWide";
 
 import styles from "./OrdersPage.module.scss";
 
@@ -48,7 +48,7 @@ const OrderTablePage: FC = observer(() => {
             <Button
               variant="contained" 
               color="primary"
-              onClick={() => exportToExcel({ tableOrders })}
+              onClick={() => exportOrdersWithInnerTable()}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
@@ -57,7 +57,7 @@ const OrderTablePage: FC = observer(() => {
             <Button 
               variant="contained" 
               color="secondary"
-              onClick={() => exportToWideFormatExcel({ products, tableOrders })}
+              onClick={() => exportOrdersWide()}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >

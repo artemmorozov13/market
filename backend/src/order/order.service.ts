@@ -17,6 +17,8 @@ import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 import { TelegramService } from 'src/telegram/telegram.service';
 import { formatUserOrderMessage } from './notifications/formatUserOrderMessage';
 import { DELIVERY_PRICE } from 'src/utils/constants';
+import { exportToExcelWithInnerTable } from './export-generator/export-excel-with-inner-table';
+import { exportToWideFormatExcel } from './export-generator/export-to-wide-format-excel';
 
 @Injectable()
 export class OrderService {
@@ -301,5 +303,41 @@ export class OrderService {
     }
 
     return this.orderRepository.save(order);
+  }
+
+  
+  async exportExcelWithInnerTable(): Promise<Uint8Array> {
+    const orders = await this.orderRepository.find({
+      where: { 
+        status: "waitForPay"
+      },
+      relations: [ 
+        'ordered_products',
+        'ordered_products.product',
+        'deliveryTime',
+        'pickupPoint'
+      ]
+    });
+    return exportToExcelWithInnerTable({ orders });
+  }
+  
+  async exportToWideFormatExcel(): Promise<Uint8Array> {
+    const products = await this.productRepository.find({
+      where: {
+        is_expired: false
+      }
+    })
+    const orders = await this.orderRepository.find({
+      where: { 
+        status: "waitForPay"
+      },
+      relations: [ 
+        'ordered_products',
+        'ordered_products.product',
+        'deliveryTime',
+        'pickupPoint'
+      ]
+    });
+    return exportToWideFormatExcel({ orders, products });
   }
 }

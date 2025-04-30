@@ -1,17 +1,15 @@
 import * as XLSX from 'xlsx';
-import { TableOrder } from './adaptOrdersToTable';
-import { StatusEnum } from '@entities/Order';
-import { ProductType } from '@entities/Product';
 import { saveAs } from 'file-saver';
+import { OrderEntity } from 'src/entities/order.entity';
 
 interface TableExportOptions {
-    tableOrders: TableOrder[]
+    orders: OrderEntity[]
 }
 
-export const exportToExcel = (options: TableExportOptions) => {
-    const { tableOrders } = options
+export const exportToExcelWithInnerTable = (options: TableExportOptions) => {
+    const { orders } = options
 
-    const filteredOrders = tableOrders.filter(order => order.status === StatusEnum.WaitForPay);
+    const filteredOrders = orders;
 
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([]);
@@ -37,11 +35,11 @@ export const exportToExcel = (options: TableExportOptions) => {
       excelData.push([
         order.id,
         order.fullAddress,
-        order.pickupPointName || 'Не указан',
-        order.priority,
+        order.pickupPoint.name || 'Не указан',
+        1,
         order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана',
-        order.deliveryTimeRange || 'Не указано',
-        order.phone,
+        `${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}`,
+        order.phoneNumber,
         order.comment || 'Нет комментария',
         order.totalAmount + ' ₽',
         'Ожидает оплаты' // Так как мы фильтровали по waitForPay, можно явно указать статус
@@ -93,9 +91,10 @@ export const exportToExcel = (options: TableExportOptions) => {
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Заказы");
 
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    const excelBuffer = XLSX.write(workbook, { 
+      bookType: 'xlsx', 
+      type: 'array' 
     });
-    saveAs(data, `заказы_ожидающие_оплаты_${new Date().toLocaleDateString()}.xlsx`);
+    
+    return excelBuffer;
   };

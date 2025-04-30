@@ -70,7 +70,7 @@ const StatisticPage: FC = () => {
 
     orderStatistic?.forEach((order: OrderType) => {
       order.ordered_products?.forEach((product) => {
-        const productId = `Товар ${product.product.name}`;
+        const productId = `${product.product.name}`;
         quantities[productId] = (quantities[productId] || 0) + product.quantity;
       });
     });

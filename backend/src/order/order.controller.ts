@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Headers, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, InternalServerErrorException, Post, Query, Res, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GetOrderQueryDto } from './dto/get-order-query.dto';
@@ -48,5 +49,57 @@ export class OrderController {
   // @UseGuards(JwtAuthGuard)
   updateStatus(@Body() updateStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(updateStatusDto)
+  }
+
+  @Post('export-inner-table')
+  @UseGuards(JwtAuthGuard)
+  async exportExcelWithInnerTable(@Res() res: Response) {
+    try {
+      const buffer = await this.orderService.exportExcelWithInnerTable();
+      
+      const now = new Date();
+      const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+      const fileName = `заказы_ожидающие_оплаты_${safeDate}.xlsx`;
+      
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(fileName)}"`
+      );
+      
+      res.end(Buffer.from(buffer));
+    } catch (error) {
+      console.error('Export error:', error);
+      res.status(500).json({ message: 'Failed to generate Excel file' });
+    }
+  }
+
+  @Post('export-wide-table')
+  @UseGuards(JwtAuthGuard)
+  async exportExcelFullWidthTable(@Res() res: Response) {
+    try {
+      const buffer = await this.orderService.exportToWideFormatExcel();
+      
+      const now = new Date();
+      const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+      const fileName = `заказы_ожидающие_оплаты_${safeDate}.xlsx`;
+      
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(fileName)}"`
+      );
+      
+      res.end(Buffer.from(buffer));
+    } catch (error) {
+      console.error('Export error:', error);
+      res.status(500).json({ message: 'Failed to generate Excel file' });
+    }
   }
 }
