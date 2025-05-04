@@ -14,27 +14,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     async catch(exception: Error, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
         const request = ctx.getRequest();
-        
-        const context = {
-        method: request.method,
-        url: request.url,
-        body: request.body,
-        query: request.query,
-        params: request.params,
-        timestamp: new Date().toISOString(),
-        };
-
-        await this.notificationService.notifyError(exception, context);
-        
-        // Стандартная обработка ошибки
         const response = ctx.getResponse();
-        const status = exception['status'] || 500;
+        const status = exception['status'];
+    
+        if (status !== 404) {
+            const context = {
+                method: request.method,
+                url: request.url,
+                body: request.body,
+                query: request.query,
+                params: request.params,
+                timestamp: new Date().toISOString(),
+            };
+    
+            await this.notificationService.notifyError(exception, context);
+        }
         
+        // Стандартная обработка ошибки (включая 404)
         response.status(status).json({
-        statusCode: status,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        message: exception.message || 'Internal server error',
+            statusCode: status,
+            timestamp: new Date().toISOString(),
+            path: request.url,
+            message: exception.message,
         });
     }
 }
