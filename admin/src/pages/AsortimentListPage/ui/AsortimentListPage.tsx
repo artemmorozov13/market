@@ -5,6 +5,8 @@ import styles from "./AsortimentListPage.module.scss";
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import { Product, ProductType, fetchProductsData } from "@entities/Product";
 
+const PRODUCTS_PER_PAGE = 12;
+
 export const AsortimentListPage: FC = observer(() => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState<number>(1)
@@ -18,10 +20,10 @@ export const AsortimentListPage: FC = observer(() => {
   const fetchProducts = async () => {
     setIsLoading(true)
     const response = await fetchProductsData({
-      skip: (page - 1) * 10,
-      take: 10
+      skip: (page - 1) * PRODUCTS_PER_PAGE,
+      take: PRODUCTS_PER_PAGE
     })
-    const totalPages = Math.ceil(response.pagination.total / 10)
+    const totalPages = Math.ceil(response.pagination.total / PRODUCTS_PER_PAGE)
     setTotalPages(totalPages)
     setProducts(response.items)
     setIsLoading(false)
