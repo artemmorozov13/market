@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { BasketType } from "..";
-import { fetchBasketListData, pushBasketItem, removeBasketItem } from "../api/fetchBasketListData";
+import { clearBasketProduct, fetchBasketListData, pushBasketItem, removeBasketItem } from "../api/fetchBasketListData";
 
 class BasketStore {
     basketList: BasketType[] = [];
@@ -65,6 +65,19 @@ class BasketStore {
             console.error("Failed to decrease product count:", error);
         }
     };
+
+    clearProduct = async (basketProductId: number) => {
+        try {
+            await clearBasketProduct(basketProductId)
+            const currentItem = this.basketList.find(basketItem => basketItem.productId === basketProductId);
+            if (currentItem) {
+                this.basketList = this.basketList.filter(item => item.productId !== basketProductId);
+                this.updateBasketStats();
+            }
+        } catch (error) {
+            console.error("Failed to decrease product count:", error);
+        }
+    }
 
     addItem = async (item: BasketType) => {
         try {

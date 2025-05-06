@@ -36,4 +36,13 @@ export class BasketController {
   ) {
     return this.basketService.removeProductFromBasket(initData, removeProductFromBasketDto.productId);
   }
+
+  @Post('reset-product')
+  @UseGuards(JwtAuthGuard)
+  resetBasketProduct(
+    @Body() removeProductFromBasketDto: RemoveProductFromBasketDto,
+    @User() user: AuthJwtPayload
+  ) {
+    return this.basketService.resetBasketProduct(user, removeProductFromBasketDto.productId);
+  }
 }

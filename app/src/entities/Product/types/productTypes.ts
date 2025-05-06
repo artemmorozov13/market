@@ -3,6 +3,7 @@ export interface ProductType {
     name: string
     description: string
     price: string
+    is_expired: boolean
     discount: string
     image: string
     unitValue: string

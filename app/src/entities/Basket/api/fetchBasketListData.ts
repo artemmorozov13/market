@@ -19,3 +19,10 @@ export const removeBasketItem = async (id: number): Promise<void> => {
     }
     await API.post(`/basket/remove-product`, body);
 };
+
+export const clearBasketProduct = async (id: number) => {
+    const body = {
+        productId: id
+    }
+    await API.post(`/basket/reset-product`, body);
+}

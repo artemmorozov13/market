@@ -15,6 +15,8 @@ const BasketPage: FC = observer(() => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate= useNavigate();
 
+  const isExpiredProduct = !!basketStore.basketList.find(basketItem => basketItem.product.is_expired)
+
   useEffect(() => {
     const loadBasketData = async () => {
       try {
@@ -118,9 +120,10 @@ const BasketPage: FC = observer(() => {
           <Button
             variant="contained"
             className={styles.checkoutButtonMobile}
+            disabled={isExpiredProduct}
             onClick={() => navigate(RoutePath.order)}
           >
-            Оформить заказ
+            {isExpiredProduct ? "У вас есть товары недоступные для заказа" : "Оформить заказ"}
           </Button>
         </Box>
       </Container>

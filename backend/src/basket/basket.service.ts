@@ -102,7 +102,29 @@ export class BasketService {
       user: user.basket
     })
   }
-  
+
+  async resetBasketProduct(userData: AuthJwtPayload, productId: number) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: userData.sub
+      },
+      relations: ['basket']
+    })
+    const selectedProduct = await this.selectedProductRepository.findOne({
+      where: {
+        userTgchatId: user.telegram_id,
+        productId: productId
+      }
+    })
+
+    if (!selectedProduct) {
+      return {
+        message: "Product is not in the basket"
+      }
+    }
+
+    return this.selectedProductRepository.delete(selectedProduct.id)
+  }
 
   async getBasketById(initData: string): Promise<SelectedProductEntity[]> {
     const telegramUser = TelegramUtils.parseInitData(initData)

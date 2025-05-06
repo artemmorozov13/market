@@ -29,6 +29,7 @@ import { AddNewAddressModal } from "@/features/AddNewAddressModal";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { AddressType } from "@/entities/Addresses";
+import { basketStore } from "@/entities/Basket";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -257,7 +258,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       setWeekDates({});
     }
   }, [selectedPickupPointId, pickupPoints, setValue]);
-  
+
+  const isExpiredProduct = !!basketStore.basketList.find(basketItem => basketItem.product.is_expired)
 
   if (loading) {
     return (
@@ -476,7 +478,12 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
               )}
             />
           </Box>
-          <Button type="submit" variant="contained" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isExpiredProduct}
+            fullWidth
+          >
             Заказать
           </Button>
         </form>

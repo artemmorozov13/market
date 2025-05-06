@@ -6,10 +6,13 @@ import {
   Box, 
   IconButton, 
   CircularProgress, 
-  Badge
+  Badge,
+  Button
 } from "@mui/material";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { BasketType, basketStore } from "../..";
 import { observer } from "mobx-react-lite";
 import { ConfirmRemoveFromBasketModal } from "../ConfirmRemoveFromBasketModal/ConfirmRemoveFromBasketModal";
@@ -24,7 +27,7 @@ interface BasketItemProps {
 const MINIMUM_COUNT_TO_BE_IN_BASKET = 1;
 
 export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) => {
-  const { increaseProductCount, decreaseProductCount } = basketStore;
+  const { increaseProductCount, decreaseProductCount, clearProduct } = basketStore;
 
   const [isLoadingAdd, setIsLoadingAdd] = useState<boolean>(false);
   const [isLoadingRemove, setIsLoadingRemove] = useState<boolean>(false);
@@ -47,6 +50,10 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
     setIsLoadingAdd(false);
   };
 
+  const handleRemoveProduct = () => {
+    clearProduct(item.productId)
+  }
+
   const handleMinusProduct = async () => {
     if (item.quantity === MINIMUM_COUNT_TO_BE_IN_BASKET) {
       setIsOpen(true);
@@ -59,7 +66,10 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
 
   return (
     <>
-      <Card className={clsx(styles.card, className)} elevation={0}>
+      <Card
+        className={clsx(styles.card, className, { [styles.disabled]: item.product.is_expired })}
+        elevation={0}
+      >
         <Box className={styles.imageWrapper}>
           <CardMedia
             component="img"
@@ -81,6 +91,13 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
             {item.product.name}
           </Typography>
           
+          {item.product.is_expired && (
+            <Box className={styles.unavailableBadge}>
+              <ErrorOutlineIcon fontSize="small" />
+              <Typography variant="caption">Товар недоступен для доставки</Typography>
+            </Box>
+          )}
+          
           <Box className={styles.priceSection}>
             <Box className={styles.priceContainer}>
               <Typography className={styles.currentPrice}>
@@ -95,27 +112,43 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
           </Box>
           
           <Box className={styles.quantityControls}>
-            <IconButton
-              className={styles.quantityButton}
-              onClick={handleMinusProduct}
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<DeleteOutlineIcon />}
+              onClick={handleRemoveProduct}
               disabled={isLoadingRemove}
-              size="small"
+              className={styles.removeButton}
             >
-              {isLoadingRemove ? <CircularProgress size={20} /> : <RemoveCircleOutlineIcon />}
-            </IconButton>
+              Убрать
+            </Button>
             
-            <Typography className={styles.quantity}>
-              {item.quantity}
-            </Typography>
-            
-            <IconButton
-              className={styles.quantityButton}
-              onClick={handlePlusProduct}
-              disabled={isLoadingAdd}
-              size="small"
-            >
-              {isLoadingAdd ? <CircularProgress size={20} /> : <AddCircleOutlineIcon />}
-            </IconButton>
+            {!item.product.is_expired && (
+              <>
+                <IconButton
+                  className={styles.quantityButton}
+                  onClick={handleMinusProduct}
+                  disabled={isLoadingRemove}
+                  size="small"
+                >
+                  {isLoadingRemove ? <CircularProgress size={20} /> : <RemoveCircleOutlineIcon />}
+                </IconButton>
+                
+                <Typography className={styles.quantity}>
+                  {item.quantity}
+                </Typography>
+                
+                <IconButton
+                  className={styles.quantityButton}
+                  onClick={handlePlusProduct}
+                  disabled={isLoadingAdd}
+                  size="small"
+                >
+                  {isLoadingAdd ? <CircularProgress size={20} /> : <AddCircleOutlineIcon />}
+                </IconButton>
+              </>
+            )}
           </Box>
         </Box>
       </Card>
