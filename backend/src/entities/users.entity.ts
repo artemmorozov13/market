@@ -5,6 +5,7 @@ import { SelectedProductEntity } from "./selected-product.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
 import * as bcrypt from "bcrypt"
 import { AddressesEntity } from "./addresses.entity";
+import { Roles } from "src/auth/types/role-enum";
 
 @Entity({ name: "users" })
 export class UsersEntity {
@@ -34,6 +35,13 @@ export class UsersEntity {
 
     @Column({ default: "" })
     password: string
+
+    @Column({
+        default: Roles.User,
+        type: 'enum',
+        enum: Roles
+    })
+    role: Roles
 
     @CreateDateColumn()
     created_at: Date

@@ -198,13 +198,13 @@ export class OrderService {
   }
 
   async updateOrder(
-    orderId: number,
     updateOrderDto: UpdateOrderDto,
-    initData: string
+    userPayload: AuthJwtPayload
   ): Promise<OrderEntity> {
-    const telegramUser = TelegramUtils.parseInitData(initData);
     const user = await this.usersRepository.findOne({
-      where: { telegram_id: telegramUser.id }
+      where: {
+        id: userPayload.sub
+      }
     });
 
     if (!user) {
@@ -213,7 +213,12 @@ export class OrderService {
 
     // Получаем заказ со всеми связанными данными
     const order = await this.orderRepository.findOne({
-      where: { id: orderId, user: { id: user.id } },
+      where: {
+        id: updateOrderDto.id,
+        user: {
+          id: user.id
+        }
+      },
       relations: [
         'ordered_products',
         'ordered_products.product'

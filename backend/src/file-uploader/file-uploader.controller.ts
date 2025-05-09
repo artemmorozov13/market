@@ -5,15 +5,23 @@ import {
     UseInterceptors,
     HttpException,
     HttpStatus,
+    UseGuards,
   } from '@nestjs/common';
   import { FileInterceptor } from '@nestjs/platform-express';
   import { FileUploaderService } from './file-uploader.service';
+import { AllowRoles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/auth/types/role-enum';
+import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
   
   @Controller('file-uploader')
   export class FileUploaderController {
     constructor(private readonly fileUploaderService: FileUploaderService) {}
   
     @Post('upload')
+    @AllowRoles(Roles.Admin, Roles.User)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
     async uploadImage(@UploadedFile() file: Express.Multer.File) {
       if (!file) {

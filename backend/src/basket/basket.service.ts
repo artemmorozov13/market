@@ -38,17 +38,18 @@ export class BasketService {
     });
   }
 
-  async addProductToBasket(initData: string, productId: number) {
-    const telegramUser = TelegramUtils.parseInitData(initData)
+  async addProductToBasket(userPayload: AuthJwtPayload, productId: number) {
     const user = await this.usersRepository.findOne({
       where: {
-        telegram_id: telegramUser.id
+        id: userPayload.sub
       },
       relations: ['basket']
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
-        userTgchatId: telegramUser.id,
+        user: {
+          id: userPayload.sub
+        },
         productId: productId
       }
     })
@@ -70,17 +71,16 @@ export class BasketService {
     })
   }
 
-  async removeProductFromBasket(initData: string, productId: number) {
-    const telegramUser = TelegramUtils.parseInitData(initData)
+  async removeProductFromBasket(userPayload: AuthJwtPayload, productId: number) {
     const user = await this.usersRepository.findOne({
       where: {
-        telegram_id: telegramUser.id
+        id: userPayload.sub
       },
       relations: ['basket']
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
-        userTgchatId: telegramUser.id,
+        user: { id: userPayload.sub },
         productId: productId
       }
     })
@@ -126,10 +126,14 @@ export class BasketService {
     return this.selectedProductRepository.delete(selectedProduct.id)
   }
 
-  async getBasketById(initData: string): Promise<SelectedProductEntity[]> {
-    const telegramUser = TelegramUtils.parseInitData(initData)
+  async getBasketById(userPayload: AuthJwtPayload): Promise<SelectedProductEntity[]> {
+
     const selectedProducts = await this.selectedProductRepository.find({
-      where: { userTgchatId: telegramUser.id },
+      where: {
+        user: {
+          id: userPayload.sub
+        }
+      },
       relations: ['product']
     });
 

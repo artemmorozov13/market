@@ -24,7 +24,18 @@ export class UsersService {
     return await this.usersRepository.findOne({
       where: {
         id: userId
-      }
+      },
+      select: [
+        'id',
+        'email',
+        'name',
+        'age',
+        'is_phone_confirmed',
+        'phone_number',
+        'role',
+        'telegram_id',
+        'telegram_username'
+      ]
     })
   }
 
@@ -53,10 +64,10 @@ export class UsersService {
   }
 
   async loginWithTelegram(initData: string) {
-    // const isValid = await TelegramUtils.validateInitData(initData);
-    // if (!isValid) {
-    //   throw new Error('Invalid Telegram data');
-    // }
+    const isValid = await TelegramUtils.validateInitData(initData);
+    if (!isValid) {
+      throw new Error('Invalid Telegram data');
+    }
 
     const telegramUser = TelegramUtils.parseInitData(initData);
 
@@ -83,7 +94,7 @@ export class UsersService {
 
     return {
       user,
-      token: this.authService.generateToken(user.id),
+      token: await this.authService.generateToken(user.id),
     };
   }
 

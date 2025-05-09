@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from 'src/users/users.module';
-import { RolesModule } from 'src/roles/roles.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductModule } from 'src/product/product.module';
 import { OrderModule } from 'src/order/order.module';
@@ -33,7 +32,6 @@ import { StatisticModule } from 'src/statistic/statistic.module';
       inject: [ConfigService]
     }),
     UsersModule,
-    RolesModule,
     ProductModule,
     TelegramModule,
     OrderModule,

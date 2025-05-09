@@ -61,15 +61,20 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             href: routeConfig["order-table"],
             icon: <PointOfSaleIcon />
         },
-        {
-            label: "Список заказов",
-            href: routeConfig["orders"],
-            icon: <ShoppingCartIcon />
-        },
+        // {
+        //     label: "Список заказов",
+        //     href: routeConfig["orders"],
+        //     icon: <ShoppingCartIcon />
+        // },
         {
             label: "Список товаров",
             href: routeConfig["product"],
             icon: <InventoryIcon />
+        },
+        {
+            label: "Пункты выдачи",
+            href: routeConfig["pickup-points"],
+            icon: <DeliveryIcon />
         }
     ]
 
@@ -78,11 +83,6 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             label: "Добавить товар",
             href: routeConfig["product/create"],
             icon: <AddIcon />
-        },
-        {
-            label: "Пункты выдачи",
-            href: routeConfig["pickup-points"],
-            icon: <DeliveryIcon />
         }
     ]
 

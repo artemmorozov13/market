@@ -4,9 +4,13 @@ import { PickupPointController } from './pickup-point.controller';
 import { PickupPointService } from './pickup-point.service';
 import { PickupPoint } from 'src/entities/pickup-point.entity';
 import { DeliveryTime } from 'src/entities/delivery-time.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PickupPoint, DeliveryTime])],
+  imports: [
+    TypeOrmModule.forFeature([PickupPoint, DeliveryTime]),
+    AuthModule
+  ],
   controllers: [PickupPointController],
   providers: [PickupPointService],
 })

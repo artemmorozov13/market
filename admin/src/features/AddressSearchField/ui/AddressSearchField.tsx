@@ -12,18 +12,24 @@ interface AddressSearchFieldProps {
   onAddressSelect?: (data: any) => void;
 }
 
-export const AddressSearchField: FC<AddressSearchFieldProps> = ({
-  control,
-  name,
-  label,
-  value,
-  error,
-  onAddressSelect,
-}) => {
-  const [inputValue, setInputValue] = useState('');
+export const AddressSearchField: FC<AddressSearchFieldProps> = (props) => {
+  const {
+    control,
+    name,
+    label,
+    value,
+    error,
+    onAddressSelect,
+  } = props
+
+  const [inputValue, setInputValue] = useState(value || '');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedOption, setSelectedOption] = useState<any>(value);
-  const [isOpen, setIsOpen] = useState(false); // Добавляем состояние для управления открытием
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelectAddress = (data: any) => {
+    onAddressSelect?.(data)
+  }
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -42,6 +48,13 @@ export const AddressSearchField: FC<AddressSearchFieldProps> = ({
   }));
 
   const isHouseSelected = selectedOption?.data?.house;
+
+  // Добавляем эффект для синхронизации внешнего значения
+  useEffect(() => {
+    if (value) {
+      setInputValue(value);
+    }
+  }, [value]);
 
   return (
     <Controller
@@ -71,16 +84,16 @@ export const AddressSearchField: FC<AddressSearchFieldProps> = ({
           onChange={(_, newValue) => {
             if (typeof newValue === 'string') {
               onChange(newValue);
-              onAddressSelect?.(null);
+              handleSelectAddress(null);
               setSelectedOption(null);
             } else if (newValue) {
               onChange(newValue.value);
-              onAddressSelect?.(newValue.data);
+              handleSelectAddress(newValue.data);
               setSelectedOption(newValue);
               setIsOpen(false); // Закрываем список после выбора
             } else {
               onChange('');
-              onAddressSelect?.(null);
+              handleSelectAddress(null);
               setSelectedOption(null);
             }
           }}
@@ -93,7 +106,7 @@ export const AddressSearchField: FC<AddressSearchFieldProps> = ({
           onBlur={() => setIsOpen(false)}
           loading={isLoading}
           filterOptions={(options) => options}
-          open={isOpen} // Управляем открытием через состояние
+          open={isOpen}
           renderInput={(params) => (
             <TextField
               {...params}

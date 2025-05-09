@@ -37,8 +37,31 @@ export class AuthService {
           }
     }
 
-    generateToken(userId) {
-      const payload: AuthJwtPayload = { sub: userId }
-      return this.jwtService.sign(payload)
+    async generateToken(userId: number) {
+      const user = await this.userService.getUserById(userId)
+
+      if (!user) {
+        throw new UnauthorizedException("User not found")
+      }
+      const currentUser: AuthJwtPayload = {
+        sub: userId,
+        role: user.role
+      }
+      return this.jwtService.sign(currentUser)
+    }
+
+    async validateJwtUser(payload: AuthJwtPayload) {
+      const user = await this.userService.getUserById(payload.sub)
+
+      if (!user) {
+        throw new UnauthorizedException("User not found")
+      }
+
+      const currentUser: AuthJwtPayload = {
+        sub: user.id,
+        role: user.role
+      }
+
+      return currentUser
     }
 }

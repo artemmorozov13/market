@@ -9,18 +9,25 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
+import { AllowRoles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/auth/types/role-enum';
+import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
+  @AllowRoles(Roles.Admin)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   getOrdersData(@Query() query: GetOrderQueryDto) {
     return this.orderService.getOrdersListData(query)
   }
 
   @Get('current')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   getCurrentOrders(
     @User() user: AuthJwtPayload,
@@ -29,6 +36,8 @@ export class OrderController {
   }
 
   @Post('create')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   createOrder(
     @Body() createOrderDto: CreateOrderDto,
@@ -38,20 +47,27 @@ export class OrderController {
   }
 
   @Post('update-order')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   updateOrder(
     @Body() updateOrderDto: UpdateOrderDto,
-    @Headers('init-data') initData: string,
+    @User() user: AuthJwtPayload,
   ) {
-    return this.orderService.updateOrder(updateOrderDto.id, updateOrderDto, initData)
+    return this.orderService.updateOrder(updateOrderDto, user)
   }
 
   @Post('update-status')
-  // @UseGuards(JwtAuthGuard)
+  @AllowRoles(Roles.Admin)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   updateStatus(@Body() updateStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(updateStatusDto)
   }
 
   @Post('export-inner-table')
+  @AllowRoles(Roles.Admin)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   async exportExcelWithInnerTable(@Res() res: Response) {
     try {
@@ -78,6 +94,8 @@ export class OrderController {
   }
 
   @Post('export-wide-table')
+  @AllowRoles(Roles.Admin)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   async exportExcelFullWidthTable(@Res() res: Response) {
     try {

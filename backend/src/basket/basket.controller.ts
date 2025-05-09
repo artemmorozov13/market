@@ -5,39 +5,55 @@ import { RemoveProductFromBasketDto } from './dto/remove-product-to-basket.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
+import { AllowRoles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/auth/types/role-enum';
+import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 
 @Controller('basket')
 export class BasketController {
   constructor(private readonly basketService: BasketService) {}
 
   @Get()
-  getBasket(@Headers('init-data') initData: string) {
-    return this.basketService.getBasketById(initData);
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  getBasket(@User() user: AuthJwtPayload) {
+    return this.basketService.getBasketById(user);
   }
 
   @Post('clear')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   clearBasket(@User() user: AuthJwtPayload) {
     return this.basketService.clearBasket(user)
   }
 
   @Post('add-product')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   addProductToBasket(
     @Body() addProductToBasketDto: AddProductToBasketDto,
-    @Headers('init-data') initData: string,
+    @User() user: AuthJwtPayload
   ) {
-    return this.basketService.addProductToBasket(initData, addProductToBasketDto.productId);
+    return this.basketService.addProductToBasket(user, addProductToBasketDto.productId);
   }
 
   @Post('remove-product')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   removeProductFromBasket(
     @Body() removeProductFromBasketDto: RemoveProductFromBasketDto,
-    @Headers('init-data') initData: string,
+    @User() user: AuthJwtPayload
   ) {
-    return this.basketService.removeProductFromBasket(initData, removeProductFromBasketDto.productId);
+    return this.basketService.removeProductFromBasket(user, removeProductFromBasketDto.productId);
   }
 
   @Post('reset-product')
+  @AllowRoles(Roles.User)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   resetBasketProduct(
     @Body() removeProductFromBasketDto: RemoveProductFromBasketDto,

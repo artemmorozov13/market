@@ -46,9 +46,6 @@ export class TelegramUtils {
       
       if (!isValid) {
         console.error('Hash mismatch!');
-        console.log('Received hash:', hash);
-        console.log('Computed hash:', calculatedHash);
-        console.log('DataCheckString:', dataCheckString);
       }
 
       return isValid;

@@ -2,7 +2,7 @@ import { API } from "@shared/api/instance";
 import { AxiosRequestConfig } from "axios";
 import { OrderType } from "../types/orderTypes";
 
-interface FetchOrdersDataOptions {
+export interface FetchOrdersDataOptions {
     skip?: number
     take?: number
     enabled?: boolean

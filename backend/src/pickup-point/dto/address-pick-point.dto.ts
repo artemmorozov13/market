@@ -1,12 +1,12 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class AddressDataDto {
     @IsString()
     fullAddress: string;
 
     @IsString()
-    @IsNotEmpty()
-    postal_code: string;
+    @IsOptional()
+    postal_code: string | null;
 
     @IsString()
     @IsNotEmpty()

@@ -4,6 +4,11 @@ import { UsersService } from './users.service';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
 import { TelegramLoginDto } from './dto/telegram-login.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { User } from 'src/decorators/user.decorator';
+import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
+import { AllowRoles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/auth/types/role-enum';
+import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 
 @Controller('users')
@@ -12,24 +17,30 @@ export class UsersController {
         this.usersService = usersService
     }
 
-    @UseGuards(JwtAuthGuard)
     @Get()
-    getUserByToken(@Req() req) {
-        return this.usersService.getUserById(req.user.id)
+    @UseGuards(JwtAuthGuard)
+    getUserByToken(@User() user: AuthJwtPayload) {
+        return this.usersService.getUserById(user.sub)
     }
 
     @Get('order')
-    getActiveOrders(@Req() req) {
-        return this.usersService.getUserById(req.user.id)
+    @UseGuards(JwtAuthGuard)
+    getActiveOrders(@User() user: AuthJwtPayload) {
+        return this.usersService.getUserById(user.sub)
     }
 
-    @UseGuards(JwtAuthGuard)
     @Get("list")
+    @AllowRoles(Roles.Admin)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
     getUsersList(@Query() query: GetQueryParamsDto) {
         return this.usersService.getUsersDataList(query)
     }
 
     @Post("create")
+    @AllowRoles(Roles.Admin)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
     createNewUser(@Body() body: CreateUserBodyDto) {
         return this.usersService.createUser(body)
     }

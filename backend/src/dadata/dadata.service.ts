@@ -18,10 +18,10 @@ export class DadataService {
           this.API_URL,
           {
             query,
-            count: 10,
+            count: 15,
             locations: [
               { region: 'Санкт-Петербург' },
-              { region: 'Ленинградская область' }
+              { region: 'Ленинградская' }
             ],
             restrict_value: true
           },

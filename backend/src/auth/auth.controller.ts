@@ -10,10 +10,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @Post("login")
-  authWithPassword(@Request() req) {
+  async authWithPassword(@Request() req) {
     return {
       user: req.user,
-      token: this.authService.generateToken(req.user.id)
+      token: await this.authService.generateToken(req.user.id)
     }
   }
 }
