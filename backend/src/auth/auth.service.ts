@@ -3,6 +3,8 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from "bcrypt"
 import { JwtService } from '@nestjs/jwt';
 import { AuthJwtPayload } from './types/auth.jwtPayload';
+import { UsersEntity } from 'src/entities/users.entity';
+import { Roles } from './types/role-enum';
 
 @Injectable()
 export class AuthService {
@@ -37,17 +39,31 @@ export class AuthService {
           }
     }
 
-    async generateToken(userId: number) {
-      const user = await this.userService.getUserById(userId)
-
-      if (!user) {
-        throw new UnauthorizedException("User not found")
-      }
+    async generateToken(user: UsersEntity) {
       const currentUser: AuthJwtPayload = {
-        sub: userId,
+        sub: user.id,
         role: user.role
       }
       return this.jwtService.sign(currentUser)
+    }
+
+    async authAdminUser(userId: number) {
+      const user = await this.userService.getUserById(userId)
+
+      if (!user) {
+        throw new UnauthorizedException("Пользователь не найден")
+      }
+
+      if (user.role !== Roles.Admin) {
+        throw new UnauthorizedException("У пользователя недостаточно прав для доступа")
+      }
+
+      const token = await this.generateToken(user)
+
+      return {
+        user,
+        token
+      }
     }
 
     async validateJwtUser(payload: AuthJwtPayload) {

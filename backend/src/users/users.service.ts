@@ -94,7 +94,7 @@ export class UsersService {
 
     return {
       user,
-      token: await this.authService.generateToken(user.id),
+      token: await this.authService.generateToken(user),
     };
   }
 
