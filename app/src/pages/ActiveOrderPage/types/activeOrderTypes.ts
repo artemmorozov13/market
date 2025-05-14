@@ -1,20 +1,10 @@
-export interface Product {
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    discount: string;
-    image: string;
-    unitValue: number;
-    unitOfMeasurement: string;
-    is_expired: boolean;
-}
-  
+import { ProductType } from "@/entities/Product";
+
 export interface OrderedProduct {
     id: number;
     telegram_id: string;
     quantity: number;
-    product: Product;
+    product: ProductType;
 }
   
 export interface PickupPoint {
@@ -42,8 +32,13 @@ export interface Order {
     paymentMethod: string | null;
     ordered_products: OrderedProduct[];
     deliveryTime: {
-        startTime: string
-        endTime: string
+        id: number,
+        dayOfWeek: string,
+        startTime: string,
+        endTime: string,
+        isActive: boolean,
+        createdAt: Date,
+        updatedAt: Date
     };
     pickupPoint: PickupPoint;
 }

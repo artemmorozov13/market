@@ -30,82 +30,13 @@ import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { AddressType } from "@/entities/Addresses";
 import { basketStore } from "@/entities/Basket";
+import { calculateDistance } from "@/shared/helpers/calculateDistance";
+import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
+import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
 }
-
-function getAvailableDeliveryDates(
-  deliveryDays: number[], // напр., [1, 4, 5]
-  currentDate: Date = new Date()
-): Date[] {
-  const result: Date[] = [];
-  const now = new Date(currentDate);
-  const currentDay = now.getDay() === 0 ? 7 : now.getDay(); // воскресенье = 7
-  const currentTime = now.getTime();
-
-  for (let i = 1; i <= 7; i++) {
-    // Начинаем с понедельника (1) по воскресенье (7)
-    if (i <= currentDay) continue; // только дни после сегодняшнего
-    if (i === 1) continue; // исключаем понедельник (доставка в понедельник невозможна)
-
-    if (deliveryDays.includes(i)) {
-      const targetDate = new Date(now);
-      const daysToAdd = i - currentDay;
-      targetDate.setDate(now.getDate() + daysToAdd);
-      targetDate.setHours(0, 0, 0, 0);
-
-      // Проверка на 8 часа
-      if (targetDate.getTime() - currentTime >= 1 * 60 * 60 * 1000) {
-        result.push(targetDate);
-      }
-    }
-  }
-
-  return result;
-}
-
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const day = date.getDate().toString().padStart(2, '0');
-  const months = [
-    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-  ];
-  const month = months[date.getMonth()];
-  const weekday = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'][date.getDay()];
-  return `${weekday}, ${day}.${month}`;
-};
-
-export const getWeekDates = (deliveryTimes: DeliveryTime[], currentDate: Date = new Date()): Record<string, { date: string; isToday: boolean; formattedDate: string }> => {
-  const now = new Date(currentDate);
-  const currentDay = now.getDay(); // 0 (воскресенье) до 6 (суббота)
-  const dates: Record<string, { date: string; isToday: boolean; formattedDate: string }> = {};
-
-  // Получаем уникальные дни недели, для которых есть доставка
-  const availableDays = Array.from(new Set(deliveryTimes.map(time => time.dayOfWeek)));
-
-  availableDays.forEach(dayKey => {
-    const dayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(dayKey);
-    
-    // Вычисляем разницу дней между текущим днем и днем доставки
-    let dayDiff = dayIndex - currentDay;
-    
-    // Если день доставки уже прошел на этой неделе или это сегодня (доставка день в день не работает)
-    if (dayDiff <= 0) return;
-    
-    const date = new Date(now);
-    date.setDate(now.getDate() + dayDiff);
-    
-    dates[dayKey] = {
-      date: date.toISOString().split('T')[0],
-      isToday: false, // У нас никогда не будет isToday=true, так как dayDiff <= 0 отсекается
-      formattedDate: formatDate(date.toISOString())
-    };
-  });
-
-  return dates;
-};
 
 export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
@@ -158,18 +89,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
 
   const handleOpenAddAdressModal = () => {
     setIsOpenAddAdressModal(true);
-  };
-
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
   };
 
   const settingPickPoint = (address: AddressType) => {
@@ -245,7 +164,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           acc[dayKey] = {
             date: date,
             isToday: false,
-            formattedDate: formatDate(date.toString())
+            formattedDate: formatToRussianDate(date.toString())
           };
           return acc;
         }, {} as Record<string, { date: Date; isToday: boolean; formattedDate: string }>);
@@ -332,36 +251,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           >
             Добавить новый адрес
           </Button>
-
-          {/* <Box mb={2}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="pickup-point-label">Пункт выдачи</InputLabel>
-              <Controller
-                name="pickupPointId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    labelId="pickup-point-label"
-                    disabled
-                    label="Пункт выдачи"
-                    error={!!errors.pickupPointId}
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <PlaceIcon color="action" />
-                      </InputAdornment>
-                    }
-                  >
-                    {pickupPoints.map((point) => (
-                      <MenuItem key={point.id} value={point.id}>
-                        {point.name}
-                      </MenuItem> 
-                    ))}
-                  </Select>
-                )}
-              />
-            </FormControl>
-          </Box> */}
 
           {selectedPickupPointId && deliveryTimes.length > 0 && (
             Object.keys(weekDates).length > 0 ? (

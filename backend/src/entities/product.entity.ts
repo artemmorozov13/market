@@ -1,6 +1,4 @@
 import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn, JoinTable, OneToMany } from "typeorm";
-import { OrderEntity } from "./order.entity";
-import { BasketEntity } from "./basket.entity";
 import { SelectedProductEntity } from "./selected-product.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
 

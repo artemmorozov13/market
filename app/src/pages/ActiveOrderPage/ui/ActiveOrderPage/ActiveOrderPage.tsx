@@ -1,27 +1,43 @@
 import { FC, useState } from "react";
 import { Layout } from "@/widgets/Layout";
-import { Card, CircularProgress, Container, Typography } from "@mui/material";
+import { Card, CircularProgress, Container, Typography, Button } from "@mui/material";
 import { useActiveOrder } from "../../api/useActiveOrder";
 import { Order } from "../../types/activeOrderTypes";
 import { OrderDetails } from "../OrderDetails/OrderDetails";
 import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
 import clsx from 'clsx';
-
 import styles from "./ActiveOrderPage.module.scss";
+import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 
 export const ActiveOrderPage: FC = () => {
   const { data: orders, isLoading } = useActiveOrder();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // const handleOpenEditModal = (order: Order) => {
-  //   setSelectedOrder(order);
-  //   setIsEditModalOpen(true);
-  // };
-
   const handleCloseModals = () => {
     setIsEditModalOpen(false);
     setSelectedOrder(null);
+  };
+
+  const handleOpenEditModal = (order: Order) => {
+    setSelectedOrder(order);
+    setIsEditModalOpen(true);
+  };
+
+  // Функция для проверки, доступна ли еще доставка для заказа
+  const isDeliveryAvailable = (order: Order): boolean => {
+    if (!order.deliveryTime || !order.deliveryDate) return false;
+    
+    const deliveryDayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+      .indexOf(order.deliveryTime.dayOfWeek);
+    const deliveryDay = deliveryDayIndex === 0 ? 7 : deliveryDayIndex + 1;
+    
+    const availableDates = getAvailableDeliveryDates([deliveryDay]);
+    
+    const deliveryDate = new Date(order.deliveryDate);
+    return availableDates.some(date => 
+      date.toISOString().split('T')[0] === deliveryDate.toISOString().split('T')[0]
+    );
   };
 
   return (
@@ -39,19 +55,19 @@ export const ActiveOrderPage: FC = () => {
           ) : orders && orders?.length > 0 ? (
             <div>
               {orders?.map(order => (
-                <Card className={styles.card}>
+                <Card key={order.id} className={styles.card}>
                   <OrderDetails order={order} />
-                  {/* <div className={styles.actions}>
+                  <div className={styles.actions}>
                     <Button
                       variant="contained"
-                      onClick={() => handleOpenEditModal(orders[0])}
+                      onClick={() => handleOpenEditModal(order)}
                       className={styles.editButton}
-                      disabled
+                      disabled={!isDeliveryAvailable(order)}
                       fullWidth
                     >
-                      Добавить товары
+                      Изменить состав
                     </Button>
-                  </div> */}
+                  </div>
                 </Card>
               ))}
             </div>

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderEntity } from 'src/entities/order.entity';
 import { UsersEntity } from 'src/entities/users.entity';
@@ -68,14 +68,14 @@ export class OrderService {
 
   async getCurrentUserOrders(userPayload: AuthJwtPayload): Promise<OrderEntity[]> {
     const user = await this.usersRepository.findOne({
-      where: { id: userPayload.sub }
+      where: { id: userPayload.sub },
     });
   
     if (!user) {
       throw new NotFoundException("Пользователь не найден");
     }
   
-    return this.orderRepository.find({
+    return await this.orderRepository.find({
       where: { 
         user: { id: user.id },
         status: "waitForPay"
@@ -85,7 +85,11 @@ export class OrderService {
         'ordered_products.product',
         'deliveryTime',
         'pickupPoint'
-      ]
+      ],
+      order: {
+        deliveryDate: "DESC", // Сортировка по убыванию даты
+        createdAt: "DESC"     // Дополнительная сортировка по дате создания
+      }
     });
   }
 
@@ -111,9 +115,9 @@ export class OrderService {
       }
     });
 
-    // if (activeOrdersCount >= 2) {
-    //   throw new BadRequestException("Нельзя иметь более 2 активных заказов одновременно");
-    // }
+    if (activeOrdersCount >= 1) {
+      throw new BadRequestException("Нельзя иметь более 1 активного заказа одновременно");
+    }
 
     // Проверяем, есть ли уже заказ на выбранную дату
     const existingOrderOnSameDate = await this.orderRepository.findOne({
@@ -123,9 +127,9 @@ export class OrderService {
       }
     });
 
-    // if (existingOrderOnSameDate) {
-    //   throw new BadRequestException("У вас уже есть заказ на выбранную дату");
-    // }
+    if (existingOrderOnSameDate) {
+      throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+    }
 
     const selectedProducts = await this.selectedProductsRepository.find({
       where: { userTgchatId: user.telegram_id },
@@ -202,114 +206,87 @@ export class OrderService {
     userPayload: AuthJwtPayload
   ): Promise<OrderEntity> {
     const user = await this.usersRepository.findOne({
-      where: {
-        id: userPayload.sub
-      }
+      where: { id: userPayload.sub }
     });
-
+  
     if (!user) {
       throw new NotFoundException("Пользователь не найден");
     }
-
-    // Получаем заказ со всеми связанными данными
+  
     const order = await this.orderRepository.findOne({
       where: {
         id: updateOrderDto.id,
-        user: {
-          id: user.id
-        }
+        user: { id: user.id }
       },
       relations: [
         'ordered_products',
         'ordered_products.product'
       ]
     });
-
+  
     if (!order) {
       throw new NotFoundException("Заказ не найден");
     }
-
+  
     if (order.status !== "waitForPay") {
       throw new BadRequestException("Изменение заказа возможно только в статусе 'Ожидает оплаты'");
     }
-
-    // Проверяем новую дату доставки, если она предоставлена
-    if (updateOrderDto.deliveryDate) {
-      const newDeliveryDate = new Date(updateOrderDto.deliveryDate);
-      const currentDate = new Date();
-      
-      if (newDeliveryDate <= currentDate) {
-        throw new BadRequestException("Новая дата доставки должна быть в будущем");
-      }
-
-      // Проверяем, что до текущей даты доставки больше суток
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const currentDeliveryDate = new Date(order.deliveryDate);
-      
-      if (currentDeliveryDate.getTime() - currentDate.getTime() <= oneDayInMs) {
-        throw new BadRequestException(
-          "Редактирование заказа доступно только за 24 часа до даты доставки. " +
-          `Текущая дата доставки: ${currentDeliveryDate.toLocaleDateString()}`
-        );
-      }
-
-      order.deliveryDate = updateOrderDto.deliveryDate;
-    }
-
-    // Обновляем комментарий, если он предоставлен
-    if (updateOrderDto.comment !== undefined) {
-      order.comment = updateOrderDto.comment;
-    }
-
+  
     // Обрабатываем товары в заказе
-    if (updateOrderDto.products) {
-      // Удаляем старые товары, которых нет в новом списке
-      const productsToRemove = order.ordered_products.filter(
-        op => !updateOrderDto.products.some(p => p.productId === op.product.id)
-      );
-      
-      if (productsToRemove.length > 0) {
-        await this.orderedProductsRepository.remove(productsToRemove);
+    const selectedProducts = updateOrderDto.products.map(product => product.productId);
+    const availableProducts = await this.productRepository.find({
+      where: {
+        id: In(selectedProducts),
       }
-
-      // Обновляем или добавляем товары
-      const updatedProducts = await Promise.all(
-        updateOrderDto.products.map(async productDto => {
-          const existingProduct = order.ordered_products.find(
-            op => op.product.id === productDto.productId
-          );
-
-          if (existingProduct) {
-            existingProduct.quantity = productDto.quantity;
-            return this.orderedProductsRepository.save(existingProduct);
-          } else {
-            const product = await this.productRepository.findOneBy({ 
-              id: productDto.productId 
-            });
-            
-            if (!product) {
-              throw new NotFoundException(`Товар с ID ${productDto.productId} не найден`);
-            }
-
-            return this.orderedProductsRepository.save(
-              this.orderedProductsRepository.create({
-                product,
-                quantity: productDto.quantity,
-                telegram_id: user.telegram_id,
-                user,
-                order,
-              })
-            );
-          }
-        })
-      );
-
-      order.ordered_products = updatedProducts;
+    });
+  
+    const normalizedProducts = availableProducts.reduce((acc, product) => {
+      acc[product.id] = product;
+      return acc;
+    }, {} as Record<number, ProductEntity>);
+  
+    const isSomeExpired = availableProducts.some(product => product.is_expired);
+  
+    if (isSomeExpired) {
+      throw new BadRequestException("В списке присутствует недоступный товар");
     }
-
-    return this.orderRepository.save(order);
+  
+    // Правильный расчет суммы
+    const totalAmount = updateOrderDto.products.reduce((amount, current) => {
+      const product = normalizedProducts[current.productId];
+      return product ? amount + (product.price * current.quantity) : amount;
+    }, 0);
+  
+    // Удаляем старые товары заказа
+    await this.orderedProductsRepository.delete({ order: { id: order.id } });
+  
+    // Создаем новые товары заказа (без циклических ссылок)
+    const orderedProducts = updateOrderDto.products
+      .filter(product => product.quantity > 0)
+      .map(product => ({
+        quantity: product.quantity,
+        telegram_id: user.telegram_id,
+        product: normalizedProducts[product.productId],
+        order: { id: order.id }, // Только ID, чтобы избежать циклической ссылки
+        user: { id: user.id }    // Только ID
+      }));
+  
+    // Сохраняем товары
+    const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
+  
+    // Обновляем заказ
+    order.totalAmount = totalAmount + DELIVERY_PRICE;
+    order.ordered_products = savedProducts;
+  
+    const savedOrder = await this.orderRepository.save(order);
+  
+    // Возвращаем заказ с очищенными циклическими ссылками
+    return this.orderRepository.findOne({
+      where: { id: savedOrder.id },
+      relations: ['ordered_products', 'ordered_products.product'],
+      loadEagerRelations: false
+    });
   }
-
   
   async exportExcelWithInnerTable(): Promise<Uint8Array> {
     const orders = await this.orderRepository.find({
