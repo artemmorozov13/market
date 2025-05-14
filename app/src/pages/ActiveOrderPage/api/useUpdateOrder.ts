@@ -5,12 +5,24 @@ import { Order } from "../types/activeOrderTypes";
 export const useUpdateOrder = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const query = useMutation({
     mutationFn: async (order: Partial<Order>) => {
-      await API.post("/order/update-order", order);
+      const body = {
+        id: order.id,
+        products: order.ordered_products?.map(product => ({
+          productId: product.product.id,
+          quantity: product.quantity
+        })),
+      }
+      await API.post("/order/update-order", body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activeOrder"] });
     },
   });
+
+  return {
+    ...query,
+    updateOrder: query.mutateAsync
+  }
 };
