@@ -30,10 +30,15 @@ export class BasketService {
     return this.basketRepository.save(basket);
   }
 
-  async clearBasket(user: AuthJwtPayload) {
+  async clearBasket(userPayload: AuthJwtPayload) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: userPayload.sub
+      }
+    })
     return await this.selectedProductRepository.delete({
       user: {
-        id: user.sub
+        id: user.id
       }
     });
   }
@@ -59,7 +64,7 @@ export class BasketService {
         quantity: selectedProduct.quantity + 1,
         userTgchatId: user.telegram_id,
         basket: user.basket,
-        user: user.basket
+        user: user
       })
     }
     return this.selectedProductRepository.save({
@@ -67,7 +72,7 @@ export class BasketService {
       quantity: 1,
       userTgchatId: user.telegram_id,
       basket: user.basket,
-      user: user.basket
+      user: user
     })
   }
 
@@ -80,7 +85,7 @@ export class BasketService {
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
-        user: { id: userPayload.sub },
+        user: { id: user.id },
         productId: productId
       }
     })
@@ -99,7 +104,7 @@ export class BasketService {
       quantity: selectedProduct.quantity - 1,
       userTgchatId: user.telegram_id,
       basket: user.basket,
-      user: user.basket
+      user: user
     })
   }
 
@@ -112,8 +117,10 @@ export class BasketService {
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
-        userTgchatId: user.telegram_id,
-        productId: productId
+        productId: productId,
+        user: {
+          id: user.id
+        }
       }
     })
 
@@ -127,11 +134,15 @@ export class BasketService {
   }
 
   async getBasketById(userPayload: AuthJwtPayload): Promise<SelectedProductEntity[]> {
-
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: userPayload.sub,
+      }
+    })
     const selectedProducts = await this.selectedProductRepository.find({
       where: {
         user: {
-          id: userPayload.sub
+          id: user.id
         }
       },
       relations: ['product']
