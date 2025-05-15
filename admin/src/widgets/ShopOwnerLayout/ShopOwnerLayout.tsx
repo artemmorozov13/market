@@ -17,6 +17,7 @@ import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import styles from "./ShopOwnerLayout.module.scss"
 import { routeConfig } from "../../shared/lib/consts/routeConfig";
+import TelegramIcon from '@mui/icons-material/Telegram';
 import Cookies from "js-cookie";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../shared/lib/consts/consts";
 
@@ -83,6 +84,11 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             label: "Добавить товар",
             href: routeConfig["product/create"],
             icon: <AddIcon />
+        },
+        {
+            label: "Создать телеграм рассулку",
+            href: routeConfig["telegram-broadcast"],
+            icon: <TelegramIcon />
         }
     ]
 

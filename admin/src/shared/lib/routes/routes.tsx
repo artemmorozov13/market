@@ -10,6 +10,7 @@ import { NotFoundPage } from "@pages/NotFoundPage/NotFoundPage";
 import { OrderTablePage } from "@pages/OrderTablePage";
 import { PickPointPage } from "@pages/PickPointPage";
 import { StatisticPage } from "@pages/StatisticPage";
+import { TelegramBroadcastPage } from "@pages/TelegramBroadcastPage";
 
 export interface RouteType {
     roles: UserRoleType[],
@@ -39,6 +40,12 @@ export const routes: RouteType[] = [
         authOnly: true,
         element: <StatisticPage/>,
         path: routeConfig["statistic"]
+    },
+    {
+        roles: [],
+        authOnly: true,
+        element: <TelegramBroadcastPage/>,
+        path: routeConfig["telegram-broadcast"]
     },
     {
         roles: [],
