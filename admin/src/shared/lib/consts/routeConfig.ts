@@ -10,5 +10,6 @@ export const routeConfig = {
     "profile": "/admin/profile",
     "orders": "/admin/orders",
     "pickup-points": "/admin/pickup-points",
-    "order-table": "/admin/order-table"
+    "order-table": "/admin/order-table",
+    "telegram-broadcast": "/admin/telegram-broadcast"
 }
