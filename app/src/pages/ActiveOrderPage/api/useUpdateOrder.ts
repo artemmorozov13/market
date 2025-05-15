@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "@/shared/api/API";
 import { Order } from "../types/activeOrderTypes";
+import { toast } from "react-toastify";
 
 export const useUpdateOrder = () => {
   const queryClient = useQueryClient();
@@ -19,6 +20,9 @@ export const useUpdateOrder = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activeOrder"] });
     },
+    onError: () => {
+      toast("Ошибка при обновлении состава заказа", { type: "error" })
+    }
   });
 
   return {

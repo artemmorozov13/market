@@ -212,6 +212,10 @@ export class OrderService {
     if (!user) {
       throw new NotFoundException("Пользователь не найден");
     }
+
+    if (!updateOrderDto.products.length) {
+      throw new BadRequestException("Вы не можете удалить все товары")
+    }
   
     const order = await this.orderRepository.findOne({
       where: {
