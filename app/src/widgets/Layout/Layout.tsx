@@ -7,6 +7,7 @@ import { observer } from "mobx-react-lite";
 import { Link, useLocation } from "react-router";
 
 import styles from "./Layout.module.css";
+import { clsx } from "yet-another-react-lightbox";
 
 interface LayoutProps extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
     children: ReactNode;
@@ -42,7 +43,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
             component={Link}
             to={RoutePath.products}
             className={styles.navItem}
-            icon={<Storefront />}
+            icon={<Storefront className={clsx(styles.menuImageIcon, styles.icon)} />}
             label="Продукты"
             value={1}
           />
@@ -50,7 +51,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
             component={Link}
             to={RoutePath.activeOrders}
             className={styles.navItem}
-            icon={<ListAlt />}
+            icon={<ListAlt className={clsx(styles.menuImageIcon, styles.icon)} />}
             label="Заказы"
             value={3}
           />
@@ -66,7 +67,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
                 overlap="circular"
                 invisible={totalProducts === 0}
               >
-                <ShoppingBasket />
+                <ShoppingBasket className={clsx(styles.menuImageIcon, styles.icon)} />
               </Badge>
             }
             label="Корзина"
