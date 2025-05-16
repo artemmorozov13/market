@@ -33,11 +33,16 @@ export const ActiveOrderPage: FC = () => {
     const deliveryDay = deliveryDayIndex === 0 ? 7 : deliveryDayIndex + 1;
     
     const availableDates = getAvailableDeliveryDates([deliveryDay]);
+
+    console.log(availableDates[0])
+
+    const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
+    console.log(deliveryDate)
     
-    const deliveryDate = new Date(order.deliveryDate);
-    return availableDates.some(date => 
+    const isDeleveryAvailable = availableDates.some(date => 
       date.toISOString().split('T')[0] === deliveryDate.toISOString().split('T')[0]
-    );
+    )
+    return isDeleveryAvailable
   };
 
   return (

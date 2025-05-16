@@ -5,15 +5,16 @@ import { PickupPoint } from "src/entities/pickup-point.entity";
 import { StatusEnum } from "src/utils/constants";
 
 const textByStatus: Record<StatusEnum, string> = {
-    waitForPay: "Создан",
+    waitForPay: "Обновлен",
     finished: "Завершен"
 }
 
-export const formatUserOrderMessage = (
+export const formatUpdatedOrderMessage = (
     order: OrderEntity,
     orderedProducts: OrderedProductsEntity[],
     pickupPoint: PickupPoint,
-    deliveryTime: DeliveryTime
+    deliveryTime: DeliveryTime,
+    changes?: string[] // Опционально: массив строк с описанием изменений (например, ["Статус изменен на 'В обработке'", "Добавлен новый товар"])
 ): string => {
     const escape = (str: string) => str
         .replace(/&/g, '&amp;')
@@ -21,7 +22,6 @@ export const formatUserOrderMessage = (
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
 
-    // Форматирование даты и времени с московским часовым поясом
     const mskOptions: Intl.DateTimeFormatOptions = {
         timeZone: 'Europe/Moscow',
         day: 'numeric',
@@ -34,26 +34,29 @@ export const formatUserOrderMessage = (
     const endTime = escape(deliveryTime.endTime.toString().slice(0, 5));
     const address = escape(order.fullAddress || order.address);
     const pickupName = escape(pickupPoint?.name || '');
-    
-    // Расчет общей стоимости товаров
-    const productsTotal = orderedProducts.reduce((sum, p) => {
-        return sum + (p.product.price * p.quantity);
-    }, 0);
-    
-    // Форматирование стоимости в рублях
+
+    const productsTotal = orderedProducts.reduce((sum, p) => sum + (p.product.price * p.quantity), 0);
+
     const formatPrice = (price: number) => new Intl.NumberFormat('ru-RU', {
         style: 'currency',
         currency: 'RUB',
         minimumFractionDigits: 0
     }).format(price).replace(',00', '');
 
-    // Форматирование списка товаров
     const productsList = orderedProducts.map(p => 
         `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ${formatPrice(p.product.price)}`
     ).join('\n');
 
+    // Блок изменений (если они указаны)
+    const changesBlock = changes?.length ? `
+<b>🔄 Изменения в заказе:</b>
+${changes.map(change => `• ${escape(change)}`).join('\n')}
+    `.trim() : '';
+
     return `
-<b>🛍️ Заказ #${order.id} подтверждён!</b>
+<b>✉️ Заказ #${order.id} обновлён!</b>
+
+${changesBlock}
 
 <b>📦 Детали доставки</b>
 ┌──────────────────────
@@ -75,7 +78,6 @@ ${productsList}
 
 <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
 
-Спасибо за ваш заказ! Мы уже собираем его для вас 💖
-По всем вопросам обращайтесь в поддержку.
+Спасибо, что выбираете нас! Если возникли вопросы — напишите в поддержку.
     `.trim();
 };
