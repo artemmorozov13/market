@@ -116,20 +116,21 @@ export class OrderService {
       }
     });
 
-    if (activeOrdersCount >= 1) {
-      throw new BadRequestException("Нельзя иметь более 1 активного заказа одновременно");
+    if (activeOrdersCount >= 3) {
+      throw new BadRequestException("Нельзя иметь более 3 активных заказов");
     }
 
     // Проверяем, есть ли уже заказ на выбранную дату
     const existingOrderOnSameDate = await this.orderRepository.findOne({
       where: {
         user: { id: user.id },
-        deliveryDate: createOrderDto.deliveryDate
+        deliveryDate: createOrderDto.deliveryDate,
+        address: createOrderDto.address
       }
     });
 
     if (existingOrderOnSameDate) {
-      throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+      throw new BadRequestException("У вас уже есть заказ на выбранную дату по этому адресу");
     }
 
     const selectedProducts = await this.selectedProductsRepository.find({
