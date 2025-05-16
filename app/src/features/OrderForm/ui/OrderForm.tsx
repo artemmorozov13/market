@@ -33,6 +33,7 @@ import { basketStore } from "@/entities/Basket";
 import { calculateDistance } from "@/shared/helpers/calculateDistance";
 import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
+import { MAX_AVAILABLE_DISTANCE } from "@/shared/consts/applicationConsts";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -113,9 +114,11 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         }));
         
         const nearestPoint = pointsWithDistance.sort((a, b) => a.distance - b.distance)[0];
-        
-        setValue("pickupPointId", nearestPoint.id);
-        setValue("deliveryTimeId", null);
+
+        if (nearestPoint.distance <= MAX_AVAILABLE_DISTANCE) {
+          setValue("pickupPointId", nearestPoint.id);
+          setValue("deliveryTimeId", null);
+        }
       } else {
         setValue("pickupPointId", null);
         setValue("deliveryTimeId", null);
