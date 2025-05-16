@@ -19,6 +19,7 @@ import { formatUserOrderMessage } from './notifications/formatUserOrderMessage';
 import { DELIVERY_PRICE } from 'src/utils/constants';
 import { exportToExcelWithInnerTable } from './export-generator/export-excel-with-inner-table';
 import { exportToWideFormatExcel } from './export-generator/export-to-wide-format-excel';
+import { formatUpdatedOrderMessage } from './notifications/formatUpdatedOrderMessage';
 
 @Injectable()
 export class OrderService {
@@ -285,11 +286,21 @@ export class OrderService {
     const savedOrder = await this.orderRepository.save(order);
   
     // Возвращаем заказ с очищенными циклическими ссылками
-    return this.orderRepository.findOne({
+    const updatedOrder = await this.orderRepository.findOne({
       where: { id: savedOrder.id },
-      relations: ['ordered_products', 'ordered_products.product'],
+      relations: ['ordered_products', 'ordered_products.product', 'deliveryTime'],
       loadEagerRelations: false
     });
+
+    if (user.telegram_id) {
+      const userMessage = formatUpdatedOrderMessage(updatedOrder, savedProducts, updatedOrder.pickupPoint, updatedOrder.deliveryTime);
+      await this.telegramService.sendHtmlMessage(
+          user.telegram_id.toString(),
+          userMessage
+      );
+    }
+
+    return updatedOrder
   }
   
   async exportExcelWithInnerTable(): Promise<Uint8Array> {
