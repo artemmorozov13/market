@@ -1,12 +1,15 @@
 import { API } from "@shared/api/instance";
 
-export const exportOrdersWide = async () => {
+export const exportOrdersWide = async (selectedPickupPoints: number[]) => {
     try {
         const response = await API.post(
-          '/order/export-wide-table',
+          `/order/export-wide-table?selectedPickupPoints=${selectedPickupPoints}`,
           {},
           {
             responseType: 'blob',
+            params: {
+              pickupPointIds: selectedPickupPoints?.join(',')
+            }
           }
         );
     

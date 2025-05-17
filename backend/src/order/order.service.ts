@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Not, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Not, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderEntity } from 'src/entities/order.entity';
 import { UsersEntity } from 'src/entities/users.entity';
@@ -41,29 +41,43 @@ export class OrderService {
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
   ) {}
 
-  async getOrdersListData({ limit = 10, skip }: GetOrderQueryDto) {
+  async getOrdersListData({ limit = 10, skip, pickupPointId }: GetOrderQueryDto) {
+    const whereOptions: FindOptionsWhere<OrderEntity> = {};
+
+    // Обрабатываем как массив ID, даже если пришел один ID
+    if (pickupPointId) {
+        const pointIds = Array.isArray(pickupPointId) 
+            ? pickupPointId 
+            : [pickupPointId];
+        
+        if (pointIds.length > 0) {
+            whereOptions.pickupPoint = In(pointIds);
+        }
+    }
+
     const [items, total] = await this.orderRepository.findAndCount({
-      skip: skip,
-      take: limit,
-      order: {
-        createdAt: "DESC"
-      },
-      relations: [
-        "user",
-        "ordered_products.product",
-        "pickupPoint",
-        "deliveryTime"
-      ]
+        skip: skip,
+        take: limit,
+        order: {
+            createdAt: "DESC"
+        },
+        where: whereOptions,
+        relations: [
+            "user",
+            "ordered_products.product",
+            "pickupPoint",
+            "deliveryTime"
+        ]
     });
-  
+
     return {
-      items: items,
-      pagination: {
-        total,
-        limit,
-        skip,
-        hasMore: skip + limit < total,
-      },
+        items: items,
+        pagination: {
+            total,
+            limit,
+            skip,
+            hasMore: skip + limit < total,
+        },
     };
   }
 
@@ -304,38 +318,54 @@ export class OrderService {
     return updatedOrder
   }
   
-  async exportExcelWithInnerTable(): Promise<Uint8Array> {
-    const orders = await this.orderRepository.find({
-      where: { 
+  async exportExcelWithInnerTable(pickupPointIds?: number[]): Promise<Uint8Array> {
+    const whereOptions: FindOptionsWhere<OrderEntity> = { 
         status: "waitForPay"
-      },
-      relations: [ 
-        'ordered_products',
-        'ordered_products.product',
-        'deliveryTime',
-        'pickupPoint'
-      ]
+    };
+
+    // Добавляем фильтрацию по пунктам выдачи, если они переданы
+    if (pickupPointIds && pickupPointIds.length > 0) {
+        whereOptions.pickupPoint = In(pickupPointIds);
+    }
+
+    const orders = await this.orderRepository.find({
+        where: whereOptions,
+        relations: [ 
+            'ordered_products',
+            'ordered_products.product',
+            'deliveryTime',
+            'pickupPoint'
+        ]
     });
     return exportToExcelWithInnerTable({ orders });
   }
-  
-  async exportToWideFormatExcel(): Promise<Uint8Array> {
-    const products = await this.productRepository.find({
-      where: {
-        is_expired: false
+
+  async exportToWideFormatExcel(pickupPointIds?: number[]): Promise<Uint8Array> {
+      const whereOptions: FindOptionsWhere<OrderEntity> = { 
+          status: "waitForPay"
+      };
+
+      // Добавляем фильтрацию по пунктам выдачи, если они переданы
+      if (pickupPointIds && pickupPointIds.length > 0) {
+          whereOptions.pickupPoint = In(pickupPointIds);
       }
-    })
-    const orders = await this.orderRepository.find({
-      where: { 
-        status: "waitForPay"
-      },
-      relations: [ 
-        'ordered_products',
-        'ordered_products.product',
-        'deliveryTime',
-        'pickupPoint'
-      ]
-    });
-    return exportToWideFormatExcel({ orders, products });
+
+      const products = await this.productRepository.find({
+          where: {
+              is_expired: false
+          }
+      });
+
+      const orders = await this.orderRepository.find({
+          where: whereOptions,
+          relations: [ 
+              'ordered_products',
+              'ordered_products.product',
+              'deliveryTime',
+              'pickupPoint'
+          ]
+      });
+
+      return exportToWideFormatExcel({ orders, products });
   }
 }

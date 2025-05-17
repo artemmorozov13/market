@@ -33,7 +33,7 @@ import { basketStore } from "@/entities/Basket";
 import { calculateDistance } from "@/shared/helpers/calculateDistance";
 import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
-import { MAX_AVAILABLE_DISTANCE } from "@/shared/consts/applicationConsts";
+import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -82,7 +82,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   }, {} as Record<string, DeliveryTime[]>);
 
   const confirmForm = (data: OrderFormInputs) => {
-    console.log(data)
     onSubmit({
       ...data,
       deliveryDate: data.deliveryDate,
@@ -113,11 +112,24 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           )
         }));
         
-        const nearestPoint = pointsWithDistance.sort((a, b) => a.distance - b.distance)[0];
+        const availablePoint = pointsWithDistance.filter(
+          (pickupPoint) => pickupPoint.distance < pickupPoint.radius / 1000
+        );
+        const nearestPoint = availablePoint.sort((a, b) => a.distance - b.distance)[0];
 
-        if (nearestPoint.distance <= MAX_AVAILABLE_DISTANCE) {
+        if (nearestPoint) {
           setValue("pickupPointId", nearestPoint.id);
           setValue("deliveryTimeId", null);
+        } else {
+          const defaultPickUpPoint = pointsWithDistance.find(point => point.name === DEFAULT_STATIC_PICKUP_POINT_NAME)
+          
+          if (defaultPickUpPoint?.id) {
+            setValue("pickupPointId", defaultPickUpPoint.id);
+            setValue("deliveryTimeId", defaultPickUpPoint.deliveryTimes[0].id);
+          } else {
+            setValue("pickupPointId", null);
+            setValue("deliveryTimeId", null);
+          }
         }
       } else {
         setValue("pickupPointId", null);
@@ -192,6 +204,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     );
   }
 
+  const selectedPickupPoint = pickupPoints.find(pickupPoint => pickupPoint.id === selectedPickupPointId)
+
   return (
     <>
       <AddNewAddressModal
@@ -256,7 +270,13 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             Добавить новый адрес
           </Button>
 
-          {selectedPickupPointId && deliveryTimes.length > 0 && (
+          {selectedPickupPoint?.name === DEFAULT_STATIC_PICKUP_POINT_NAME ? (
+            <Box mb={2} textAlign="center" py={2}>
+              <Typography variant="body1" color="textSecondary">
+                К сожалению, доставка по Вашему адресу пока недоступна
+              </Typography>
+            </Box>
+          ) : selectedPickupPointId && deliveryTimes.length > 0 ? (
             Object.keys(weekDates).length > 0 ? (
               <Box mb={2}>
                 <FormControl fullWidth margin="normal">
@@ -313,12 +333,9 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                 <Typography variant="body1" color="textSecondary">
                   Доставка на этой неделе по вашему адресу закончилась
                 </Typography>
-                <Typography variant="body2" color="textSecondary" mt={1}>
-                  Пожалуйста, выберите другой пункт выдачи или попробуйте позже
-                </Typography>
               </Box>
             )
-          )}
+          ) : null}
 
           <Box mb={1}>
             <Controller

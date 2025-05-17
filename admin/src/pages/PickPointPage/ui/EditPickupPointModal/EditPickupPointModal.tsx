@@ -19,10 +19,11 @@ import {
   Autocomplete
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import { PickupPointFormData, PickupPoint, DeliveryTimeForm } from '../../types/types';
+import { DeliveryTimeFormData, PickupPointFormData } from '../../types/types';
 import { dayOptions, timeOptions } from '../../consts/intervals';
 import { useAddressSuggestions } from '@features/AddressSearchField';
 import { AddressSearchField } from '@features/AddressSearchField/ui/AddressSearchField';
+import { PickupPoint } from '@entities/PickupPoint';
 
 interface EditPickupPointModalProps {
   open: boolean;
@@ -73,7 +74,7 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
   };
 
   const groupByDay = () => {
-    const grouped: Record<string, DeliveryTimeForm[]> = {};
+    const grouped: Record<string, DeliveryTimeFormData[]> = {};
     
     fields.forEach(field => {
       const day = field.dayOfWeek.value;
@@ -104,6 +105,22 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                 <TextField
                   {...field}
                   label="Название пункта выдачи"
+                  fullWidth
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                />
+              )}
+            />
+
+            <Controller
+              name="radius"
+              control={control}
+              rules={{ required: 'Радис обязателен для заполнения' }}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  type='number'
+                  label="Радиус доставки в метрах"
                   fullWidth
                   error={!!errors.name}
                   helperText={errors.name?.message}

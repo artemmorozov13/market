@@ -1,12 +1,15 @@
 import { API } from "@shared/api/instance";
 
-export const exportOrdersWithInnerTable = async () => {
+export const exportOrdersWithInnerTable = async (selectedPickupPoints: number[]) => {
     try {
       const response = await API.post(
-        '/order/export-inner-table',
+        `/order/export-inner-table`,
         {},
         {
           responseType: 'blob',
+          params: {
+            pickupPointIds: selectedPickupPoints?.join(',')
+          }
         }
       );
   

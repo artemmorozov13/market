@@ -1,4 +1,5 @@
-import { IsNumber, IsOptional, IsPositive } from "class-validator"
+import { Type } from "class-transformer"
+import { IsArray, IsNumber, IsOptional, IsPositive } from "class-validator"
 
 export class GetOrderQueryDto {
     @IsNumber()
@@ -9,4 +10,10 @@ export class GetOrderQueryDto {
     @IsPositive()
     @IsOptional()
     limit: number
+
+    @IsOptional()
+    @IsArray()
+    @IsNumber({}, { each: true })
+    @Type(() => Number)
+    pickupPointId?: number[]
 }

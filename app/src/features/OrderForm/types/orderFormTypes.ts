@@ -3,6 +3,7 @@ import { AddressType } from "@/entities/Addresses";
 export interface PickupPoint {
   id: number;
   name: string;
+  radius: number
   fullAddress?: string;
   fias_id: string;
   geo_lat: string;

@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import {
   Box,
@@ -13,11 +13,11 @@ import {
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import styles from './PickPointPage.module.scss';
-import { API } from '@shared/api/instance';
-import { PickupPoint, PickupPointFormData, TimeOption } from '../../types/types';
 import { EditPickupPointModal } from '../EditPickupPointModal/EditPickupPointModal';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal';
-import { dayOptions, timeOptions } from '../../consts/intervals';
+import { dayOptions } from '../../consts/intervals';
+import { PickupPoint, TimeOption, useCreatePickupPoint, useDeletePickupPoint, usePickupPoints, useUpdatePickupPoint } from '@entities/PickupPoint';
+import { PickupPointFormData } from '../../types/types';
 
 const defaultTimeOptionStart: TimeOption = {
   value: '09:00',
@@ -30,49 +30,16 @@ const defaultTimeOptionEnd: TimeOption = {
 };
 
 const PickPointPage: FC = () => {
-  const [points, setPoints] = useState<PickupPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: points, isLoading, error } = usePickupPoints();
+  const createMutation = useCreatePickupPoint();
+  const updateMutation = useUpdatePickupPoint();
+  const deleteMutation = useDeletePickupPoint();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPoint, setEditingPoint] = useState<PickupPoint | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const { control, handleSubmit, reset, setValue } = useForm<PickupPointFormData>();
-
-  useEffect(() => {
-    const fetchPickupPoints = async () => {
-      setIsLoading(true);
-      try {
-        const response = await API.get('/pickup-points');
-        const formattedData = response.data.map((point: any) => ({
-          ...point,
-          deliveryTimes: point.deliveryTimes.map((time: any) => ({
-            id: time.id,
-            dayOfWeek: {
-              value: time.dayOfWeek,
-              label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
-            },
-            startTime: {
-              value: time.startTime,
-              label: time.startTime
-            },
-            endTime: {
-              value: time.endTime,
-              label: time.endTime
-            }
-          }))
-        }));
-        setPoints(formattedData);
-      } catch (error) {
-        console.error('Error fetching pickup points:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    fetchPickupPoints();
-  }, []);
 
   useEffect(() => {
     if (editingPoint) {
@@ -87,6 +54,7 @@ const PickPointPage: FC = () => {
       reset({
         id: editingPoint.id,
         name: editingPoint.name,
+        radius: editingPoint.radius,
         address: editingPoint.fullAddress,
         fias_id: editingPoint.fias_id,
         postal_code: editingPoint.postal_code,
@@ -97,6 +65,7 @@ const PickPointPage: FC = () => {
     } else {
       reset({
         name: '',
+        radius: 5000,
         address: '',
         fias_id: '',
         postal_code: '',
@@ -112,86 +81,26 @@ const PickPointPage: FC = () => {
   }, [editingPoint, reset]);
 
   const onSubmit: SubmitHandler<PickupPointFormData> = async (data) => {
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        name: data.name,
-        address: {
-          fullAddress: data.address,
-          postal_code: data.postal_code,
-          fias_id: data.fias_id,
-          geo_lat: data.geo_lat,
-          geo_lon: data.geo_lon,
-        },
-        deliveryTimes: data.deliveryTimes.map(time => ({
-          dayOfWeek: time.dayOfWeek.value,
-          startTime: time.startTime.value,
-          endTime: time.endTime.value
-        }))
-      };
-  
-      if (data.id) {
-        const response = await API.put(`/pickup-points/${data.id}`, payload);
-        setPoints(points.map(point => point.id === data.id ? {
-          ...response.data,
-          deliveryTimes: response.data.deliveryTimes.map((time: any) => ({
-            id: time.id,
-            dayOfWeek: {
-              value: time.dayOfWeek,
-              label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
-            },
-            startTime: {
-              value: time.startTime,
-              label: time.startTime
-            },
-            endTime: {
-              value: time.endTime,
-              label: time.endTime
-            }
-          }))
-        } : point));
-      } else {
-        const response = await API.post('/pickup-points', payload);
-        setPoints([...points, {
-          ...response.data,
-          deliveryTimes: response.data.deliveryTimes.map((time: any) => ({
-            id: time.id,
-            dayOfWeek: {
-              value: time.dayOfWeek,
-              label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
-            },
-            startTime: {
-              value: time.startTime,
-              label: time.startTime
-            },
-            endTime: {
-              value: time.endTime,
-              label: time.endTime
-            }
-          }))
-        }]);
-      }
-      setIsDialogOpen(false);
-      setEditingPoint(null);
-    } catch (error) {
-      console.error('Error saving pickup point:', error);
-    } finally {
-      setIsSubmitting(false);
+    if (data.id) {
+      await updateMutation.mutateAsync({
+        id: data.id,
+        ...data
+      });
+    } else {
+      await createMutation.mutateAsync(data);
     }
+    setIsDialogOpen(false);
+    setEditingPoint(null);
   };
 
   const handleDelete = async (id: number) => {
-    setIsDeleting(true);
-    try {
-      await API.delete(`/pickup-points/${id}`);
-      setPoints(points.filter(point => point.id !== id));
-      setDeleteConfirmId(null);
-    } catch (error) {
-      console.error('Error deleting pickup point:', error);
-    } finally {
-      setIsDeleting(false);
-    }
+    await deleteMutation.mutateAsync(id);
+    setDeleteConfirmId(null);
   };
+
+  if (error) {
+    return <div>Ошибка при загрузке пунктов выдачи</div>;
+  }
 
   return (
     <ShopOwnerLayout>
@@ -203,7 +112,7 @@ const PickPointPage: FC = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => {
-              reset()
+              reset();
               setEditingPoint(null);
               setIsDialogOpen(true);
             }}
@@ -244,9 +153,9 @@ const PickPointPage: FC = () => {
                     <Typography variant="subtitle2">Время доставки:</Typography>
                     {Object.entries(
                       point.deliveryTimes.reduce((acc, time) => {
-                        const day = dayOptions.find(d => d.value === time.dayOfWeek.value)?.label || time.dayOfWeek;
-                        if (!acc[day as any]) acc[day as any] = [];
-                        acc[day as any].push(time);
+                        const day = time.dayOfWeek.label;
+                        if (!acc[day]) acc[day] = [];
+                        acc[day].push(time);
                         return acc;
                       }, {} as Record<string, typeof point.deliveryTimes>)
                     ).map(([day, times]) => (
@@ -276,7 +185,7 @@ const PickPointPage: FC = () => {
           control={control}
           errors={{}}
           setValue={setValue}
-          isSubmitting={isSubmitting}
+          isSubmitting={createMutation.isPending || updateMutation.isPending}
           isEditing={!!editingPoint}
           selectedPoint={editingPoint}
         />
@@ -285,7 +194,7 @@ const PickPointPage: FC = () => {
           open={!!deleteConfirmId}
           onClose={() => setDeleteConfirmId(null)}
           onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
-          isDeleting={isDeleting}
+          isDeleting={deleteMutation.isPending}
         />
       </Box>
     </ShopOwnerLayout>

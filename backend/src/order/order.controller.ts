@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, InternalServerErrorException, Post, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, InternalServerErrorException, ParseArrayPipe, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -69,9 +69,16 @@ export class OrderController {
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  async exportExcelWithInnerTable(@Res() res: Response) {
+  async exportExcelWithInnerTable(
+    @Res() res: Response,
+    @Query('pickupPointIds', new ParseArrayPipe({ 
+      items: Number, 
+      separator: ',', 
+      optional: true 
+    })) pickupPointIds?: number[]
+  ) {
     try {
-      const buffer = await this.orderService.exportExcelWithInnerTable();
+      const buffer = await this.orderService.exportExcelWithInnerTable(pickupPointIds);
       
       const now = new Date();
       const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
@@ -97,9 +104,16 @@ export class OrderController {
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  async exportExcelFullWidthTable(@Res() res: Response) {
+  async exportExcelFullWidthTable(
+    @Res() res: Response,
+    @Query('pickupPointIds', new ParseArrayPipe({ 
+      items: Number, 
+      separator: ',', 
+      optional: true 
+    })) pickupPointIds?: number[]
+  ) {
     try {
-      const buffer = await this.orderService.exportToWideFormatExcel();
+      const buffer = await this.orderService.exportToWideFormatExcel(pickupPointIds);
       
       const now = new Date();
       const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
