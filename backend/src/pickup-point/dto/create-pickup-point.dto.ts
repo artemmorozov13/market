@@ -1,4 +1,4 @@
-import { IsString, ValidateNested, IsArray, IsOptional, IsEnum } from 'class-validator';
+import { IsString, ValidateNested, IsArray, IsOptional, IsEnum, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateDeliveryTimeDto } from './create-delivery-time.dto';
 import { AddressDataDto } from './address-pick-point.dto';
@@ -6,6 +6,10 @@ import { AddressDataDto } from './address-pick-point.dto';
 export class CreatePickupPointDto {
   @IsString()
   name: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  radius: number;
 
   @ValidateNested()
   @Type(() => AddressDataDto)

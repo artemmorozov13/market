@@ -1,4 +1,4 @@
-import { DayOption, TimeOption } from "../types/types";
+import { DayOption, TimeOption } from "@entities/PickupPoint";
 
 export const timeOptions: TimeOption[] = Array.from({ length: 24 }, (_, i) => ({
     value: `${i.toString().padStart(2, '0')}:00`,

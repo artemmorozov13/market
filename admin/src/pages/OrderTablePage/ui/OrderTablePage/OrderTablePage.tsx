@@ -12,6 +12,12 @@ import {
   Button, 
   CircularProgress,
   TablePagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Box,
 } from "@mui/material";
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import { adaptOrdersToTable } from "../../lib/adaptOrdersToTable";
@@ -21,20 +27,37 @@ import { useOrders } from "@pages/OrderTablePage/api/useOrders";
 import { useProducts } from "@pages/OrderTablePage/api/useProducts";
 import { exportOrdersWithInnerTable } from "../../api/exportOrders";
 import { exportOrdersWide } from "../../api/exportOrdersWide";
+import { useForm, Controller } from "react-hook-form";
+import { usePickupPoints } from "@entities/PickupPoint";
 
 import styles from "./OrdersPage.module.scss";
 
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE = 0;
 
+type FormValues = {
+  pickupPoints: number[]; // Для хранения выбранных пунктов выдачи
+};
+
 const OrderTablePage: FC = observer(() => {
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE);
   
+  const { control, watch } = useForm<FormValues>({
+    defaultValues: {
+      pickupPoints: [],
+    },
+  });
+
+  // Получаем выбранные пункты выдачи из формы
+  const selectedPickupPoints = watch("pickupPoints");
+  
+  const { data: pickupPoints = [], isLoading: isPickupPointsLoading } = usePickupPoints();
   const { isProductsLoading, productsError } = useProducts();
   const { ordersData, isOrdersLoading, ordersError } = useOrders({
     skip: page * rowsPerPage,
     take: rowsPerPage,
+    pickupPointId: selectedPickupPoints.length > 0 ? selectedPickupPoints : undefined,
   });
   
   const { updateOrderStatus } = useUpdateOrderStatus();
@@ -43,7 +66,7 @@ const OrderTablePage: FC = observer(() => {
   const totalOrders = ordersData?.pagination?.total || 0;
   const tableOrders = adaptOrdersToTable(orders);
   
-  const isLoading = isProductsLoading || isOrdersLoading;
+  const isLoading = isProductsLoading || isOrdersLoading || isPickupPointsLoading;
   const error = productsError || ordersError;
 
   const handleStatusUpdate = (orderId: number) => {
@@ -56,7 +79,7 @@ const OrderTablePage: FC = observer(() => {
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Сбрасываем на первую страницу при изменении количества строк
+    setPage(0);
   };
 
   return (
@@ -68,7 +91,7 @@ const OrderTablePage: FC = observer(() => {
             <Button
               variant="contained" 
               color="primary"
-              onClick={() => exportOrdersWithInnerTable()}
+              onClick={() => exportOrdersWithInnerTable(selectedPickupPoints)}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
@@ -77,13 +100,54 @@ const OrderTablePage: FC = observer(() => {
             <Button 
               variant="contained" 
               color="secondary"
-              onClick={() => exportOrdersWide()}
+              onClick={() => exportOrdersWide(selectedPickupPoints)}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
               Экспорт в Excel (широкий)
             </Button>
           </div>
+        </div>
+
+        <div className={styles.filters}>
+          <FormControl fullWidth variant="outlined" className={styles.filterControl}>
+            <InputLabel>Пункты выдачи</InputLabel>
+            <Controller
+              name="pickupPoints"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  multiple
+                  label="Пункты выдачи"
+                  value={field.value}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    setPage(0); // Сброс на первую страницу при изменении фильтра
+                  }}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {(selected as number[]).map((value) => (
+                        <Chip 
+                          key={value} 
+                          label={pickupPoints.find(p => p.id === value)?.name || value}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {pickupPoints.map((point) => (
+                    <MenuItem 
+                      key={point.id} 
+                      value={point.id}
+                    >
+                      {point.name} ({point.fullAddress})
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+          </FormControl>
         </div>
         
         {isLoading ? (
@@ -159,4 +223,4 @@ const OrderTablePage: FC = observer(() => {
   );
 });
 
-export default OrderTablePage
+export default OrderTablePage;

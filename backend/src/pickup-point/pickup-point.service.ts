@@ -18,6 +18,7 @@ export class PickupPointService {
   async create(createDto: CreatePickupPointDto): Promise<PickupPoint> {
     const pickupPoint = this.pickupPointRepository.create({
       name: createDto.name,
+      radius: createDto.radius,
       postal_code: createDto.address?.postal_code,
       fias_id: createDto.address?.fias_id,
       geo_lat: createDto.address?.geo_lat,
@@ -69,7 +70,9 @@ export class PickupPointService {
   async update(id: number, updateDto: UpdatePickupPointDto): Promise<PickupPoint> {
     const point = await this.findOne(id);
 
+
     if (updateDto.name) point.name = updateDto.name;
+    if (updateDto.radius) point.radius = updateDto.radius;
     if (updateDto.address) {
       if (updateDto.address.postal_code) point.postal_code = updateDto.address.postal_code;
       if (updateDto.address.fias_id) point.fias_id = updateDto.address.fias_id;

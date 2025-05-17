@@ -17,6 +17,9 @@ export class PickupPoint {
   @Column({ comment: 'Название пункта выдачи' })
   name: string;
 
+  @Column({ default: 5000 })
+  radius: number
+
   @Column({ nullable: true })
   fullAddress: string;
 
