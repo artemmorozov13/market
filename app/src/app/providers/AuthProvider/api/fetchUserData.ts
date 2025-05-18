@@ -7,24 +7,31 @@ import { useQuery } from "@tanstack/react-query"
 import WebApp from "@twa-dev/sdk"
 import Cookies from "js-cookie"
 
-export const fetchUserData = async () => {
-    const response = await API.post("/users/login", { initData: WebApp.initData })
+interface UseUserOptions {
+    initData?: string
+}
 
-    const { setUserData } = userStore
+export const fetchUserData = async (options?: UseUserOptions) => {
+   if (WebApp.initData || options?.initData) {
+    const response = await API.post("/users/login", { initData: WebApp.initData || options?.initData })
+
+    const { setUserData, setUserRole } = userStore
     const { fetchBasketList } = basketStore
 
     Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 0.5 })
     setUserData(response.data)
+    setUserRole('customer')
 
     await fetchBasketList()
 
     return response.data
+   }
 }
 
-export const useUser = () => {
+export const useUser = (options?: UseUserOptions) => {
     const query = useQuery<AuthViaTelegramResponse>({
         queryKey: ["user"],
-        queryFn: () => fetchUserData()
+        queryFn: () => fetchUserData(options)
     })
     return {
         ...query,

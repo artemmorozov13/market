@@ -33,7 +33,7 @@ const PRODUCTS_PER_PAGE = 9;
 
 const ProductsPage: FC = observer(() => {
   const navigate = useNavigate();
-  const { user } = userStore;
+  const { user, role } = userStore;
   const { basketList, totalPrice, totalItems, addItem, removeItem, clearBasket } = basketStore;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -74,8 +74,8 @@ const ProductsPage: FC = observer(() => {
         product: product,
         productId: productFromBasket.productId,
         quantity: productFromBasket.quantity + 1,
-        userTgchatId: user.user.telegram_id,
-        id: user.user.telegram_id,
+        userTgchatId: user?.user?.telegram_id,
+        id: user?.user?.telegram_id,
       });
       return
     }
@@ -83,7 +83,7 @@ const ProductsPage: FC = observer(() => {
       product: product,
       productId: product.id,
       quantity: 1,
-      userTgchatId: user.user.telegram_id,
+      userTgchatId: user?.user?.telegram_id,
       id: Math.ceil(Math.random() * 99999),
     })
   };
@@ -95,9 +95,11 @@ const ProductsPage: FC = observer(() => {
     }
   };
 
-  const handleClearBasket = () => {
-    postClearBasket()
-      .then(() => clearBasket())
+  const handleClearBasket = async () => {
+    if (role === 'customer') {
+      await postClearBasket()
+    }
+    clearBasket()
     handleMenuClose();
   };
 

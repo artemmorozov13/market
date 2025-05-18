@@ -1,13 +1,14 @@
 import { makeAutoObservable } from "mobx";
 import { BasketType } from "..";
 import { clearBasketProduct, fetchBasketListData, pushBasketItem, removeBasketItem } from "../api/fetchBasketListData";
+import { UserStore, userStore } from "@/entities/User";
 
 class BasketStore {
     basketList: BasketType[] = [];
     totalPrice: number = 0;
     totalItems: number = 0;
     
-    constructor() {
+    constructor(private userStore: UserStore) {
         makeAutoObservable(this);
     }
 
@@ -26,20 +27,26 @@ class BasketStore {
     };
 
     fetchBasketList = async () => {
-        try {
-            const basketItems = await fetchBasketListData();
-            this.basketList = basketItems;
-            this.updateBasketStats();
-        } catch (error) {
-            console.error("Failed to fetch basket list:", error);
-            throw error;
+        if (this.userStore.role === 'customer') {
+            try {
+                const basketItems = await fetchBasketListData();
+                this.basketList = basketItems;
+                this.updateBasketStats();
+            } catch (error) {
+                console.error("Failed to fetch basket list:", error);
+                throw error;
+            }
         }
     };
 
     increaseProductCount = async (basketProductId: number) => {
         try {
-            await pushBasketItem(basketProductId);
             const currentItem = this.basketList.find(basketItem => basketItem.productId === basketProductId);
+
+            if (this.userStore.role === 'customer') {
+                await pushBasketItem(basketProductId);
+            }
+
             if (currentItem) {
                 currentItem.quantity += 1;
                 this.updateBasketStats();
@@ -51,8 +58,12 @@ class BasketStore {
 
     decreaseProductCount = async (basketProductId: number) => {
         try {
-            await removeBasketItem(basketProductId);
             const currentItem = this.basketList.find(basketItem => basketItem.productId === basketProductId);
+
+            if (this.userStore.role === 'customer') {
+                await removeBasketItem(basketProductId);
+            }
+
             if (currentItem) {
                 if (currentItem.quantity > 1) {
                     currentItem.quantity -= 1;
@@ -68,8 +79,12 @@ class BasketStore {
 
     clearProduct = async (basketProductId: number) => {
         try {
-            await clearBasketProduct(basketProductId)
             const currentItem = this.basketList.find(basketItem => basketItem.productId === basketProductId);
+
+            if (this.userStore.role === 'customer') {
+                await clearBasketProduct(basketProductId)
+            }
+            
             if (currentItem) {
                 this.basketList = this.basketList.filter(item => item.productId !== basketProductId);
                 this.updateBasketStats();
@@ -81,7 +96,10 @@ class BasketStore {
 
     addItem = async (item: BasketType) => {
         try {
-            await pushBasketItem(item.productId);
+            if (this.userStore.role === 'customer') {
+                await pushBasketItem(item.productId);
+            }
+
             this.basketList.push(item);
             this.updateBasketStats();
         } catch (error) {
@@ -91,7 +109,10 @@ class BasketStore {
 
     removeItem = async (id: number) => {
         try {
-            await removeBasketItem(id);
+            if (this.userStore.role === 'customer') {
+                await removeBasketItem(id);
+            }
+
             this.basketList = this.basketList.filter(item => item.productId !== id);
             this.updateBasketStats();
         } catch (error) {
@@ -100,4 +121,4 @@ class BasketStore {
     };
 }
 
-export const basketStore = new BasketStore();
+export const basketStore = new BasketStore(userStore);

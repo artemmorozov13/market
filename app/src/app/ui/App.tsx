@@ -11,18 +11,11 @@ import { ProductsPageLazy } from "@/pages/ProductsPage/ui/ProductsPageLazy";
 import { BasketPageLazy } from "@/pages/BasketPage/BasketPageLazy";
 import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
 import { RoutePath } from "@/shared/routes/routeConfig";
-import WebApp from "@twa-dev/sdk";
-import { NoTelegramWarning } from "@/widgets/NoTelegramWarning";
 import { ActiveOrderPage } from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOrderPage";
 
 const queryClient = new QueryClient();
 
 export const App: FC = () => {
-  if (!WebApp.initData) {
-    return (
-      <NoTelegramWarning />
-    )
-  }
   return (
     <ThemeProvider theme={yellowOrangeTheme}>
       <BrowserRouter basename='/'>
