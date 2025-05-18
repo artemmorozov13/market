@@ -8,8 +8,10 @@ import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
 import clsx from 'clsx';
 import styles from "./ActiveOrderPage.module.scss";
 import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
+import { userStore } from "@/entities/User";
 
 export const ActiveOrderPage: FC = () => {
+  const { role } = userStore
   const { data: orders, isLoading } = useActiveOrder();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -24,7 +26,6 @@ export const ActiveOrderPage: FC = () => {
     setIsEditModalOpen(true);
   };
 
-  // Функция для проверки, доступна ли еще доставка для заказа
   const isDeliveryAvailable = (order: Order): boolean => {
     if (!order.deliveryTime || !order.deliveryDate) return false;
     
@@ -34,10 +35,7 @@ export const ActiveOrderPage: FC = () => {
     
     const availableDates = getAvailableDeliveryDates([deliveryDay]);
 
-    console.log(availableDates[0])
-
     const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
-    console.log(deliveryDate)
     
     const isDeleveryAvailable = availableDates.some(date => 
       date.toISOString().split('T')[0] === deliveryDate.toISOString().split('T')[0]
@@ -45,43 +43,60 @@ export const ActiveOrderPage: FC = () => {
     return isDeleveryAvailable
   };
 
+  const renderContent = () => {
+    if (role !== 'customer') {
+      return (
+        <div className={styles.empty}>
+          <h2>У вас нет активных заказов</h2>
+          <p>Вы можете оформить новый заказ в каталоге товаров</p>
+        </div>
+      )
+    }
+
+    if (isLoading) {
+      return (
+        <div className={styles.loading}>
+          <CircularProgress />
+        </div>
+      )
+    }
+    if (orders && orders?.length > 0) {
+      <div>
+        {orders?.map(order => (
+          <Card key={order.id} className={styles.card}>
+            <OrderDetails order={order} />
+            <div className={styles.actions}>
+              <Button
+                variant="contained"
+                onClick={() => handleOpenEditModal(order)}
+                className={styles.editButton}
+                disabled={!isDeliveryAvailable(order)}
+                fullWidth
+              >
+                Изменить состав
+              </Button>
+            </div>
+          </Card>     
+        ))}
+      </div>
+    }
+    return (
+      <div className={styles.empty}>
+        <h2>У вас нет активных заказов</h2>
+        <p>Вы можете оформить новый заказ в каталоге товаров</p>
+      </div>
+    )
+  }
+
   return (
     <Layout>
       <Container maxWidth="md">
         <div className={styles.container}>
           <Typography variant="h4" className={clsx(styles.rootTitle, styles.title)}>
             Активный заказ
-          </Typography>
+          </Typography>          
 
-          {isLoading ? (
-            <div className={styles.loading}>
-              <CircularProgress />
-            </div>
-          ) : orders && orders?.length > 0 ? (
-            <div>
-              {orders?.map(order => (
-                <Card key={order.id} className={styles.card}>
-                  <OrderDetails order={order} />
-                  <div className={styles.actions}>
-                    <Button
-                      variant="contained"
-                      onClick={() => handleOpenEditModal(order)}
-                      className={styles.editButton}
-                      disabled={!isDeliveryAvailable(order)}
-                      fullWidth
-                    >
-                      Изменить состав
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.empty}>
-              <h2>У вас нет активных заказов</h2>
-              <p>Вы можете оформить новый заказ в каталоге товаров</p>
-            </div>
-          )}
+          {renderContent()}
 
           {selectedOrder && (
             <EditOrderModal

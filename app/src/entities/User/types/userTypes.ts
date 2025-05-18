@@ -1,4 +1,4 @@
-export type UserRoleType = 'customer' | 'storeOwner';
+export type UserRoleType = 'customer' | 'notAuthed';
 
 export interface UserType {
   id: number,

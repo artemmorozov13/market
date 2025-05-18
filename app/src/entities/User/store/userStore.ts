@@ -1,8 +1,9 @@
 import { makeAutoObservable } from "mobx";
-import { AuthViaTelegramResponse } from "../types/userTypes";
+import { AuthViaTelegramResponse, UserRoleType } from "../types/userTypes";
 
-class UserStore {
+export class UserStore {
     user: AuthViaTelegramResponse = {} as AuthViaTelegramResponse
+    role: UserRoleType = 'notAuthed'
 
     constructor() {
         makeAutoObservable(this)
@@ -10,6 +11,10 @@ class UserStore {
 
     setUserData = (user: AuthViaTelegramResponse) => {
         this.user = user
+    }
+
+    setUserRole = (role: UserRoleType) => {
+        this.role = role
     }
 }
 

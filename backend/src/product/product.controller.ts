@@ -13,13 +13,11 @@ export class ProductController {
     constructor(private readonly productService: ProductService) {}
 
     @Get()
-    @UseGuards(JwtAuthGuard)
     getProductsList(@Query() options: PaginationDto) {
         return this.productService.getProductsList(options);
     }
 
     @Get(':id')
-    @UseGuards(JwtAuthGuard)
     getProductById(@Param('id') id: number) {
         return this.productService.getProductById(id);
     }
