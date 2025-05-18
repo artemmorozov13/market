@@ -209,8 +209,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           Для создания заказа требуется авторизация
         </Typography>
         <LoginButton
-            botUsername={process.env.BOT_USERNAME as string}
-            authCallbackUrl={process.env.REDIRECT_APP_URL}
+            botUsername={'fricti_test_bot'}
+            authCallbackUrl={'https://fruvost.ru/app'}
             buttonSize="large"
             cornerRadius={5}
             showAvatar={true}
