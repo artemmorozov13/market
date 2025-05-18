@@ -47,6 +47,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
   const [weekDates, setWeekDates] = useState<Record<string, { date: Date; isToday: boolean; formattedDate: string }>>({});
   const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
+  const [initData, setInitData] = useState<string>("")
 
   const {
     control,
@@ -66,17 +67,15 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { user } = useUser({ initData: window.Telegram?.WebApp.initData });
+  const { user } = useUser({ initData });
   const { role } = userStore
   const { addresses, options } = useUserAddresses(user?.user.id);
   const selectedPickupPointId = watch("pickupPointId");
 
-  // Все временные слоты в weekDates уже доступны
   const availableDeliveryTimes = deliveryTimes.filter(time => 
     weekDates[time.dayOfWeek] !== undefined
   );
   
-  // Группируем временные слоты по дням недели
   const groupedDeliveryTimes = availableDeliveryTimes.reduce((acc, time) => {
     const day = time.dayOfWeek;
     if (!acc[day]) acc[day] = [];
@@ -150,6 +149,10 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     }
   };
 
+  const handleTelegramAuth = (data: any) => {
+    setInitData(JSON.stringify(data))
+  }
+
   useEffect(() => {
     const fetchPickupPoints = async () => {
       try {
@@ -215,6 +218,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             cornerRadius={5}
             showAvatar={true}
             lang="ru"
+            onAuthCallback={handleTelegramAuth}
+            requestAccess={'write'}
         />
       </Box>
     )

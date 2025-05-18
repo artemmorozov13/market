@@ -30,7 +30,7 @@ export const fetchUserData = async (options?: UseUserOptions) => {
 
 export const useUser = (options?: UseUserOptions) => {
     const query = useQuery<AuthViaTelegramResponse>({
-        queryKey: ["user"],
+        queryKey: ["user", options?.initData],
         queryFn: () => fetchUserData(options)
     })
     return {

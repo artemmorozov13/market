@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BasketService } from 'src/basket/basket.service';
 import { UsersEntity } from 'src/entities/users.entity';
@@ -7,6 +7,7 @@ import { GetQueryParamsDto } from './dto/get-query-params.dto';
 import { TelegramUtils } from 'src/utils/telegram.utils';
 import { AuthService } from 'src/auth/auth.service';
 import { OrderEntity } from 'src/entities/order.entity';
+import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
 
 @Injectable()
 export class UsersService {
@@ -96,6 +97,30 @@ export class UsersService {
       user,
       token: await this.authService.generateToken(user),
     };
+  }
+
+  async loginWithTelegramWidget(data: TelegramAuthData) {
+    const isValid = await TelegramUtils.validateInitData(JSON.stringify(data));
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid Telegram data');
+    }
+
+    let user = await this.usersRepository.findOne({
+      where: { telegram_id: data.id },
+    });
+
+    if (!user) {
+      user = this.usersRepository.create({
+        telegram_id: data.id,
+        name: data.first_name,
+        telegram_username: data.username || "",
+      });
+      await this.usersRepository.save(user);
+    }
+
+    const token = await this.authService.generateToken(user)
+
+    return { user, token };
   }
 
   getActiveOrder = () => {

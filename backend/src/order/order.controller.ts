@@ -26,7 +26,7 @@ export class OrderController {
   }
 
   @Get('current')
-  @AllowRoles(Roles.User)
+  @AllowRoles(Roles.User, Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   getCurrentOrders(

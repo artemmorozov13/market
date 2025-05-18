@@ -9,6 +9,7 @@ import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 import { AllowRoles } from 'src/auth/decorators/roles.decorator';
 import { Roles } from 'src/auth/types/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
+import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 
 @Controller('users')
@@ -48,5 +49,10 @@ export class UsersController {
     @Post('login')
     loginWithTelegram(@Body() body: TelegramLoginDto) {
         return this.usersService.loginWithTelegram(body.initData);
+    }
+
+    @Post('login-widget')
+    loginWithTelegramWidget(@Body() body: TelegramAuthData) {
+        return this.usersService.loginWithTelegramWidget(body)
     }
 }
