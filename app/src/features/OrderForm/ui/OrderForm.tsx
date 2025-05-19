@@ -47,7 +47,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
   const [weekDates, setWeekDates] = useState<Record<string, { date: Date; isToday: boolean; formattedDate: string }>>({});
   const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
-  const [initData, setInitData] = useState<string>("")
+  const [, setInitData] = useState<string>("")
 
   const {
     control,
@@ -67,7 +67,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { user } = useUser({ initData });
+  const { user } = useUser();
   const { role } = userStore
   const { addresses, options } = useUserAddresses(user?.user.id);
   const selectedPickupPointId = watch("pickupPointId");
@@ -298,14 +298,16 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
           >
             Добавить новый адрес
           </Button>
-
+          
           {selectedPickupPoint?.name === DEFAULT_STATIC_PICKUP_POINT_NAME ? (
             <Box mb={2} textAlign="center" py={2}>
               <Typography variant="body1" color="textSecondary">
-                К сожалению, доставка по Вашему адресу пока недоступна
+                К сожалению, доставка по вашему адресу пока недоступна. Но вы всё равно можете оформить заказ — мы сделаем всё возможное, чтобы его доставить!
               </Typography>
             </Box>
-          ) : selectedPickupPointId && deliveryTimes.length > 0 ? (
+          ) : null}
+
+          {selectedPickupPointId && deliveryTimes.length > 0 ? (
             Object.keys(weekDates).length > 0 ? (
               <Box mb={2}>
                 <FormControl fullWidth margin="normal">
