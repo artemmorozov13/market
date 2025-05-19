@@ -43,6 +43,8 @@ export const ActiveOrderPage: FC = () => {
     return isDeleveryAvailable
   };
 
+  console.log(orders)
+
   const renderContent = () => {
     if (role !== 'customer') {
       return (
@@ -61,24 +63,26 @@ export const ActiveOrderPage: FC = () => {
       )
     }
     if (orders && orders?.length > 0) {
-      <div>
-        {orders?.map(order => (
-          <Card key={order.id} className={styles.card}>
-            <OrderDetails order={order} />
-            <div className={styles.actions}>
-              <Button
-                variant="contained"
-                onClick={() => handleOpenEditModal(order)}
-                className={styles.editButton}
-                disabled={!isDeliveryAvailable(order)}
-                fullWidth
-              >
-                Изменить состав
-              </Button>
-            </div>
-          </Card>     
-        ))}
-      </div>
+      return (
+        <div>
+          {orders?.map(order => (
+            <Card key={order.id} className={styles.card}>
+              <OrderDetails order={order} />
+              <div className={styles.actions}>
+                <Button
+                  variant="contained"
+                  onClick={() => handleOpenEditModal(order)}
+                  className={styles.editButton}
+                  disabled={!isDeliveryAvailable(order)}
+                  fullWidth
+                >
+                  Изменить состав
+                </Button>
+              </div>
+            </Card>     
+          ))}
+        </div>
+      )
     }
     return (
       <div className={styles.empty}>
