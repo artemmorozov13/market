@@ -26,7 +26,6 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import styles from "./Layout.module.css";
 import { clsx } from "yet-another-react-lightbox";
 import { userStore } from "@/entities/User";
-import WebApp from "@twa-dev/sdk";
 
 interface LayoutProps extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
     children: ReactNode;
@@ -73,7 +72,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
   );
 
   const handleShare = () => {
-    WebApp.shareMessage(referalLink.current)
+    window.open(referalLink.current)
   };
 
   return (
