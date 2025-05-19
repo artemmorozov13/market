@@ -78,6 +78,6 @@ ${productsList}
 
 <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
 
-Спасибо, что выбираете нас! Если возникли вопросы — напишите в поддержку.
+По всем вопросам обращаться @leninskiyprospekt_fruit_express.
     `.trim();
 };

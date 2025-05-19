@@ -1,11 +1,10 @@
 import { FC, useState } from "react";
 import { Layout } from "@/widgets/Layout";
-import { Card, CircularProgress, Container, Typography, Button } from "@mui/material";
+import { Card, CircularProgress, Container, Button } from "@mui/material";
 import { useActiveOrder } from "../../api/useActiveOrder";
 import { Order } from "../../types/activeOrderTypes";
 import { OrderDetails } from "../OrderDetails/OrderDetails";
 import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
-import clsx from 'clsx';
 import styles from "./ActiveOrderPage.module.scss";
 import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 import { userStore } from "@/entities/User";
@@ -42,8 +41,6 @@ export const ActiveOrderPage: FC = () => {
     )
     return isDeleveryAvailable
   };
-
-  console.log(orders)
 
   const renderContent = () => {
     if (role !== 'customer') {
@@ -95,11 +92,7 @@ export const ActiveOrderPage: FC = () => {
   return (
     <Layout>
       <Container maxWidth="md">
-        <div className={styles.container}>
-          <Typography variant="h4" className={clsx(styles.rootTitle, styles.title)}>
-            Активный заказ
-          </Typography>          
-
+        <div className={styles.container}>      
           {renderContent()}
 
           {selectedOrder && (

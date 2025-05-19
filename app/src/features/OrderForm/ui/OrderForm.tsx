@@ -27,7 +27,6 @@ import { LoginButton } from '@telegram-auth/react';
 import { API } from "@/shared/api/API";
 import clsx from "clsx"
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
-import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { AddressType } from "@/entities/Addresses";
 import { basketStore } from "@/entities/Basket";
@@ -67,8 +66,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { user } = useUser();
-  const { role } = userStore
+  const { user, role } = userStore
   const { addresses, options } = useUserAddresses(user?.user.id);
   const selectedPickupPointId = watch("pickupPointId");
 

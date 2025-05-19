@@ -1,3 +1,42 @@
+.appBar {
+  background: white !important;
+  color: #333 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px !important;
+  min-height: 64px !important;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.basketControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.basketTotal {
+  font-weight: 600;
+  color: #333;
+  margin-right: 8px;
+}
+
+.badge {
+  .MuiBadge-badge {
+    top: 8px;
+    right: -4px;
+    background-color: #ff5722;
+  }
+}
+
 .container {
   display: flex;
   flex-direction: column;
