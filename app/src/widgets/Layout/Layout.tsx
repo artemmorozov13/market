@@ -1,6 +1,6 @@
-import { DetailedHTMLProps, FC, HTMLAttributes, ReactNode, useRef, useState } from "react";
+import { DetailedHTMLProps, FC, HTMLAttributes, ReactNode, useState } from "react";
 import { RoutePath } from "@/shared/routes/routeConfig";
-import { ShoppingBasket, Storefront, ListAlt } from "@mui/icons-material";
+import { ShoppingBasket, Storefront, ListAlt, HelpOutline } from "@mui/icons-material";
 import ShareIcon from '@mui/icons-material/Share';
 import {
   BottomNavigation,
@@ -68,13 +68,20 @@ export const Layout: FC<LayoutProps> = observer((props) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const referalLink = useRef<string>(
-    `https://t.me/share/url?url=https://t.me/fricti_test_bot/app`,
-  );
-
   const handleShare = () => {
-    window.open(referalLink.current)
-  };
+    const shareOptions = {
+      baseUrl: "https://t.me/share/url",
+      params: {
+        url: `https://t.me/fricti_test_bot/app`,
+        title: "Доставка фруктов и овощей",
+      }
+    };
+    const shareUrl = new URL(shareOptions.baseUrl);
+    Object.entries(shareOptions.params).forEach(([key, value]) => {
+      shareUrl.searchParams.set(key, value);
+    });
+    window.open(shareUrl.toString());
+  }
 
   return (
     <div className={styles.container} {...otherProps}>
@@ -194,7 +201,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
             component={Link}
             to={RoutePath.help}
             className={styles.navItem}
-            icon={<ListAlt className={clsx(styles.menuImageIcon, styles.icon)} />}
+            icon={<HelpOutline className={clsx(styles.menuImageIcon, styles.icon)} />}
             label="Поддержка"
             value={4}
           />
