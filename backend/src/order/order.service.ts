@@ -148,7 +148,12 @@ export class OrderService {
     }
 
     const selectedProducts = await this.selectedProductsRepository.find({
-      where: { userTgchatId: user.telegram_id },
+      where: {
+        userTgchatId: user.telegram_id,
+        product: {
+          is_expired: false
+        }
+      },
       relations: ["product"]
     });
 

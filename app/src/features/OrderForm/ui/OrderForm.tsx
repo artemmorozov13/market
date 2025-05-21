@@ -67,7 +67,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   });
 
   const { user, role } = userStore
-  const { addresses, options } = useUserAddresses(user?.user.id);
+  const { addresses, options } = useUserAddresses(user?.user?.id);
   const selectedPickupPointId = watch("pickupPointId");
 
   const availableDeliveryTimes = deliveryTimes.filter(time => 
