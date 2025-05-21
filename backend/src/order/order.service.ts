@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Not, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -16,10 +16,12 @@ import { ProductEntity } from 'src/entities/product.entity';
 import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 import { TelegramService } from 'src/telegram/telegram.service';
 import { formatUserOrderMessage } from './notifications/formatUserOrderMessage';
-import { DELIVERY_PRICE } from 'src/utils/constants';
+import { DELIVERY_PRICE, StatusEnum } from 'src/utils/constants';
 import { exportToExcelWithInnerTable } from './export-generator/export-excel-with-inner-table';
 import { exportToWideFormatExcel } from './export-generator/export-to-wide-format-excel';
 import { formatUpdatedOrderMessage } from './notifications/formatUpdatedOrderMessage';
+import { CancelUserOrderDto } from './dto/cancel-user-order-dto';
+import { cancelOrderByUserMessage } from './notifications/cancelOrderByUserMessage';
 
 @Injectable()
 export class OrderService {
@@ -93,7 +95,6 @@ export class OrderService {
     return await this.orderRepository.find({
       where: { 
         user: { id: user.id },
-        status: "waitForPay"
       },
       relations: [
         'ordered_products',
@@ -110,7 +111,58 @@ export class OrderService {
 
   async updateOrderStatus(updateStatusDto: UpdateOrderStatusDto) {
     const { orderId } = updateStatusDto
-    return await this.orderRepository.update(orderId, { status: "finished" })
+    return await this.orderRepository.update(orderId, { status: StatusEnum.Finished })
+  }
+
+  async cancelOrderByUser(cancelUserOrderDto: CancelUserOrderDto, userData: AuthJwtPayload) {
+    const order = await this.orderRepository.findOne({
+      where: {
+        id: cancelUserOrderDto.orderId,
+        user: {
+          id: userData.sub
+        },
+        status: In([StatusEnum.WaitForPay])
+      },
+      relations: ['user', 'ordered_products'] // Подгружаем связанные данные
+    });
+
+    if (!order) {
+      throw new BadRequestException(
+        `Не удалось отменить заказ ${cancelUserOrderDto.orderId}. ` +
+        `Возможно, заказ не существует или уже был отменен/завершен.`
+      );
+    }
+
+    // Проверяем, можно ли отменить заказ (дополнительная бизнес-логика)
+    if (order.status === StatusEnum.Finished) {
+      throw new BadRequestException("Нельзя отменить уже завершенный заказ");
+    }
+
+    // Обновляем статус заказа
+    order.status = StatusEnum.CanceledByUser;
+    order.updatedAt = new Date();
+
+    try {
+      await this.orderRepository.save(order);
+
+      if (order.user.telegram_id) {
+        const userMessage = cancelOrderByUserMessage(order);
+        await this.telegramService.sendHtmlMessage(
+            order.user.telegram_id.toString(),
+            userMessage
+        );
+      }
+
+      return {
+        success: true,
+        message: `Заказ №${order.id} успешно отменен`,
+        orderId: order.id
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Произошла ошибка при отмене заказа: ${error.message}`
+      );
+    }
   }
   
   async createOrder(createOrderDto: CreateOrderDto, userData: AuthJwtPayload) {
@@ -126,7 +178,7 @@ export class OrderService {
     const activeOrdersCount = await this.orderRepository.count({
       where: {
         user: { id: user.id },
-        status: "waitForPay"
+        status: StatusEnum.WaitForPay
       }
     });
 
@@ -189,7 +241,7 @@ export class OrderService {
       phoneNumber: createOrderDto.phoneNumber,
       comment: createOrderDto.comment,
       deliveryDate: createOrderDto.deliveryDate,
-      status: "waitForPay",
+      status: StatusEnum.WaitForPay,
       totalAmount: totalAmount + DELIVERY_PRICE,
       pickupPoint: pickupPoint,
       deliveryTime: deliveryTime,
@@ -325,7 +377,7 @@ export class OrderService {
   
   async exportExcelWithInnerTable(pickupPointIds?: number[]): Promise<Uint8Array> {
     const whereOptions: FindOptionsWhere<OrderEntity> = { 
-        status: "waitForPay"
+        status: StatusEnum.WaitForPay
     };
 
     // Добавляем фильтрацию по пунктам выдачи, если они переданы
@@ -347,7 +399,7 @@ export class OrderService {
 
   async exportToWideFormatExcel(pickupPointIds?: number[]): Promise<Uint8Array> {
       const whereOptions: FindOptionsWhere<OrderEntity> = { 
-          status: "waitForPay"
+          status: StatusEnum.WaitForPay
       };
 
       // Добавляем фильтрацию по пунктам выдачи, если они переданы

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, InternalServerErrorException, ParseArrayPipe, Post, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, InternalServerErrorException, ParseArrayPipe, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -12,6 +12,7 @@ import { AuthJwtPayload } from 'src/auth/types/auth.jwtPayload';
 import { AllowRoles } from 'src/auth/decorators/roles.decorator';
 import { Roles } from 'src/auth/types/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
+import { CancelUserOrderDto } from './dto/cancel-user-order-dto';
 
 @Controller('order')
 export class OrderController {
@@ -63,6 +64,14 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   updateStatus(@Body() updateStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(updateStatusDto)
+  }
+
+  @Patch('cancel')
+  @AllowRoles(Roles.Admin, Roles.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  cancelOrderByUser(@Body() cancelUserOrderDto: CancelUserOrderDto, @User() user: AuthJwtPayload,) {
+    return this.orderService.cancelOrderByUser(cancelUserOrderDto, user)
   }
 
   @Post('export-inner-table')

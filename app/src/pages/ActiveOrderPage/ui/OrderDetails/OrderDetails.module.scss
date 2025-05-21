@@ -1,6 +1,13 @@
 .container {
     padding: 16px;
-  }
+}
+
+.orderActions {
+  padding-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
   
   .title {
     font-size: 1.5rem;
@@ -89,4 +96,18 @@
       }
     }
   }
+
+.canceledOrder {
+    .title,
+    .sectionTitle,
+    .infoBlock span,
+    .productName,
+    .productPrice,
+    .totalSection h6 {
+      color: #999 !important;
+    }
   
+    .productItem {
+      background-color: #f0f0f0;
+    }
+}

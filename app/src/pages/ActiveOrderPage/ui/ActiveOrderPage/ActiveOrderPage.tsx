@@ -59,32 +59,49 @@ export const ActiveOrderPage: FC = () => {
         </div>
       )
     }
-    if (orders && orders?.length > 0) {
-      return (
-        <div>
-          {orders?.map(order => (
-            <Card key={order.id} className={styles.card}>
-              <OrderDetails order={order} />
-              <div className={styles.actions}>
-                <Button
-                  variant="contained"
-                  onClick={() => handleOpenEditModal(order)}
-                  className={styles.editButton}
-                  disabled={!isDeliveryAvailable(order)}
-                  fullWidth
-                >
-                  Изменить состав
-                </Button>
-              </div>
-            </Card>     
-          ))}
-        </div>
-      )
-    }
+
+    const activeOrders = orders?.filter(order => order.status === 'waitForPay');
+    const canceledOrders = orders?.filter(order => order.status === 'canceled_by_user');
+
     return (
-      <div className={styles.empty}>
-        <h2>У вас нет активных заказов</h2>
-        <p>Вы можете оформить новый заказ в каталоге товаров</p>
+      <div>
+        {activeOrders && activeOrders?.length > 0 && (
+          <>
+            {activeOrders.map(order => (
+              <Card key={order.id} className={styles.card}>
+                <OrderDetails order={order} />
+                <div className={styles.actions}>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenEditModal(order)}
+                    className={styles.editButton}
+                    disabled={!isDeliveryAvailable(order)}
+                    fullWidth
+                  >
+                    Изменить состав
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {canceledOrders && canceledOrders?.length > 0 && (
+          <>
+            {canceledOrders.map(order => (
+              <Card key={order.id} className={`${styles.card} ${styles.canceledCard}`}>
+                <OrderDetails order={order} />
+              </Card>
+            ))}
+          </>
+        )}
+
+        {!activeOrders?.length && !canceledOrders?.length && (
+          <div className={styles.empty}>
+            <h2>У вас нет активных заказов</h2>
+            <p>Вы можете оформить новый заказ в каталоге товаров</p>
+          </div>
+        )}
       </div>
     )
   }

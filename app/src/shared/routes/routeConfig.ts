@@ -5,4 +5,5 @@ export const RoutePath = {
     activeOrders: "/app/orders",
     basket: "/app/basket",
     products: "/app/products",
+    help: '/app/help'
 }

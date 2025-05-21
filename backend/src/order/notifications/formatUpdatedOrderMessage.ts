@@ -6,7 +6,8 @@ import { StatusEnum } from "src/utils/constants";
 
 const textByStatus: Record<StatusEnum, string> = {
     waitForPay: "Обновлен",
-    finished: "Завершен"
+    finished: "Завершен",
+    canceled_by_user: 'Отменен'
 }
 
 export const formatUpdatedOrderMessage = (

@@ -13,6 +13,7 @@ import {
   import { OrderedProductsEntity } from "./ordered-products.entity";
   import { PickupPoint } from "./pickup-point.entity";
   import { DeliveryTime } from "./delivery-time.entity";
+import { StatusEnum } from "src/utils/constants";
   
   @Entity({ name: "order" })
   export class OrderEntity {
@@ -21,10 +22,10 @@ import {
   
       @Column({ 
         type: "enum", 
-        enum: ["waitForPay", "payConfirm", "finished"], 
-        default: "waitForPay" 
+        enum: StatusEnum, 
+        default: StatusEnum.WaitForPay
       })
-      status: "waitForPay" | "payConfirm" | "finished";
+      status: StatusEnum.CanceledByUser | StatusEnum.Finished | StatusEnum.WaitForPay;
   
       @CreateDateColumn()
       createdAt: Date;

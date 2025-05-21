@@ -48,6 +48,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
     if (location.pathname?.startsWith(RoutePath.basket)) return 2;
     if (location.pathname?.startsWith(RoutePath.activeOrders)) return 3;
     if (location.pathname?.startsWith(RoutePath.products)) return 1;
+    if (location.pathname?.startsWith(RoutePath.help)) return 4;
     return 0;
   };
 
@@ -188,6 +189,14 @@ export const Layout: FC<LayoutProps> = observer((props) => {
               </Badge>
             }
             label="Корзина"
+          />
+          <BottomNavigationAction
+            component={Link}
+            to={RoutePath.help}
+            className={styles.navItem}
+            icon={<ListAlt className={clsx(styles.menuImageIcon, styles.icon)} />}
+            label="Поддержка"
+            value={4}
           />
         </BottomNavigation>
       </Paper>

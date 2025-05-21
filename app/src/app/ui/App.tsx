@@ -12,6 +12,7 @@ import { BasketPageLazy } from "@/pages/BasketPage/BasketPageLazy";
 import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
 import { RoutePath } from "@/shared/routes/routeConfig";
 import { ActiveOrderPage } from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOrderPage";
+import { HelpPage } from "@/pages/HelpPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ export const App: FC = () => {
                 <Route path={RoutePath.basket} element={<BasketPageLazy/>} />
                 <Route path={RoutePath.order} element={<OrderPageLazy/>} />
                 <Route path={RoutePath.activeOrders} element={<ActiveOrderPage/>} />
+                <Route path={RoutePath.help} element={<HelpPage/>} />
               </Routes>
             </AuthProvider>
           <CssBaseline />
