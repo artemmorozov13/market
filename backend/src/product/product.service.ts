@@ -15,30 +15,32 @@ export class ProductService {
     ) {}
 
     async getProductsList({ limit = 10, skip = 0, is_expired }: PaginationDto): Promise<ProductResponseDto> {
-
       const whereConditions: FindOptionsWhere<ProductEntity> | FindOptionsWhere<ProductEntity>[] = {};
       
       if (typeof is_expired === "boolean") {
-        whereConditions.is_expired = !is_expired;
+          whereConditions.is_expired = !is_expired;
       }
     
       const [items, total] = await this.productRepository.findAndCount({
-        skip: skip,
-        take: limit,
-        order: { createdAt: "DESC" },
-        where: whereConditions
+          skip: skip,
+          take: limit,
+          order: { 
+              is_expired: "ASC",
+              createdAt: "DESC"
+          },
+          where: whereConditions
       });
     
       return {
-        items: items,
-        pagination: {
-          total,
-          limit,
-          skip,
-          hasMore: skip + limit < total,
-        },
+          items: items,
+          pagination: {
+              total,
+              limit,
+              skip,
+              hasMore: skip + limit < total,
+          },
       };
-    }
+  }
 
     async getProductById(id: number): Promise<ProductEntity> {
         const product = await this.productRepository.findOneBy({ id });
