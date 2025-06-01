@@ -22,7 +22,9 @@ export const InstallButton: FC = () => {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
+    //@ts-ignore
     deferredPrompt.prompt();
+    //@ts-ignore
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`User response: ${outcome}`);
     setDeferredPrompt(null);
