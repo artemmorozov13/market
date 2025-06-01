@@ -33,7 +33,7 @@ const faqs = [
     }
 ];
 
-const TELEGRAM_CHAT_URL = "https://t.me/leninskiyprospekt_fruit_express";
+const TELEGRAM_CHAT_URL = "https://t.me/Evamiir1";
 
 const HelpPage: FC = observer(() => {
     return (
@@ -55,7 +55,7 @@ const HelpPage: FC = observer(() => {
                 Напишите нам в Telegram
               </Typography>
               <Typography variant="body1" className={styles.telegramText}>
-                Наша команда поддержки ответит вам в течение 15 минут
+                Наша команда поддержки ответит вам в течение 30 минут
               </Typography>
               
               <Button

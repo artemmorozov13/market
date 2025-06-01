@@ -27,7 +27,6 @@ export const createOrder = async (options: CreateOrderOptions) => {
 
         return response.data
     } catch(error) {
-        console.log(error)
         toast((error as any).response.data.message, { type: "error" })
         throw new Error()
     }

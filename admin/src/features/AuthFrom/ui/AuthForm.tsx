@@ -45,7 +45,7 @@ export const AuthForm: FC = () => {
                         Авторизация
                     </Typography>
                 </div>
-                <form className={styles.form} onSubmit={handleSubmit(onSubmit, err => console.log(err))}>
+                <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
                     <FormControl fullWidth>
                         <Controller
                             name="email"

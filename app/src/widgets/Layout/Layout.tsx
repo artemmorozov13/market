@@ -72,7 +72,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
     const shareOptions = {
       baseUrl: "https://t.me/share/url",
       params: {
-        url: `https://t.me/fricti_test_bot/app`,
+        url: `https://t.me/fricti_test_bot`,
         title: "Доставка фруктов и овощей",
       }
     };

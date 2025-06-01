@@ -21,7 +21,7 @@ export const fetchProductsData = async (options: FetchProductsDataOptions) => {
 
     return response.data;
   } catch(error) {
-    console.log(error)
+    throw error
   }
 };
 

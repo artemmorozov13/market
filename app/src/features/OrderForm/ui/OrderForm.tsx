@@ -246,7 +246,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         <Typography variant="h6" className={styles.modalTitle} gutterBottom>
           Данные для доставки
         </Typography>
-        <form onSubmit={handleSubmit(confirmForm, (err) => console.log(err))}>
+        <form onSubmit={handleSubmit(confirmForm)}>
           {!!options?.length ? (
             <div className={styles.addressInput}>
               <FormControl fullWidth margin="normal">
