@@ -26,6 +26,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import styles from "./Layout.module.css";
 import { clsx } from "yet-another-react-lightbox";
 import { userStore } from "@/entities/User";
+import WebApp from "@twa-dev/sdk";
+import { InstallButton } from "@/shared/ui/InstallButton";
 
 interface LayoutProps extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
     children: ReactNode;
@@ -85,6 +87,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
 
   return (
     <div className={styles.container} {...otherProps}>
+      {!WebApp.initData && <InstallButton />}
       <AppBar position="sticky" color="default" elevation={1} className={styles.appBar}>
         <Toolbar className={styles.toolbar}>
           <Typography variant="h6" component="div" className={styles.title}>
