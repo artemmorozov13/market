@@ -40,7 +40,6 @@ export const FilterListModal: FC<FilterListModalProps> = observer((props) => {
     };
 
     const onSubmit = (data: any) => {
-        console.log(data)
         onFilterChange(data);
         handleCloseWithAnimation();
     };

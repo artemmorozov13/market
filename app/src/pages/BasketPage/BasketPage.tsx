@@ -9,7 +9,7 @@ import { Layout } from "@/widgets/Layout";
 import { RoutePath } from "@/shared/routes/routeConfig";
 import { BasketCard } from "@/entities/Basket/ui/BasketCard/BasketCard";
 import { useNavigate } from "react-router";
-import { DELIVERY_PRICE } from "@/shared/consts/applicationConsts";
+import { DELIVERY_PRICE, FREE_DELIVERY_MIN_PRICE } from "@/shared/consts/applicationConsts";
 
 const BasketPage: FC = observer(() => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -107,14 +107,22 @@ const BasketPage: FC = observer(() => {
           <Box className={styles.summaryRow}>
             <Typography>Доставка</Typography>
             <Typography>
-              {DELIVERY_PRICE}₽
+              {FREE_DELIVERY_MIN_PRICE <= basketStore.totalPrice ? (
+                0
+              ) : (
+                DELIVERY_PRICE
+              )}₽
             </Typography>
           </Box>
           <Divider className={styles.divider} />
           <Box className={styles.summaryRow}>
             <Typography variant="h6">Итого</Typography>
             <Typography variant="h6">
-              {basketStore.totalPrice + DELIVERY_PRICE}₽
+              {FREE_DELIVERY_MIN_PRICE <= basketStore.totalPrice ? (
+                basketStore.totalPrice
+              ) : (
+                basketStore.totalPrice + DELIVERY_PRICE
+              )}₽
             </Typography>
           </Box>
           <Button

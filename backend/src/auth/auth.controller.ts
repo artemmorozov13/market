@@ -12,10 +12,5 @@ export class AuthController {
   @Post("login")
   async authWithPassword(@Request() req) {
     return this.authService.authAdminUser(req.user.id)
-    console.log(req.user)
-    return {
-      user: req.user,
-      token: await this.authService.generateToken(req.user.id)
-    }
   }
 }

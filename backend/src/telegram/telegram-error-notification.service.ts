@@ -9,7 +9,6 @@ export class TelegramErrorNotificationService {
 
   async notifyError(error: Error, context?: Record<string, any>): Promise<void> {
     // Отправляем в Telegram
-    console.log(error)
     await this.telegramService.sendErrorNotification(
       error, 
       JSON.stringify(context, null, 2)

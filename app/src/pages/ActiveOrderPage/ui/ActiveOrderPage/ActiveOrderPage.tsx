@@ -5,9 +5,9 @@ import { useActiveOrder } from "../../api/useActiveOrder";
 import { Order } from "../../types/activeOrderTypes";
 import { OrderDetails } from "../OrderDetails/OrderDetails";
 import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
-import styles from "./ActiveOrderPage.module.scss";
-import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 import { userStore } from "@/entities/User";
+
+import styles from "./ActiveOrderPage.module.scss";
 
 export const ActiveOrderPage: FC = () => {
   const { role } = userStore
@@ -28,19 +28,17 @@ export const ActiveOrderPage: FC = () => {
   const isDeliveryAvailable = (order: Order): boolean => {
     if (!order.deliveryTime || !order.deliveryDate) return false;
     
-    const deliveryDayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-      .indexOf(order.deliveryTime.dayOfWeek);
-    const deliveryDay = deliveryDayIndex === 0 ? 7 : deliveryDayIndex + 1;
-    
-    const availableDates = getAvailableDeliveryDates([deliveryDay]);
-
+    const now = new Date();
     const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
     
-    const isDeleveryAvailable = availableDates.some(date => 
-      date.toISOString().split('T')[0] === deliveryDate.toISOString().split('T')[0]
-    )
-    return isDeleveryAvailable
-  };
+    if (deliveryDate <= now) return false;
+    
+    const dayBeforeDelivery = new Date(deliveryDate);
+    dayBeforeDelivery.setDate(deliveryDate.getDate() - 1);
+    dayBeforeDelivery.setHours(23, 0, 0, 0);
+    
+    return now < dayBeforeDelivery;
+};
 
   const renderContent = () => {
     if (role !== 'customer') {

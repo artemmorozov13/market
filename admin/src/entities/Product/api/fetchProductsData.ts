@@ -29,7 +29,6 @@ export const fetchProductsData = async (options: FetchProductsDataOptions) => {
     const response = await API.get<ResponseType>(`/product`, config);
     return response.data;
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };

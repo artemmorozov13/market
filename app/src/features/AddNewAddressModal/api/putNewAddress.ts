@@ -23,13 +23,9 @@ export const useSaveAddress = () => {
       const response = await API.post('/addresses', body);
       return response.data;
     },
-    onSuccess: (data) => {
-      // Можно добавить дополнительные действия при успешном сохранении
-      console.log('Адрес успешно сохранен:', data);
+    onSuccess: () => {
     },
-    onError: (error) => {
-      // Можно добавить обработку ошибок
-      console.error('Ошибка при сохранении адреса:', error);
+    onError: () => {
     },
   });
   return {
