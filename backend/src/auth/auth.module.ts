@@ -11,6 +11,8 @@ import { JwtModule } from "@nestjs/jwt";
 import jwtConfig from './config/jwt.config';
 import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import refreshJwtConfig from './config/refresh-jwt.config';
+import { RefreshJwtStrategy } from './strategies/refresh.strategy';
 
 @Module({
   imports: [
@@ -18,11 +20,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtModule.registerAsync(jwtConfig.asProvider()),
     TypeOrmModule.forFeature([UsersEntity, BasketEntity]),
     ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(refreshJwtConfig),
     forwardRef(() => UsersModule),
     forwardRef(() => BasketModule),
   ],
   controllers: [AuthController],
   exports: [AuthService, JwtModule],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
 })
 export class AuthModule {}

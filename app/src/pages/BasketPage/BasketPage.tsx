@@ -1,5 +1,3 @@
-"use client";
-
 import { FC, useEffect, useState } from "react";
 import { Container, Typography, Button, Box, CircularProgress, Divider } from "@mui/material";
 import styles from "./BasketPage.module.scss";
