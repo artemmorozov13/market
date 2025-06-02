@@ -30,7 +30,7 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
     const { setUserData, setUserRole } = userStore
     const { fetchBasketList } = basketStore
 
-    Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 0.0005 })
+    Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 1 })
     setUserData(response.data)
     setUserRole('customer')
 
