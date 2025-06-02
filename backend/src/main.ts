@@ -28,6 +28,6 @@ async function bootstrap() {
   app.useStaticAssets(staticPath, {
     prefix: '/static/',
   });
-  await app.listen(process.env.PORT || 3000, '0.0.0.0');
+  await app.listen(9000, '0.0.0.0');
 }
 bootstrap();

@@ -5,13 +5,19 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthJwtPayload } from './types/auth.jwtPayload';
 import { UsersEntity } from 'src/entities/users.entity';
 import { Roles } from './types/role-enum';
+import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
+import { TelegramUtils } from 'src/utils/telegram.utils';
+import refreshJwtConfig from './config/refresh-jwt.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
     constructor(
         @Inject(forwardRef(() => UsersService))
         private userService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        @Inject(refreshJwtConfig.KEY)
+        private refreshTokenConfig:ConfigType<typeof refreshJwtConfig>
     ) {}
 
     async validateUser(email: string, password: string) {
@@ -47,23 +53,12 @@ export class AuthService {
       return this.jwtService.sign(currentUser)
     }
 
-    async authAdminUser(userId: number) {
-      const user = await this.userService.getUserById(userId)
-
-      if (!user) {
-        throw new UnauthorizedException("Пользователь не найден")
+    async generateRefreshToken(user: UsersEntity) {
+      const currentUser: AuthJwtPayload = {
+        sub: user.id,
+        role: user.role
       }
-
-      if (user.role !== Roles.Admin) {
-        throw new UnauthorizedException("У пользователя недостаточно прав для доступа")
-      }
-
-      const token = await this.generateToken(user)
-
-      return {
-        user,
-        token
-      }
+      return this.jwtService.sign(currentUser, this.refreshTokenConfig)
     }
 
     async validateJwtUser(payload: AuthJwtPayload) {
@@ -79,5 +74,63 @@ export class AuthService {
       }
 
       return currentUser
+    }
+
+    async authAdminUser(userId: number) {
+      const user = await this.userService.getUserById(userId)
+
+      if (!user) {
+        throw new UnauthorizedException("Пользователь не найден")
+      }
+
+      if (user.role !== Roles.Admin) {
+        throw new UnauthorizedException("У пользователя недостаточно прав для доступа")
+      }
+
+      const token = await this.generateToken(user);
+      const refreshToken = await this.generateRefreshToken(user);
+
+      return {
+        user,
+        token,
+        refreshToken
+      }
+    }
+
+    async loginWithTelegramWidget(initData: TelegramAuthData) {
+      const isValid = await TelegramUtils.validateInitData(JSON.stringify(initData));
+      if (!isValid) {
+        throw new UnauthorizedException('Invalid Telegram data');
+      }
+
+      let user = await this.userService.getUserByTelegramId(initData.id);
+
+      if (!user) {
+        user = await this.userService.createUser({
+          telegram_id: initData.id,
+          name: initData.first_name,
+          telegram_username: initData.username,
+          role: Roles.User
+        });
+      }
+
+      const token = await this.generateToken(user)
+
+      return { user, token };
+    }
+
+    async refreshAccessToken(userId: number) {
+      const user = await this.userService.getUserById(userId)
+
+      if (!user) {
+        throw new UnauthorizedException("Пользователь не найден")
+      }
+
+      const token = await this.generateToken(user);
+
+      return {
+        user,
+        token
+      }
     }
 }

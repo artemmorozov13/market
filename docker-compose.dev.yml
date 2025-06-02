@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend
+      - admin
+      - app
+
   postgres:
     image: postgres:13
     environment:
@@ -17,7 +28,7 @@ services:
   backend:
     build:
       context: ./backend
-      target: dev
+      dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=development
     env_file:
@@ -26,7 +37,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+      - "9000:9000"
     depends_on:
       - postgres
     command: ["/wait-for-it.sh", "postgres:5432", "--", "npm", "run", "start:dev"]
@@ -38,7 +49,8 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - VITE_API_URL=http://localhost:3000
+    env_file:
+      - ./.env.dev
     volumes:
       - ./admin:/app
       - /app/node_modules
@@ -52,7 +64,8 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - VITE_API_URL=http://localhost:3000
+    env_file:
+      - ./.env.dev
     volumes:
       - ./app:/app
       - /app/node_modules

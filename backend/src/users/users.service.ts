@@ -40,6 +40,25 @@ export class UsersService {
     })
   }
 
+  async getUserByTelegramId(telegramId: number) {
+    return await this.usersRepository.findOne({
+      where: {
+        telegram_id: telegramId
+      },
+      select: [
+        'id',
+        'email',
+        'name',
+        'age',
+        'is_phone_confirmed',
+        'phone_number',
+        'role',
+        'telegram_id',
+        'telegram_username'
+      ]
+    })
+  }
+
   async getUsersDataList({ limit = 10, skip }: GetQueryParamsDto) {
     return await this.usersRepository.find({
         skip: skip,
@@ -97,33 +116,5 @@ export class UsersService {
       user,
       token: await this.authService.generateToken(user),
     };
-  }
-
-  async loginWithTelegramWidget(data: TelegramAuthData) {
-    const isValid = await TelegramUtils.validateInitData(JSON.stringify(data));
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid Telegram data');
-    }
-
-    let user = await this.usersRepository.findOne({
-      where: { telegram_id: data.id },
-    });
-
-    if (!user) {
-      user = this.usersRepository.create({
-        telegram_id: data.id,
-        name: data.first_name,
-        telegram_username: data.username || "",
-      });
-      await this.usersRepository.save(user);
-    }
-
-    const token = await this.authService.generateToken(user)
-
-    return { user, token };
-  }
-
-  getActiveOrder = () => {
-    const prder = this.orderRepository.find({})
   }
 }

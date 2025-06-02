@@ -2,7 +2,6 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import dotenv from 'dotenv'
-import mkcert from'vite-plugin-mkcert'
 
 dotenv.config() 
 
@@ -12,12 +11,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/app/',
-    plugins: [react(), mkcert()],
+    plugins: [react()],
     define: {
       'process.env': env
     },
     server: {
-      host: "127.0.0.1",
+      host: "0.0.0.0",
+      port: 3002
     },
     resolve: {
       alias: {

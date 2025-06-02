@@ -35,6 +35,7 @@ import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDelivery
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
 import { userStore } from "@/entities/User";
+import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -46,7 +47,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
   const [weekDates, setWeekDates] = useState<Record<string, { date: Date; isToday: boolean; formattedDate: string }>>({});
   const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
-  const [, setInitData] = useState<string>("")
+  const [initData, setInitData] = useState<string>("")
 
   const {
     control,
@@ -66,7 +67,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { user, role } = userStore
+  const { role } = userStore
+  const { user } = useUser({ initData })
   const { addresses, options } = useUserAddresses(user?.user?.id);
   const selectedPickupPointId = watch("pickupPointId");
 
