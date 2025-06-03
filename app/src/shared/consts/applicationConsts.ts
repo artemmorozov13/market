@@ -1,5 +1,5 @@
-export const ACCESS_TOKEN = 'accessToken';
-export const REFRESH_TOKEN = 'refreshToken';
+export const ACCESS_TOKEN = 'access-token';
+export const REFRESH_TOKEN = 'refresh-token';
 
 export const DELIVERY_PRICE = 100;
 export const FREE_DELIVERY_MIN_PRICE = 4000;
