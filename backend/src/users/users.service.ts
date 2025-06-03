@@ -77,22 +77,20 @@ export class UsersService {
   }
 
   async updateUser(updateUser: Partial<UsersEntity>) {
-    const user = await this.getUserById(updateUser.id)
+    try {
+      const user = await this.getUserById(updateUser.id)
 
-    if (!user) {
-      throw new BadRequestException("Пользователь не найден");
+      if (!user) {
+        throw new BadRequestException("Пользователь не найден");
+      }
+
+      Object.assign(user, updateUser);
+      await this.usersRepository.save(user);
+      
+      return user
+    } catch (error) {
+      throw error
     }
-
-    const updatedUser: Partial<UsersEntity> = {
-      ...user,
-      phone_number: updateUser.phone_number,
-      age: updateUser.age,
-      email: updateUser.email,
-      name: updateUser.name
-    }
-
-    const image = await this.usersRepository.update(user.id, updatedUser)
-    return image
   }
 
   async findUserByEmail(email: string) {
