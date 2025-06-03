@@ -191,7 +191,8 @@ export class OrderService {
       where: {
         user: { id: user.id },
         deliveryDate: createOrderDto.deliveryDate,
-        address: createOrderDto.address
+        address: createOrderDto.address,
+        status: StatusEnum.WaitForPay
       }
     });
 

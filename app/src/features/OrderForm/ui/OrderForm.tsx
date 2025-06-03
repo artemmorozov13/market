@@ -64,7 +64,13 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { user } = useUser();
+  const { user } = useUser({ 
+    onSuccess: () => {
+      if (user?.user?.phone_number) {
+        setValue('phone', user.user.phone_number)
+      }
+    }
+   });
   const { addresses, options } = useUserAddresses(user?.user?.id);
   const selectedPickupPointId = watch("pickupPointId");
   const { updateUser } = useUpdateUser()
@@ -316,7 +322,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                                 setValue("deliveryDate", weekDates[day].date);
                               }}
                             >
-                              {time.startTime} - {time.endTime}
+                              {time.startTime?.substring(0,5)} - {time.endTime?.substring(0,5)}
                             </MenuItem>
                           ))
                         ])}
