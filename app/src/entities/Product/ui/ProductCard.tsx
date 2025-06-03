@@ -45,6 +45,21 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
     ? Math.ceil(basketItem.quantity * discountedPrice * 100) / 100 
     : 0;
 
+  const getDisplayUnitValue = () => {
+    if (product.unitOfMeasurement === 'гр') {
+      const valueInGrams = parseFloat(product.unitValue);
+      return (valueInGrams / 1000).toString();
+    }
+    return product.unitValue;
+  };
+
+  const getDisplayUnitOfMeasurement = () => {
+    return product.unitOfMeasurement === 'гр' ? 'кг' : product.unitOfMeasurement;
+  };
+
+  const displayUnitValue = getDisplayUnitValue();
+  const displayUnitOfMeasurement = getDisplayUnitOfMeasurement();
+
   const handlePlusProduct = async () => {
     setIsLoadingAdd(true);
     await increaseProductCount(product.id);
@@ -128,7 +143,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
                 )}
               </Box>
               <Typography variant="caption" className={styles.unit}>
-                {`${product.unitValue}${product.unitOfMeasurement}`}
+                {`${displayUnitValue}${displayUnitOfMeasurement}`}
               </Typography>
             </Box>
           </div>

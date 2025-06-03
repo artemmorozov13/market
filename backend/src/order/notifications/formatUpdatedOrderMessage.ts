@@ -37,6 +37,8 @@ export const formatUpdatedOrderMessage = (
     const pickupName = escape(pickupPoint?.name || '');
 
     const productsTotal = orderedProducts.reduce((sum, p) => sum + (p.product.price * p.quantity), 0);
+    const deliveryCost = productsTotal >= 4000 ? 0 : 100;
+    const totalAmount = productsTotal + deliveryCost;
 
     const formatPrice = (price: number) => new Intl.NumberFormat('ru-RU', {
         style: 'currency',
@@ -73,8 +75,8 @@ ${productsList}
 <b>💳 Итого к оплате</b>
 ┌──────────────────────
 │ <b>Товары:</b> ${formatPrice(productsTotal)}
-│ <b>Доставка:</b> ${formatPrice(100)}
-│ <b>Общая сумма:</b> ${formatPrice(productsTotal + 100)}
+│ <b>Доставка:</b> ${deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost)}
+│ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
 └──────────────────────
 
 <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
