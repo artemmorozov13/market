@@ -5,7 +5,7 @@ export const cancelOrderByUserMessage = (order: OrderEntity) => {
         ✖️ <b>Заказ #${order.id} отменён</b> 😔
 
         ❓ Если это произошло по ошибке или у вас есть вопросы, 
-        напишите нам @leninskiyprospekt_fruit_express 👨‍💻
+        напишите нам @Evamiir1 👨‍💻
 
         Будем рады видеть вас снова! 🛒💖
     `.trim();

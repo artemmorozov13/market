@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BasketService } from 'src/basket/basket.service';
 import { UsersEntity } from 'src/entities/users.entity';
@@ -8,6 +8,7 @@ import { TelegramUtils } from 'src/utils/telegram.utils';
 import { AuthService } from 'src/auth/auth.service';
 import { OrderEntity } from 'src/entities/order.entity';
 import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
+import { CreateUserBodyDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -73,6 +74,25 @@ export class UsersService {
     await this.basketService.createBasket(savedUser);
 
     return savedUser;
+  }
+
+  async updateUser(updateUser: Partial<UsersEntity>) {
+    const user = await this.getUserById(updateUser.id)
+
+    if (!user) {
+      throw new BadRequestException("Пользователь не найден");
+    }
+
+    const updatedUser: Partial<UsersEntity> = {
+      ...user,
+      phone_number: updateUser.phone_number,
+      age: updateUser.age,
+      email: updateUser.email,
+      name: updateUser.name
+    }
+
+    const image = await this.usersRepository.update(user.id, updatedUser)
+    return image
   }
 
   async findUserByEmail(email: string) {
