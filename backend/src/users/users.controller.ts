@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CreateUserBodyDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
@@ -44,6 +44,14 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     createNewUser(@Body() body: CreateUserBodyDto) {
         return this.usersService.createUser(body)
+    }
+
+    @Patch("update")
+    @AllowRoles(Roles.Admin, Roles.User)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
+    updateUserData(@Body() body: Partial<CreateUserBodyDto>) {
+        return this.usersService.updateUser(body)
     }
 
     @Post('login')

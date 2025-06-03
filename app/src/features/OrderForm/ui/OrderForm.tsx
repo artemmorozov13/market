@@ -33,6 +33,7 @@ import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDelivery
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
+import { useUpdateUser } from "@/entities/User";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -66,6 +67,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const { user } = useUser();
   const { addresses, options } = useUserAddresses(user?.user?.id);
   const selectedPickupPointId = watch("pickupPointId");
+  const { updateUser } = useUpdateUser()
 
   const availableDeliveryTimes = deliveryTimes.filter(time => 
     weekDates[time.dayOfWeek] !== undefined
@@ -83,6 +85,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       ...data,
       deliveryDate: data.deliveryDate,
     });
+    updateUser({ phone_number: data.phone })
   };
 
   const handleOpenAddAdressModal = () => {
