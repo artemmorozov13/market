@@ -80,6 +80,6 @@ ${productsList}
 
 <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
 
-По всем вопросам обращаться @leninskiyprospekt_fruit_express.
+По всем вопросам обращаться @Evamiir1.
     `.trim();
 };
