@@ -4,6 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
 import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
+import { LoginViaInitDataDto } from './dto/auth-via-telegram-widget.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -15,15 +16,15 @@ export class AuthController {
   async authWithPassword(@Request() req) {
     return this.authService.authAdminUser(req.user.id)
   }
-
-  @Post('login/telegram')
-  async loginWebViaTelegram(@Body() initData: TelegramAuthData) {
-    return this.authService.loginWithTelegramWidget(initData)
+  
+  @Post('login-telegram')
+  async loginWebViaTelegram(@Body() body: LoginViaInitDataDto) {
+    return this.authService.loginWithTelegramWidget(body.initData)
   }
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refreshAccessToken(@Req() req) {
-    return this.authService.refreshAccessToken(req.user.id)
+    return this.authService.refreshAccessToken(req.user.sub)
   }
 }

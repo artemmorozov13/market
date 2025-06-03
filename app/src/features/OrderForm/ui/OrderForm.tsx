@@ -22,10 +22,8 @@ import { formatToRussianPhone } from "@/shared/helpers/formatRussianPhone";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CommentIcon from "@mui/icons-material/Comment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
-// import PlaceIcon from "@mui/icons-material/Place";
-import { LoginButton } from '@telegram-auth/react';
 import { API } from "@/shared/api/API";
-import clsx from "clsx"
+import clsx from "clsx";
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { AddressType } from "@/entities/Addresses";
@@ -34,7 +32,6 @@ import { calculateDistance } from "@/shared/helpers/calculateDistance";
 import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
-import { userStore } from "@/entities/User";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 
 interface OrderFormProps {
@@ -47,7 +44,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
   const [weekDates, setWeekDates] = useState<Record<string, { date: Date; isToday: boolean; formattedDate: string }>>({});
   const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
-  const [initData, setInitData] = useState<string>("")
 
   const {
     control,
@@ -67,8 +63,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
-  const { role } = userStore
-  const { user } = useUser({ initData })
+  const { user } = useUser();
   const { addresses, options } = useUserAddresses(user?.user?.id);
   const selectedPickupPointId = watch("pickupPointId");
 
@@ -149,10 +144,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     }
   };
 
-  const handleTelegramAuth = (data: any) => {
-    setInitData(JSON.stringify(data))
-  }
-
   useEffect(() => {
     const fetchPickupPoints = async () => {
       try {
@@ -201,29 +192,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   }, [selectedPickupPointId, pickupPoints, setValue]);
 
   const isExpiredProduct = !!basketStore.basketList.find(basketItem => basketItem.product.is_expired)
-
-  if (role === "notAuthed") {
-    return (
-      <Box>
-        <Typography variant="h5" className={styles.title}>
-          Требуется авторизация
-        </Typography>
-        <Typography variant="body1" className={styles.description}>
-          Для создания заказа требуется авторизация
-        </Typography>
-        <LoginButton
-            botUsername={'fricti_test_bot'}
-            authCallbackUrl={'https://fruvost.ru/app'}
-            buttonSize="large"
-            cornerRadius={5}
-            showAvatar={true}
-            lang="ru"
-            onAuthCallback={handleTelegramAuth}
-            requestAccess={'write'}
-        />
-      </Box>
-    )
-  }
 
   if (loading) {
     return (

@@ -19,6 +19,7 @@ export interface StoreOwnerUserType {
 export interface UserLoginResponse {
     user: StoreOwnerUserType
     token: string
+    refreshToken: string
 }
 
 export interface CustomerUserType {

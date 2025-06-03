@@ -1,5 +1,3 @@
-"use client"
-
 import { FC } from 'react';
 import styles from './OrderPage.module.scss';
 import { Layout } from '@/widgets/Layout';

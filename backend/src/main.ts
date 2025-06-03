@@ -28,6 +28,9 @@ async function bootstrap() {
   app.useStaticAssets(staticPath, {
     prefix: '/static/',
   });
+
+  console.log(`Server started on port: ${process.env.PORT}`)
+
   await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 bootstrap();

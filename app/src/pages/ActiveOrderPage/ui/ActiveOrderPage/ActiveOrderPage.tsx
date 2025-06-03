@@ -38,7 +38,7 @@ export const ActiveOrderPage: FC = () => {
     dayBeforeDelivery.setHours(23, 0, 0, 0);
     
     return now < dayBeforeDelivery;
-};
+  };
 
   const renderContent = () => {
     if (role !== 'customer') {

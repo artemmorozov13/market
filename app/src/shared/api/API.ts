@@ -1,6 +1,7 @@
 import axios from "axios"
 import Cookies from "js-cookie"
 import { ACCESS_TOKEN } from "../consts/applicationConsts"
+import { requestTokenMidleware } from "../middlware/requestRefreshTokenMiddleware";
 
 export const API = axios.create({
     baseURL: process.env.VITE_BACKEND_HOST,
@@ -9,10 +10,4 @@ export const API = axios.create({
     }
 })
 
-API.interceptors.request.use((config) => {
-    const token = Cookies.get(ACCESS_TOKEN);
-    if (token) {
-      config.headers.authorization = `Bearer ${token}`;
-    }
-    return config;
-});
+API.interceptors.request.use(requestTokenMidleware);
