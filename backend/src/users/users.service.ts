@@ -85,7 +85,7 @@ export class UsersService {
       }
 
       Object.assign(user, updateUser);
-      await this.usersRepository.save(user);
+      await this.usersRepository.update(user.id, user);
       
       return user
     } catch (error) {

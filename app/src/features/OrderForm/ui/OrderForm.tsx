@@ -307,7 +307,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                           const selectedTime = deliveryTimes.find(time => time.id === selected);
                           if (!selectedTime) return null;
                           const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
-                          return `${date}, ${selectedTime.startTime} - ${selectedTime.endTime}`;
+                          return `${date}, ${selectedTime.startTime?.substring(0,5)} - ${selectedTime.endTime?.substring(0,5)}`;
                         }}
                       >
                         {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
