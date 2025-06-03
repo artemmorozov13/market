@@ -7,6 +7,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import clsx from "clsx"
 import { userStore } from "@/entities/User"
 import { LoginButton } from '@telegram-auth/react';
+import WebApp from "@twa-dev/sdk";
+import { InstallButton } from "@/shared/ui/InstallButton";
 
 interface AuthProviderProps {
   children: ReactNode
@@ -53,6 +55,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
             />
           </Box>
         </Box>
+        {!WebApp.initData && <InstallButton/>}
       </Box>
     )
   }

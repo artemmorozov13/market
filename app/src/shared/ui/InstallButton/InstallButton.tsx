@@ -1,16 +1,25 @@
 import { useState, useEffect, FC } from 'react';
-import styles from "./InstallButton.module.scss"
+import { 
+  Button,
+  Paper,
+  Typography,
+  IconButton,
+  Modal
+} from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import styles from "./InstallButton.module.scss";
 
 export const InstallButton: FC = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
-      console.log(e)
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
+      setIsOpen(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -22,22 +31,59 @@ export const InstallButton: FC = () => {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
-    //@ts-ignore
     deferredPrompt.prompt();
-    //@ts-ignore
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`User response: ${outcome}`);
     setDeferredPrompt(null);
     setIsInstallable(false);
+    setIsOpen(false);
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  if (!isInstallable) return null;
+
   return (
-    <div>
-      {isInstallable && (
-        <button onClick={handleInstallClick} className={styles.root}>
-          Установить приложение
-        </button>
-      )}
-    </div>
+    <Modal
+      open={isOpen}
+      onClose={handleClose}
+      className={styles.modal}
+    >
+      <Paper className={styles.paper}>
+        <div className={styles.header}>
+          <IconButton onClick={handleClose}>
+            <CloseIcon />
+          </IconButton>
+        </div>
+        
+        <div className={styles.content}>
+          <Typography variant="h6" gutterBottom>
+            Установить приложение
+          </Typography>
+          <Typography variant="body1">
+            Для более удобного использования установите наше приложение
+          </Typography>
+        </div>
+        
+        <div className={styles.actions}>
+          <Button 
+            variant="outlined" 
+            onClick={handleClose}
+            fullWidth
+          >
+            Позже
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleInstallClick}
+            fullWidth
+          >
+            Установить
+          </Button>
+        </div>
+      </Paper>
+    </Modal>
   );
-}
+};
