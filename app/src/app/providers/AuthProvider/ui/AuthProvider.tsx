@@ -1,5 +1,4 @@
-import { FC, ReactNode, useState } from "react"
-import { useUser } from "../api/fetchUserData"
+import { FC, ReactNode, useState, useEffect } from "react"
 import { CircularProgress, Box, Typography } from "@mui/material"
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import styles from "./AuthProvider.module.scss"
@@ -9,6 +8,7 @@ import { userStore } from "@/entities/User"
 import { LoginButton } from '@telegram-auth/react';
 import WebApp from "@twa-dev/sdk";
 import { InstallButton } from "@/shared/ui/InstallButton";
+import { useUser } from "../api/fetchUserData";
 
 interface AuthProviderProps {
   children: ReactNode
@@ -18,6 +18,24 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [initData, setInitData] = useState<string>("")
   const user = useUser({ initData })
   const { role } = userStore
+
+  useEffect(() => {
+    // Проверяем URL при загрузке компонента
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.toString()) {
+      // Если есть параметры в URL, преобразуем их в объект
+      const data: Record<string, string> = {};
+      urlParams.forEach((value, key) => {
+        data[key] = value;
+      });
+      
+      // Устанавливаем initData как строку JSON
+      setInitData(JSON.stringify(data));
+      
+      // Очищаем URL от параметров (опционально)
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleTelegramAuth = (data: any) => {
     setInitData(JSON.stringify(data))
