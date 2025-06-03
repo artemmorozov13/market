@@ -1,7 +1,7 @@
-import { IsString } from "class-validator";
+import { IsObject } from "class-validator";
 import { TelegramAuthData } from "src/telegram/types/telegram-user-types";
 
 export class LoginViaInitDataDto {
-    @IsString()
+    @IsObject()
     initData: TelegramAuthData
 }
