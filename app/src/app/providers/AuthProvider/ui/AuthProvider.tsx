@@ -5,7 +5,7 @@ import styles from "./AuthProvider.module.scss"
 import 'react-toastify/dist/ReactToastify.css'
 import clsx from "clsx"
 import { userStore } from "@/entities/User"
-import { LoginButton } from '@telegram-auth/react';
+import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import WebApp from "@twa-dev/sdk";
 import { InstallButton } from "@/shared/ui/InstallButton";
 import { useUser } from "../api/fetchUserData";
@@ -15,26 +15,39 @@ interface AuthProviderProps {
 }
 
 const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
-  const [initData, setInitData] = useState<string>("")
+  const [initData, setInitData] = useState<TelegramAuthData | null>(null)
   const user = useUser({ initData })
   const { role } = userStore
 
   useEffect(() => {
-    // Проверяем URL при загрузке компонента
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.toString()) {
-      // Если есть параметры в URL, используем их как есть (строку query parameters)
-      setInitData(urlParams.toString());
+      const data = {
+        id: urlParams.get('id'),
+        first_name: urlParams.get('first_name'),
+        last_name: urlParams.get('last_name'),
+        username: urlParams.get('username'),
+        photo_url: urlParams.get('photo_url'),
+        auth_date: urlParams.get('auth_date'),
+        hash: urlParams.get('hash')
+      } as any;
       
-      // Очищаем URL от параметров (опционально)
+      setInitData(data);      
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
   const handleTelegramAuth = (data: any) => {
-    // Преобразуем данные в строку URL query parameters
-    const initDataString = new URLSearchParams(data).toString();
-    setInitData(initDataString);
+    const authData: TelegramAuthData = {
+      id: data.id.toString(),
+      first_name: data.first_name,
+      last_name: data.last_name,
+      username: data.username,
+      photo_url: data.photo_url,
+      auth_date: data.auth_date.toString(),
+      hash: data.hash
+    };
+    setInitData(authData);
   }
 
   if (user.isLoading) {
