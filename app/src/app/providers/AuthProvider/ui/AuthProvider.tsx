@@ -23,14 +23,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     // Проверяем URL при загрузке компонента
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.toString()) {
-      // Если есть параметры в URL, преобразуем их в объект
-      const data: Record<string, string> = {};
-      urlParams.forEach((value, key) => {
-        data[key] = value;
-      });
-      
-      // Устанавливаем initData как строку JSON
-      setInitData(JSON.stringify(data));
+      // Если есть параметры в URL, используем их как есть (строку query parameters)
+      setInitData(urlParams.toString());
       
       // Очищаем URL от параметров (опционально)
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -38,7 +32,9 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const handleTelegramAuth = (data: any) => {
-    setInitData(JSON.stringify(data))
+    // Преобразуем данные в строку URL query parameters
+    const initDataString = new URLSearchParams(data).toString();
+    setInitData(initDataString);
   }
 
   if (user.isLoading) {
