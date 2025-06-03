@@ -4,11 +4,12 @@ import { AuthViaTelegramResponse } from "@/entities/User/types/userTypes"
 import { API } from "@/shared/api/API"
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/shared/consts/applicationConsts"
 import { useQuery } from "@tanstack/react-query"
+import { TelegramAuthData } from "@telegram-auth/react"
 import WebApp from "@twa-dev/sdk"
 import Cookies from "js-cookie"
 
 interface FetchUserDataOptions {
-    initData: string
+    initData: TelegramAuthData | null
 }
 
 export const fetchUserData = async (options?: FetchUserDataOptions) => {

@@ -97,22 +97,15 @@ export class AuthService {
       }
     }
 
-    async loginWithTelegramWidget(initData: string) {
-      const isValid = await TelegramUtils.validateInitData(initData);
-      if (!isValid) {
-        throw new UnauthorizedException('Invalid Telegram data');
-      }
-
+    async loginWithTelegramWidget(initData: TelegramAuthData) {
       try {
-        const telegramData = TelegramUtils.parseInitData(initData)
-
-        let user = await this.userService.getUserByTelegramId(telegramData.id);
+        let user = await this.userService.getUserByTelegramId(initData.id);
 
         if (!user) {
           user = await this.userService.createUser({
-            telegram_id: telegramData.id,
-            name: telegramData.first_name,
-            telegram_username: telegramData.username,
+            telegram_id: initData.id,
+            name: initData.first_name,
+            telegram_username: initData.username,
             role: Roles.User
           });
         }
