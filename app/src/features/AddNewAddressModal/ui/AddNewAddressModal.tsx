@@ -92,7 +92,8 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
   }, [inputValue]);
 
   const { user } = useUser()
-  const { refetch } = useUserAddresses(user?.user.id)
+  console.log(user)
+  const { refetch } = useUserAddresses(user?.user?.id)
   const { suggestions, isLoading } = useAddressSuggestions(debouncedQuery);
   const { saveAddress, isSaving } = useSaveAddress();
   

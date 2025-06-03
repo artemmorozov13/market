@@ -56,12 +56,15 @@ export class TelegramUtils {
   }
 
   static parseInitData(initData: string) {
-    const urlParams = new URLSearchParams(initData);
-    const userStr = urlParams.get('user');
-    
-    if (!userStr) throw new Error('User data not found in initData');
-
+    console.log('Received initData:', initData); // Добавьте это
     try {
+      const urlParams = new URLSearchParams(initData);
+      console.log('URLSearchParams entries:', [...urlParams.entries()]); // И это
+
+      const userStr = urlParams.get('user');
+      
+      if (!userStr) throw new Error('User data not found in initData');
+
       // Декодируем `user` (он приходит в URL-encoded формате)
       const userData = JSON.parse(decodeURIComponent(userStr));
       
@@ -75,7 +78,7 @@ export class TelegramUtils {
         username: userData.username,
       };
     } catch (error) {
-      throw new Error(`Failed to parse user data: ${error instanceof Error ? error.message : String(error)}`);
+      throw error
     }
   }
 }

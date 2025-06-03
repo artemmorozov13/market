@@ -1,6 +1,6 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../consts/consts";
+import { ACCESS_TOKEN, ACCESS_TOKEN_EXPIRE, REFRESH_TOKEN } from "../consts/consts";
 
 
 let isRefreshing = false;
@@ -23,22 +23,23 @@ export const requestTokenMiddleware: any = async (
     return config;
   }
 
-  const body = {
-    refreshToken: Cookies.get(REFRESH_TOKEN)
-  };
+  const refreshToken = Cookies.get(REFRESH_TOKEN)
 
   if (!accessToken) {
     isRefreshing = true;
 
     const response = await axios.post(
-      `http://localhost:3000/users/refresh`,
-      body,
+      `/api/auth/refresh`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`
+        }
+      }
     );
-    const access = response.data.accessToken;
-    const refresh = response.data.refreshToken;
+    const access = response.data.token;
 
-    setAccessToken(access);
-    setRefreshToken(refresh)
+    Cookies.set(ACCESS_TOKEN, access, { expires: ACCESS_TOKEN_EXPIRE })
 
     if (timedoutRequestsQueue.length > 0) {
       for (let i = 0; i < timedoutRequestsQueue.length; i++) {
@@ -55,20 +56,4 @@ export const requestTokenMiddleware: any = async (
   config.headers["Authorization"] = `Bearer ${token}`;
 
   return config;
-};
-
-const setAccessToken = (token: string) => {
-    const options: any = {
-      expires: 1234,
-      secure: true,
-    };
-    Cookies.set(ACCESS_TOKEN, token, options);
-};
-
-const setRefreshToken = (token: string) => {
-  const options: any = {
-    expires: 1234,
-    secure: true,
-  };
-  Cookies.set(REFRESH_TOKEN, token, options);
 };

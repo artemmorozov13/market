@@ -97,26 +97,37 @@ export class AuthService {
       }
     }
 
-    async loginWithTelegramWidget(initData: TelegramAuthData) {
-      const isValid = await TelegramUtils.validateInitData(JSON.stringify(initData));
+    async loginWithTelegramWidget(initData: string) {
+      const isValid = await TelegramUtils.validateInitData(initData);
       if (!isValid) {
         throw new UnauthorizedException('Invalid Telegram data');
       }
 
-      let user = await this.userService.getUserByTelegramId(initData.id);
+      try {
+        const telegramData = TelegramUtils.parseInitData(initData)
 
-      if (!user) {
-        user = await this.userService.createUser({
-          telegram_id: initData.id,
-          name: initData.first_name,
-          telegram_username: initData.username,
-          role: Roles.User
-        });
+        let user = await this.userService.getUserByTelegramId(telegramData.id);
+
+        if (!user) {
+          user = await this.userService.createUser({
+            telegram_id: telegramData.id,
+            name: telegramData.first_name,
+            telegram_username: telegramData.username,
+            role: Roles.User
+          });
+        }
+
+        const token = await this.generateToken(user)
+        const refreshToken = await this.generateRefreshToken(user);
+
+        return {
+          user,
+          token,
+          refreshToken
+        };
+      } catch (error) {
+        throw error
       }
-
-      const token = await this.generateToken(user)
-
-      return { user, token };
     }
 
     async refreshAccessToken(userId: number) {

@@ -1,6 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import { ACCESS_TOKEN } from "../lib/consts/consts";
+import { requestTokenMiddleware } from "@shared/lib/middlewares/requestAccessTokenMiddleWare";
 
 const accessToken = Cookies.get(ACCESS_TOKEN)
 
@@ -11,6 +12,6 @@ const API = axios.create({
     }
 })
 
-// API.interceptors.request.use(requestTokenMiddleware)
+API.interceptors.request.use(requestTokenMiddleware)
 
 export { API }

@@ -20,7 +20,6 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt'
     }
 
     validate(payload: AuthJwtPayload) {
-        console.log(payload)
         return this.authService.validateJwtUser(payload)
     }
 }

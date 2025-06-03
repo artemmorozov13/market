@@ -4,7 +4,7 @@ import Cookies from "js-cookie"
 import { routeConfig } from "@shared/lib/consts/routeConfig"
 import { UserLoginResponse, userStore } from "@entities/User"
 import { api } from "@shared/api/notAuthInstance"
-import { ACCESS_TOKEN, ACCESS_TOKEN_EXPIRE } from "@shared/lib/consts/consts"
+import { ACCESS_TOKEN, ACCESS_TOKEN_EXPIRE, REFRESH_TOKEN, REFRESH_TOKEN_EXPIRE } from "@shared/lib/consts/consts"
 
 export interface PostUserAuthOptions {
     body: AuthFormSchema
@@ -21,6 +21,7 @@ export const postUserAuth = async (options: PostUserAuthOptions) => {
 
         if (response.data) {
             Cookies.set(ACCESS_TOKEN, response.data.token, { expires: ACCESS_TOKEN_EXPIRE })
+            Cookies.set(REFRESH_TOKEN, response.data.refreshToken, { expires: REFRESH_TOKEN_EXPIRE })
             setUserData(response.data.user)
         }
 

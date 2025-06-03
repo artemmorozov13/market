@@ -3,7 +3,6 @@ import { Typography, Box, Divider, Button } from "@mui/material";
 import styles from "./OrderDetails.module.scss";
 import { Order } from "../../types/activeOrderTypes";
 import { useAddressById } from "@/entities/Addresses";
-import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
 import { ConfirmCancelOrder } from "../ConfirmCancelOrder/ConfirmCancelOrder";
 import { useCancelOrder } from "@/entities/Order/api/cancelOrder";
 import clsx from "clsx"
@@ -28,18 +27,16 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
   const isDeliveryAvailable = (order: Order): boolean => {
     if (!order.deliveryTime || !order.deliveryDate) return false;
     
-    const deliveryDayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-      .indexOf(order.deliveryTime.dayOfWeek);
-    const deliveryDay = deliveryDayIndex === 0 ? 7 : deliveryDayIndex + 1;
-    
-    const availableDates = getAvailableDeliveryDates([deliveryDay]);
-
+    const now = new Date();
     const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
     
-    const isDeleveryAvailable = availableDates.some(date => 
-      date.toISOString().split('T')[0] === deliveryDate.toISOString().split('T')[0]
-    )
-    return isDeleveryAvailable
+    if (deliveryDate <= now) return false;
+    
+    const dayBeforeDelivery = new Date(deliveryDate);
+    dayBeforeDelivery.setDate(deliveryDate.getDate() - 1);
+    dayBeforeDelivery.setHours(23, 0, 0, 0);
+    
+    return now < dayBeforeDelivery;
   };
 
   const isAvailable = isDeliveryAvailable(order)
