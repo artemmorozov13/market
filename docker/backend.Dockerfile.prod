@@ -5,19 +5,23 @@ WORKDIR /usr/src/app
 # 1. Установка Nest CLI
 RUN npm install -g @nestjs/cli
 
-# 2. Копируем только package.json сначала для кэширования
+# 2. Копируем package.json файлы для кэширования
+COPY shared/package*.json ./shared/
 COPY apps/backend/package*.json ./apps/backend/
-COPY shared/package.json ./shared/
 
-# 3. Устанавливаем зависимости
+# 3. Устанавливаем зависимости для shared модуля
+WORKDIR /usr/src/app/shared
+RUN npm install
+
+# 4. Устанавливаем зависимости для backend
 WORKDIR /usr/src/app/apps/backend
 RUN npm install
 
-# 4. Копируем ВСЕ файлы
+# 5. Копируем все остальные файлы
 WORKDIR /usr/src/app
 COPY . .
 
-# 5. Собираем проект
+# 6. Собираем проект
 WORKDIR /usr/src/app/apps/backend
 RUN npm run build
 
@@ -30,11 +34,11 @@ ENV NODE_ENV=production
 # 1. Копируем собранный проект
 COPY --from=builder /usr/src/app/apps/backend/dist ./dist
 
-# 2. Копируем только production зависимости
+# 2. Копируем production зависимости
 COPY --from=builder /usr/src/app/apps/backend/package*.json ./
 RUN npm install --production
 
-# 3. Копируем shared модули
+# 3. Копируем shared модуль (уже с установленными зависимостями)
 COPY --from=builder /usr/src/app/shared ./shared
 
 EXPOSE 9000
