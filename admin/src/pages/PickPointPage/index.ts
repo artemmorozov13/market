@@ -1,1 +1,0 @@
-export { PickPointPageLazy as PickPointPage } from "./ui/PickPointPage/PickPointPageLazy";

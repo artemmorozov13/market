@@ -1,1 +1,0 @@
-export { StatisticPageLazy as StatisticPage } from "./StatisticPageLazy";
