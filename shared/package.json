@@ -1,0 +1,17 @@
+{
+  "name": "@core/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.24"
+  }
+}

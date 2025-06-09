@@ -1,0 +1,60 @@
+.wrapper {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 24px;
+}
+
+.authCard {
+  max-width: 500px;
+  width: 100%;
+  padding: 40px 32px;
+  border-radius: 16px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.authIcon {
+  font-size: 64px !important;
+  margin-bottom: 24px;
+}
+
+.authTitle {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #212121;
+}
+
+.authDescription {
+  color: #616161;
+  margin-bottom: 32px;
+  max-width: 350px;
+}
+
+.authButtonContainer {
+  width: 100%;
+  max-width: 280px;
+}
+
+.telegramButtonWrapper {
+  button {
+    width: 100%;
+    transition: opacity 0.2s ease;
+    
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}

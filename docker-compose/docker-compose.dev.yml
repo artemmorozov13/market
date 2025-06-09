@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../nginx/nginx-dev.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend
+      - admin
+      - app
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres
+    env_file:
+      - ../.env.dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/backend.Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ../.env.dev
+    volumes:
+      - ../apps/backend:/app
+      - ../shared:/app/shared   
+      - /app/node_modules
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+
+  admin:
+    build:
+      context: ../
+      dockerfile: docker/admin.Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - ../.env.dev
+    volumes:
+      - ../apps/admin:/app
+      - /app/node_modules
+    ports:
+      - "3001:3001"
+
+  app:
+    build:
+      context: ../
+      dockerfile: docker/app.Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - ../.env.dev
+    volumes:
+      - ../apps/app:/app
+      - /app/node_modules
+    ports:
+      - "3002:3002"
+
+volumes:
+  postgres_data:

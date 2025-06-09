@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ../certificates:/etc/nginx/certificates
+    depends_on:
+      - backend
+      - admin
+      - app
+
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/backend.Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../.env
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ../
+      dockerfile: docker/admin.Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../.env
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ../
+      dockerfile: docker/app.Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../.env
+    restart: unless-stopped
