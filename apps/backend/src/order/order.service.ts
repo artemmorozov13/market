@@ -61,7 +61,7 @@ export class OrderService {
         skip: skip,
         take: limit,
         order: {
-            createdAt: "DESC"
+          updatedAt: "DESC"
         },
         where: whereOptions,
         relations: [
@@ -411,6 +411,9 @@ export class OrderService {
       const products = await this.productRepository.find({
           where: {
               is_expired: false
+          },
+          order: {
+            updatedAt: "DESC"
           }
       });
 

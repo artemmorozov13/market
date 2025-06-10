@@ -26,7 +26,7 @@ export class ProductService {
           take: limit,
           order: { 
               is_expired: "ASC",
-              createdAt: "DESC"
+              updatedAt: "DESC"
           },
           where: whereConditions
       });
