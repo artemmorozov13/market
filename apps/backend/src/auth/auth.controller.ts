@@ -1,10 +1,9 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
-import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
 import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
 import { LoginViaInitDataDto } from './dto/auth-via-telegram-widget.dto';
+import { AuthStoreUserDto } from './dto/auth-store-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -13,8 +12,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @Post("login")
-  async authWithPassword(@Request() req) {
-    return this.authService.authAdminUser(req.user.id)
+  async authWithPassword(@Body() body: AuthStoreUserDto) {
+    return this.authService.authAdminUser(body)
   }
   
   @Post('login-telegram')
@@ -25,6 +24,6 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refreshAccessToken(@Req() req) {
-    return this.authService.refreshAccessToken(req.user.sub)
+    return this.authService.refreshAccessToken(req.user.id)
   }
 }

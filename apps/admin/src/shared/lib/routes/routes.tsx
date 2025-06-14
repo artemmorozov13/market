@@ -11,6 +11,7 @@ import { OrderTablePage } from "@pages/OrderTablePage";
 import { PickPointPage } from "@pages/PickPointPage";
 import { StatisticPage } from "@pages/StatisticPage";
 import { TelegramBroadcastPage } from "@pages/TelegramBroadcastPage";
+import { ShopSettingsPage } from "@pages/ShopSettingsPage";
 
 export interface RouteType {
     roles: UserRoleType[],
@@ -34,6 +35,12 @@ export const routes: RouteType[] = [
         authOnly: true,
         element: <OrderTablePage/>,
         path: routeConfig["order-table"]
+    },
+    {
+        roles: [],
+        authOnly: true,
+        element: <ShopSettingsPage/>,
+        path: routeConfig["shop/settings"]
     },
     {
         roles: [],

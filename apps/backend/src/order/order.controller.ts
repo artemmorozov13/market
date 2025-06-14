@@ -21,8 +21,11 @@ export class OrderController {
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  getOrdersData(@Query() query: GetOrderQueryDto) {
-    return this.orderService.getOrdersListData(query)
+  getOrdersData(
+    @User() user: AuthJwtPayload,
+    @Query() query: GetOrderQueryDto
+  ) {
+    return this.orderService.getOrdersListData(user, query)
   }
 
   @Get('current')
@@ -61,7 +64,10 @@ export class OrderController {
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  updateStatus(@Body() updateStatusDto: UpdateOrderStatusDto) {
+  updateStatus(
+    @User() user: AuthJwtPayload,
+    @Body() updateStatusDto: UpdateOrderStatusDto
+  ) {
     return this.orderService.updateOrderStatus(updateStatusDto)
   }
 
@@ -69,7 +75,10 @@ export class OrderController {
   @AllowRoles(Roles.Admin, Roles.User)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  cancelOrderByUser(@Body() cancelUserOrderDto: CancelUserOrderDto, @User() user: AuthJwtPayload,) {
+  cancelOrderByUser(
+    @Body() cancelUserOrderDto: CancelUserOrderDto,
+    @User() user: AuthJwtPayload
+  ) {
     return this.orderService.cancelOrderByUser(cancelUserOrderDto, user)
   }
 
@@ -78,6 +87,7 @@ export class OrderController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   async exportExcelWithInnerTable(
+    @User() user: AuthJwtPayload,
     @Res() res: Response,
     @Query('pickupPointIds', new ParseArrayPipe({ 
       items: Number, 
@@ -86,7 +96,7 @@ export class OrderController {
     })) pickupPointIds?: number[]
   ) {
     try {
-      const buffer = await this.orderService.exportExcelWithInnerTable(pickupPointIds);
+      const buffer = await this.orderService.exportExcelWithInnerTable(user, pickupPointIds);
       
       const now = new Date();
       const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
@@ -113,6 +123,7 @@ export class OrderController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   async exportExcelFullWidthTable(
+    @User() user: AuthJwtPayload,
     @Res() res: Response,
     @Query('pickupPointIds', new ParseArrayPipe({ 
       items: Number, 
@@ -121,7 +132,7 @@ export class OrderController {
     })) pickupPointIds?: number[]
   ) {
     try {
-      const buffer = await this.orderService.exportToWideFormatExcel(pickupPointIds);
+      const buffer = await this.orderService.exportToWideFormatExcel(user, pickupPointIds);
       
       const now = new Date();
       const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;

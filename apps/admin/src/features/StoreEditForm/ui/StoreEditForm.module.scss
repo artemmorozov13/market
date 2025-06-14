@@ -1,0 +1,88 @@
+.formContainer {
+  max-width: 1200px;
+  width: 100%;
+
+  & > form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section {
+  border: 1px solid #eee;
+  padding: 24px;
+  border-radius: 8px;
+  background-color: #fff;
+
+  &Title {
+    margin-bottom: 16px !important;
+    font-weight: 600 !important;
+    color: #333;
+  }
+}
+
+.deliveryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.saveButton {
+  padding: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.copyButton {
+  transition: all 0.3s ease;
+  margin-top: 16px;
+  background-color: #1976d2 !important;
+  color: white !important;
+  text-transform: none !important;
+  gap: 8px;
+
+  &:hover {
+    background-color: #1565c0 !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.copied {
+    background-color: #4caf50 !important;
+    animation: pulse 0.5s ease;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

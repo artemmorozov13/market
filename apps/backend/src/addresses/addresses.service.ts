@@ -18,7 +18,7 @@ export class AddressesService {
 
   async create(user: AuthJwtPayload, createAddressDto: CreateAddressDto) {
     const userData = await this.usersRepository.findOne({ 
-      where: { id: user.sub },
+      where: { id: user.id },
       relations: ['addresses'] // Подгружаем связанные адреса пользователя
     });
   
@@ -30,7 +30,7 @@ export class AddressesService {
     const existingAddress = await this.addressRepository.findOne({
       where: {
         fias_id: createAddressDto.addressData.fias_id,
-        user: { id: user.sub }
+        user: { id: user.id }
       }
     });
   
@@ -56,7 +56,7 @@ export class AddressesService {
 
   async findAllByUser(user: AuthJwtPayload): Promise<AddressesEntity[]> {
     return this.addressRepository.find({
-      where: { user: { id: user.sub } },
+      where: { user: { id: user.id } },
       order: { createdAt: 'DESC' },
     });
   }
@@ -66,7 +66,7 @@ export class AddressesService {
       where: {
         id: addressId,
         user: {
-          id: userPayload.sub
+          id: userPayload.id
         }
       },
     });

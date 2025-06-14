@@ -4,6 +4,8 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
+    ManyToOne,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -15,6 +17,7 @@ import { SelectedProductEntity } from "./selected-product.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
 import { AddressesEntity } from "./addresses.entity";
 import { Roles } from "../enums/role-enum";
+import { StoreEntity } from "./store.entity";
 
 @Entity({ name: "users" })
 export class UsersEntity {
@@ -63,6 +66,10 @@ export class UsersEntity {
 
     @OneToMany(() => OrderEntity, (order) => order.user)
     orders: OrderEntity[]
+
+    @ManyToOne(() => StoreEntity, store => store.users)
+    @JoinColumn({ name: 'store_id' }) 
+    store: StoreEntity;
 
     @OneToMany(() => AddressesEntity, (address) => address.user)
     addresses: AddressesEntity[]

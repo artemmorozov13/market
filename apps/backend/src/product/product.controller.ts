@@ -7,14 +7,19 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { Roles } from '@core/enums/role-enum';
 import { AllowRoles } from 'src/auth/decorators/roles.decorator';
+import { User } from '@app/decorators/user.decorator';
+import { AuthJwtPayload } from '@core/types/user-type';
 
 @Controller('product')
 export class ProductController {
     constructor(private readonly productService: ProductService) {}
 
     @Get()
-    getProductsList(@Query() options: PaginationDto) {
-        return this.productService.getProductsList(options);
+    @AllowRoles(Roles.Admin, Roles.SuperAdmin, Roles.User)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
+    getProductsList(@User() user: AuthJwtPayload, @Query() options: PaginationDto) {
+        return this.productService.getProductsList(user, options);
     }
 
     @Get(':id')
@@ -26,8 +31,8 @@ export class ProductController {
     @AllowRoles(Roles.Admin)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    createProduct(@Body() product: CreateProductDto) {
-        return this.productService.createProduct(product);
+    createProduct(@User() user: AuthJwtPayload, @Body() product: CreateProductDto) {
+        return this.productService.createProduct(user, product);
     }
 
     @Post('revover/:id')

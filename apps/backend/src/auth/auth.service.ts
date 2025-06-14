@@ -1,5 +1,4 @@
 import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import * as bcrypt from "bcryptjs"
 import { JwtService } from '@nestjs/jwt';
 import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
@@ -8,6 +7,10 @@ import { ConfigType } from '@nestjs/config';
 import { UsersEntity } from '@core/entities/users.entity';
 import { Roles } from '@core/enums/role-enum';
 import { AuthJwtPayload } from '@core/types/user-type';
+import { AuthStoreUserDto } from './dto/auth-store-user.dto';
+import { StoreUserService } from '@app/store-user/store-user.service';
+import { StoreUserEntity } from '@core/entities/store-user.entity';
+import { UsersService } from '@app/users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -15,76 +18,65 @@ export class AuthService {
         @Inject(forwardRef(() => UsersService))
         private userService: UsersService,
         private jwtService: JwtService,
+        private storeUserService: StoreUserService,
         @Inject(refreshJwtConfig.KEY)
         private refreshTokenConfig:ConfigType<typeof refreshJwtConfig>
     ) {}
 
     async validateUser(email: string, password: string) {
-        const user = await this.userService.findUserByEmail(email)
+        const user = await this.storeUserService.getStoreUserByEmail(email)
 
         if (!user) {
-            throw new UnauthorizedException("пользователь не найден" + email)
-          }
-      
-          const isPasswordsComapre = await bcrypt.compare(password, user.password)
-      
-          if (!isPasswordsComapre) {
-            throw new UnauthorizedException("Неверный пароль")
-          }
-          
-          return {
-            id: user.id,
-            telegram_id: user.telegram_id,
-            telegram_username: user.telegram_username,
-            name: user.name,
-            phone_number: user.phone_number,
-            is_phone_confirmed: user.is_phone_confirmed,
-            email: user.email,
-            age: user.age,
-          }
+          throw new UnauthorizedException("пользователь не найден" + email)
+        }
+    
+        const isPasswordsComapre = await bcrypt.compare(password, user.password)
+    
+        if (!isPasswordsComapre) {
+          throw new UnauthorizedException("Неверный пароль")
+        }
+        
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          store: user.store
+        }
     }
 
-    async generateToken(user: UsersEntity) {
+    async generateToken(user: UsersEntity | StoreUserEntity) {
       const currentUser: AuthJwtPayload = {
-        sub: user.id,
+        id: user.id,
         role: user.role
       }
       return this.jwtService.sign(currentUser)
     }
 
-    async generateRefreshToken(user: UsersEntity) {
+    async generateRefreshToken(user: UsersEntity | StoreUserEntity) {
       const currentUser: AuthJwtPayload = {
-        sub: user.id,
+        id: user.id,
         role: user.role
       }
       return this.jwtService.sign(currentUser, this.refreshTokenConfig)
     }
 
     async validateJwtUser(payload: AuthJwtPayload) {
-      const user = await this.userService.getUserById(payload.sub)
+      const user = await this.userService.getUserById(payload.id)
 
       if (!user) {
         throw new UnauthorizedException("User not found")
       }
 
       const currentUser: AuthJwtPayload = {
-        sub: user.id,
+        id: user.id,
         role: user.role
       }
 
       return currentUser
     }
 
-    async authAdminUser(userId: number) {
-      const user = await this.userService.getUserById(userId)
-
-      if (!user) {
-        throw new UnauthorizedException("Пользователь не найден")
-      }
-
-      if (user.role !== Roles.Admin) {
-        throw new UnauthorizedException("У пользователя недостаточно прав для доступа")
-      }
+    async authAdminUser(userData: AuthStoreUserDto) {
+      const user = await this.storeUserService.getStoreUserByEmail(userData.email);
 
       const token = await this.generateToken(user);
       const refreshToken = await this.generateRefreshToken(user);

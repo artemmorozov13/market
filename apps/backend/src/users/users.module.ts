@@ -6,6 +6,7 @@ import { BasketModule } from '../basket/basket.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersEntity } from '@core/entities/users.entity';
 import { OrderEntity } from '@core/entities/order.entity';
+import { StoreModule } from '@app/store/store.module';
 
 @Module({
   imports: [
@@ -13,8 +14,9 @@ import { OrderEntity } from '@core/entities/order.entity';
       UsersEntity,
       OrderEntity
     ]),
-    BasketModule,
     forwardRef(() => AuthModule),
+    forwardRef(() => BasketModule),
+    forwardRef(() => StoreModule)
   ],
   providers: [UsersService],
   controllers: [UsersController],

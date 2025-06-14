@@ -5,6 +5,8 @@ import { CreatePickupPointDto } from './dto/create-pickup-point.dto';
 import { UpdatePickupPointDto } from './dto/update-pickup-point.dto';
 import { PickupPoint } from '@core/entities/pickup-point.entity';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
+import { AuthJwtPayload } from '@core/types/user-type';
+import { PickupPointStoreResolver } from './lib/pickup-point-store-resolver';
 
 @Injectable()
 export class PickupPointService {
@@ -13,9 +15,12 @@ export class PickupPointService {
     private pickupPointRepository: Repository<PickupPoint>,
     @InjectRepository(DeliveryTime)
     private deliveryTimeRepository: Repository<DeliveryTime>,
+    private readonly pickupPointResolver: PickupPointStoreResolver
   ) {}
 
-  async create(createDto: CreatePickupPointDto): Promise<PickupPoint> {
+  async create(userJwt: AuthJwtPayload, createDto: CreatePickupPointDto): Promise<PickupPoint> {
+    const store = await this.pickupPointResolver.resolveStore(userJwt)
+
     const pickupPoint = this.pickupPointRepository.create({
       name: createDto.name,
       radius: createDto.radius,
@@ -25,6 +30,7 @@ export class PickupPointService {
       geo_lon: createDto.address?.geo_lon,
       fullAddress: createDto.address.fullAddress,
       status: 'active',
+      store: store,
     });
 
     const savedPoint = await this.pickupPointRepository.save(pickupPoint);
@@ -42,21 +48,28 @@ export class PickupPointService {
     return savedPoint;
   }
 
-  async findAll(): Promise<PickupPoint[]> {
+  async findAll(userJwt: AuthJwtPayload): Promise<PickupPoint[]> {
+    const store = await this.pickupPointResolver.resolveStore(userJwt);
+
     return this.pickupPointRepository.find({
       order: {
         createdAt: "ASC"
       },
       where: {
-        status: "active"
+        status: "active",
+        store: store
       },
       relations: ['deliveryTimes']
     });
   }
 
-  async findOne(id: number): Promise<PickupPoint> {
+  async findOne(userJwt: AuthJwtPayload, id: number): Promise<PickupPoint> {
+    const store = await this.pickupPointResolver.resolveStore(userJwt);
     const point = await this.pickupPointRepository.findOne({
-      where: { id },
+      where: {
+        id,
+        store
+      },
       relations: ['deliveryTimes'],
     });
 
@@ -67,9 +80,8 @@ export class PickupPointService {
     return point;
   }
 
-  async update(id: number, updateDto: UpdatePickupPointDto): Promise<PickupPoint> {
-    const point = await this.findOne(id);
-
+  async update(userJwt: AuthJwtPayload, id: number, updateDto: UpdatePickupPointDto): Promise<PickupPoint> {
+    const point = await this.findOne(userJwt, id);
 
     if (updateDto.name) point.name = updateDto.name;
     if (updateDto.radius) point.radius = updateDto.radius;
@@ -100,9 +112,13 @@ export class PickupPointService {
     return this.pickupPointRepository.save(point);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(userJwt: AuthJwtPayload, id: number): Promise<void> {
+    const store = await this.pickupPointResolver.resolveStore(userJwt);
     const point = await this.pickupPointRepository.findOne({
-      where: { id },
+      where: {
+        id,
+        store
+      },
       relations: ['deliveryTimes']
     });
     

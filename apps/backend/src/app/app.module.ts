@@ -16,6 +16,8 @@ import { TelegramModule } from 'src/telegram/telegram.module';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'src/filters/global-exception.filter';
 import { StatisticModule } from 'src/statistic/statistic.module';
+import { StoreUserModule } from '@app/store-user/store-user.module';
+import { StoreModule } from '@app/store/store.module';
 
 @Module({
   imports: [
@@ -28,7 +30,6 @@ import { StatisticModule } from 'src/statistic/statistic.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         ...configService.get('database'),
-        migrations: []
       }),
       inject: [ConfigService]
     }),
@@ -41,7 +42,9 @@ import { StatisticModule } from 'src/statistic/statistic.module';
     AuthModule,
     PickupPointModule,
     DadataModule,
-    AddressesModule
+    AddressesModule,
+    StoreUserModule,
+    StoreModule
   ],
   controllers: [AppController],
   providers: [

@@ -6,7 +6,7 @@ export const routeConfig = {
     "product/create": "/admin/product/create",
     "courier": "/admin/courier",
     "courier/create": "/admin/courier/create",
-    "shop/edit": "/admin/shop/edit",
+    "shop/settings": "/admin/shop/settings",
     "profile": "/admin/profile",
     "orders": "/admin/orders",
     "pickup-points": "/admin/pickup-points",

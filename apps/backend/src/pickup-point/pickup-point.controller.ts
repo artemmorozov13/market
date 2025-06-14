@@ -7,6 +7,8 @@ import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '@core/enums/role-enum';
 import { PickupPoint } from '@core/entities/pickup-point.entity';
+import { User } from '@app/decorators/user.decorator';
+import { AuthJwtPayload } from '@core/types/user-type';
 
 @Controller('pickup-points')
 export class PickupPointController {
@@ -16,20 +18,26 @@ export class PickupPointController {
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  create(@Body() createDto: CreatePickupPointDto): Promise<PickupPoint> {
-    return this.pickupPointService.create(createDto);
+  create(
+    @User() user: AuthJwtPayload,
+    @Body() createDto: CreatePickupPointDto
+  ): Promise<PickupPoint> {
+    return this.pickupPointService.create(user, createDto);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll(): Promise<PickupPoint[]> {
-    return this.pickupPointService.findAll();
+  findAll(@User() user: AuthJwtPayload): Promise<PickupPoint[]> {
+    return this.pickupPointService.findAll(user);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string): Promise<PickupPoint> {
-    return this.pickupPointService.findOne(+id);
+  findOne(
+    @User() user: AuthJwtPayload,
+    @Param('id') id: string
+  ): Promise<PickupPoint> {
+    return this.pickupPointService.findOne(user, Number(id));
   }
   
   @Put(':id')
@@ -37,10 +45,11 @@ export class PickupPointController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   update(
+    @User() user: AuthJwtPayload,
     @Param('id') id: string,
     @Body() updateDto: UpdatePickupPointDto,
   ): Promise<PickupPoint> {
-    return this.pickupPointService.update(+id, updateDto);
+    return this.pickupPointService.update(user, Number(id), updateDto);
   }
 
   @Patch(':id')
@@ -48,17 +57,21 @@ export class PickupPointController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   partialUpdate(
+    @User() user: AuthJwtPayload,
     @Param('id') id: string,
     @Body() updateDto: UpdatePickupPointDto,
   ): Promise<PickupPoint> {
-    return this.pickupPointService.update(+id, updateDto);
+    return this.pickupPointService.update(user, Number(id), updateDto);
   }
 
   @Delete(':id')
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.pickupPointService.remove(+id);
+  remove(
+    @User() user: AuthJwtPayload,
+    @Param('id') id: string
+  ) {
+    return this.pickupPointService.remove(user, Number(id));
   }
 }

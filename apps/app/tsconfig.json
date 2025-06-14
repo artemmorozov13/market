@@ -14,7 +14,7 @@
       "@/shared/*": ["shared/*"],
       "@/pages/*": ["pages/*"],
       "@/widgets/*": ["widgets/*"],
-      "@core/*": ["../../shared/*"]
+      "@core/*": ["../../../shared/src/*"]
     },
     "allowJs": true,
     "skipLibCheck": true,
@@ -33,5 +33,6 @@
   "include": [
     "src",
     "src/shared/types/global.d.ts",
+    "../../../shared/**/*",
   ]
 }

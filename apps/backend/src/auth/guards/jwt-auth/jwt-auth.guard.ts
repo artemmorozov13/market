@@ -25,10 +25,12 @@ export class JwtAuthGuard implements CanActivate {
       }
 
       const user = this.jwtService.verify(token);
+
       request.user = user;
 
       return true;
-    } catch {
+    } catch(e) {
+      console.log(e)
       throw new UnauthorizedException('Доступ запрещен');
     }
   }

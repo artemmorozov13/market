@@ -22,6 +22,7 @@ import { OrderedProductsEntity } from '@core/entities/ordered-products.entity';
 import { PickupPoint } from '@core/entities/pickup-point.entity';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { OrderStatusEnum } from '@core/enums/order-status-enum';
+import { OrderStoreResolver } from './lib/order-store-resolver';
 
 @Injectable()
 export class OrderService {
@@ -41,10 +42,15 @@ export class OrderService {
     private readonly pickupPointRepository: Repository<PickupPoint>,
     @InjectRepository(DeliveryTime)
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
+    private readonly orderStoreResolver: OrderStoreResolver
   ) {}
 
-  async getOrdersListData({ limit = 10, skip, pickupPointId }: GetOrderQueryDto) {
-    const whereOptions: FindOptionsWhere<OrderEntity> = {};
+  async getOrdersListData(userJwt: AuthJwtPayload, options: GetOrderQueryDto) {
+    const store = await this.orderStoreResolver.resolveStore(userJwt);
+    const { limit = 10, skip, pickupPointId } = options;
+    const whereOptions: FindOptionsWhere<OrderEntity> = {
+      store
+    };
 
     // Обрабатываем как массив ID, даже если пришел один ID
     if (pickupPointId) {
@@ -85,7 +91,7 @@ export class OrderService {
 
   async getCurrentUserOrders(userPayload: AuthJwtPayload): Promise<OrderEntity[]> {
     const user = await this.usersRepository.findOne({
-      where: { id: userPayload.sub },
+      where: { id: userPayload.id },
     });
   
     if (!user) {
@@ -119,7 +125,7 @@ export class OrderService {
       where: {
         id: cancelUserOrderDto.orderId,
         user: {
-          id: userData.sub
+          id: userData.id
         },
         status: In([OrderStatusEnum.WaitForPay])
       },
@@ -165,9 +171,13 @@ export class OrderService {
     }
   }
   
-  async createOrder(createOrderDto: CreateOrderDto, userData: AuthJwtPayload) {
+  async createOrder(createOrderDto: CreateOrderDto, userJwt: AuthJwtPayload) {
+    const store = await this.orderStoreResolver.resolveStore(userJwt);
     const user = await this.usersRepository.findOne({
-      where: { id: userData.sub }
+      where: {
+        id: userJwt.id,
+        store
+      }
     });
 
     if (!user) {
@@ -177,7 +187,10 @@ export class OrderService {
     // Проверяем количество активных заказов пользователя
     const activeOrdersCount = await this.orderRepository.count({
       where: {
-        user: { id: user.id },
+        user: {
+          id: user.id
+        },
+        store,
         status: OrderStatusEnum.WaitForPay
       }
     });
@@ -189,7 +202,10 @@ export class OrderService {
     // Проверяем, есть ли уже заказ на выбранную дату
     const existingOrderOnSameDate = await this.orderRepository.findOne({
       where: {
-        user: { id: user.id },
+        user: {
+          id: user.id
+        },
+        store,
         deliveryDate: createOrderDto.deliveryDate,
         address: createOrderDto.address,
         status: OrderStatusEnum.WaitForPay
@@ -202,7 +218,10 @@ export class OrderService {
 
     const selectedProducts = await this.selectedProductsRepository.find({
       where: {
-        userTgchatId: user.telegram_id,
+        user: {
+          id: user.id
+        },
+        store,
         product: {
           is_expired: false
         }
@@ -215,7 +234,10 @@ export class OrderService {
     }
 
     const pickupPoint = await this.pickupPointRepository.findOne({
-      where: { id: createOrderDto.pickupPointId }
+      where: {
+        id: createOrderDto.pickupPointId,
+        store: store
+      }
     });
 
     if (!pickupPoint) {
@@ -224,7 +246,9 @@ export class OrderService {
 
     // Получаем объект DeliveryTime по ID
     const deliveryTime = await this.deliveryTimeRepository.findOne({
-      where: { id: createOrderDto.deliveryTimeId }
+      where: {
+        id: createOrderDto.deliveryTimeId
+      }
     });
 
     if (!deliveryTime) {
@@ -247,6 +271,7 @@ export class OrderService {
       pickupPoint: pickupPoint,
       deliveryTime: deliveryTime,
       user: user,
+      store: store
     });
 
     const savedOrder = await this.orderRepository.save(order);
@@ -277,10 +302,14 @@ export class OrderService {
 
   async updateOrder(
     updateOrderDto: UpdateOrderDto,
-    userPayload: AuthJwtPayload
+    userJwt: AuthJwtPayload
   ): Promise<OrderEntity> {
+    const store = await this.orderStoreResolver.resolveStore(userJwt);
     const user = await this.usersRepository.findOne({
-      where: { id: userPayload.sub }
+      where: {
+        id: userJwt.id,
+        store
+      }
     });
   
     if (!user) {
@@ -294,7 +323,8 @@ export class OrderService {
     const order = await this.orderRepository.findOne({
       where: {
         id: updateOrderDto.id,
-        user: { id: user.id }
+        user: { id: user.id },
+        store
       },
       relations: [
         'ordered_products',
@@ -315,6 +345,7 @@ export class OrderService {
     const availableProducts = await this.productRepository.find({
       where: {
         id: In(selectedProducts),
+        store
       }
     });
   
@@ -346,7 +377,7 @@ export class OrderService {
         telegram_id: user.telegram_id,
         product: normalizedProducts[product.productId],
         order: { id: order.id }, // Только ID, чтобы избежать циклической ссылки
-        user: { id: user.id }    // Только ID
+        user: { id: user.id },
       }));
   
     // Сохраняем товары
@@ -358,9 +389,11 @@ export class OrderService {
   
     const savedOrder = await this.orderRepository.save(order);
   
-    // Возвращаем заказ с очищенными циклическими ссылками
     const updatedOrder = await this.orderRepository.findOne({
-      where: { id: savedOrder.id },
+      where: {
+        id: savedOrder.id,
+        store
+      },
       relations: ['ordered_products', 'ordered_products.product', 'deliveryTime'],
       loadEagerRelations: false
     });
@@ -376,12 +409,13 @@ export class OrderService {
     return updatedOrder
   }
   
-  async exportExcelWithInnerTable(pickupPointIds?: number[]): Promise<Uint8Array> {
+  async exportExcelWithInnerTable(userJwt: AuthJwtPayload, pickupPointIds?: number[]): Promise<Uint8Array> {
+    const store = await this.orderStoreResolver.resolveStore(userJwt);
     const whereOptions: FindOptionsWhere<OrderEntity> = { 
-        status: OrderStatusEnum.WaitForPay
+        status: OrderStatusEnum.WaitForPay,
+        store
     };
 
-    // Добавляем фильтрацию по пунктам выдачи, если они переданы
     if (pickupPointIds && pickupPointIds.length > 0) {
         whereOptions.pickupPoint = In(pickupPointIds);
     }
@@ -398,9 +432,11 @@ export class OrderService {
     return exportToExcelWithInnerTable({ orders });
   }
 
-  async exportToWideFormatExcel(pickupPointIds?: number[]): Promise<Uint8Array> {
+  async exportToWideFormatExcel(userJwt: AuthJwtPayload, pickupPointIds?: number[]): Promise<Uint8Array> {
+      const store = await this.orderStoreResolver.resolveStore(userJwt);
       const whereOptions: FindOptionsWhere<OrderEntity> = { 
-          status: OrderStatusEnum.WaitForPay
+          status: OrderStatusEnum.WaitForPay,
+          store
       };
 
       // Добавляем фильтрацию по пунктам выдачи, если они переданы
@@ -410,7 +446,8 @@ export class OrderService {
 
       const products = await this.productRepository.find({
           where: {
-              is_expired: false
+              is_expired: false,
+              store
           },
           order: {
             updatedAt: "DESC"

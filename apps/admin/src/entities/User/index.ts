@@ -5,3 +5,4 @@ export type {
     UserLoginResponse,
     StoreOwnerUserType
 } from "./types/userTypes";
+export { useUser } from "./api/fetchUser";

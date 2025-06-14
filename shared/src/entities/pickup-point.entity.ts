@@ -5,8 +5,11 @@ import {
   OneToMany, 
   CreateDateColumn, 
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { DeliveryTime } from './delivery-time.entity';
+import { StoreEntity } from './store.entity';
 
 @Entity()
 export class PickupPoint {
@@ -52,4 +55,8 @@ export class PickupPoint {
     cascade: true,
   })
   deliveryTimes: DeliveryTime[];
+
+  @ManyToOne(() => StoreEntity, store => store.pickupPoints)
+  @JoinColumn({ name: 'store_id' })
+  store: StoreEntity
 }

@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn, JoinTable, OneToMany } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn, JoinTable, OneToMany, ManyToOne, JoinColumn } from "typeorm";
 import { SelectedProductEntity } from "./selected-product.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
+import { StoreEntity } from "./store.entity";
 
 @Entity({ name: "product" })
 export class ProductEntity {
@@ -43,4 +44,7 @@ export class ProductEntity {
   @OneToMany(() => OrderedProductsEntity, (orderedProducts) => orderedProducts.product)
   orderedProducts: OrderedProductsEntity[]
 
+  @ManyToOne(() => StoreEntity, store => store.products)
+  @JoinColumn({ name: 'store_id' })
+  store: StoreEntity
 }

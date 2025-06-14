@@ -2,7 +2,7 @@ import { basketStore } from "@/entities/Basket"
 import { userStore } from "@/entities/User"
 import { AuthViaTelegramResponse } from "@/entities/User/types/userTypes"
 import { API } from "@/shared/api/API"
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/shared/consts/applicationConsts"
+import { ACCESS_TOKEN, LOCALSTORAGE_STOREID_KEY, REFRESH_TOKEN } from "@/shared/consts/applicationConsts"
 import { useQuery } from "@tanstack/react-query"
 import { TelegramAuthData } from "@telegram-auth/react"
 import Cookies from "js-cookie"
@@ -17,8 +17,17 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
     const accessToken = Cookies.get(ACCESS_TOKEN);
     const refreshToken = Cookies.get(REFRESH_TOKEN)
 
-    if (window?.Telegram?.WebApp?.initData) {
-        const response = await API.post("/users/login", { initData: window?.Telegram?.WebApp?.initData })
+    if (window.Telegram?.WebApp.initData) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tgWebAppStartParam = urlParams.get("tgWebAppStartParam");
+        const storeId = tgWebAppStartParam?.split('_')[1];
+
+        console.log(tgWebAppStartParam, storeId)
+
+        const response = await API.post("/users/login", {
+            initData: window.Telegram?.WebApp.initData,
+            storeId: Number(storeId)
+        })
         const { setUserData, setUserRole } = userStore
         const { fetchBasketList } = basketStore
 
@@ -31,7 +40,11 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
     }
 
     if (options?.initData) {
-        const response = await API.post("/auth/login-telegram", { initData: options?.initData })
+        const storeId = localStorage.getItem(LOCALSTORAGE_STOREID_KEY)
+        const response = await API.post("/auth/login-telegram", {
+            initData: options?.initData,
+            storeId: storeId,
+        })
         const { setUserData, setUserRole } = userStore
         const { fetchBasketList } = basketStore
 

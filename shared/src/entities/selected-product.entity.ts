@@ -2,6 +2,7 @@ import { Entity, ManyToOne, PrimaryGeneratedColumn, Column } from "typeorm";
 import { UsersEntity } from "./users.entity";
 import { BasketEntity } from "./basket.entity";
 import { ProductEntity } from "./product.entity";
+import { StoreEntity } from "./store.entity";
 
 @Entity({ name: "selected-products" })
 export class SelectedProductEntity {
@@ -25,4 +26,7 @@ export class SelectedProductEntity {
 
   @ManyToOne(() => ProductEntity, (product) => product.selectedProducts)
   product: ProductEntity
+
+  @ManyToOne(() => StoreEntity, store => store.selectedProducts)
+  store: StoreEntity
 }

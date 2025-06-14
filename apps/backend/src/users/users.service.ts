@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BasketService } from 'src/basket/basket.service';
 import { Repository } from 'typeorm';
@@ -7,6 +7,8 @@ import { TelegramUtils } from 'src/utils/telegram.utils';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersEntity } from '@core/entities/users.entity';
 import { OrderEntity } from '@core/entities/order.entity';
+import { AuthJwtPayload } from '@core/types/user-type';
+import { StoreService } from '@app/store/store.service';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +19,8 @@ export class UsersService {
     private readonly orderRepository: Repository<OrderEntity>,
     private readonly basketService: BasketService,
     @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly storeService: StoreService
   ) {}
 
   async getUserById(userId: number) {
@@ -91,25 +94,26 @@ export class UsersService {
     }
   }
 
-  async findUserByEmail(email: string) {
-    return await this.usersRepository.findOne({
-      where: {
-        email: email,
-      }
-    })
-  }
+  async loginWithTelegram(initData: string, storeId: number) {
+    const store = await this.storeService.getStoreDataById(storeId);
 
-  async loginWithTelegram(initData: string) {
-    const isValid = await TelegramUtils.validateInitData(initData);
-    if (!isValid) {
-      throw new Error('Invalid Telegram data');
+    if (!store) {
+      throw new NotFoundException("Не удалось определить магазин");
     }
+
+    // const isValid = await TelegramUtils.validateInitData(initData);
+    // if (!isValid) {
+    //   throw new Error('Invalid Telegram data');
+    // }
 
     const telegramUser = TelegramUtils.parseInitData(initData);
 
     let user = await this.usersRepository.findOne({
       where: { telegram_id: telegramUser.id },
-      relations: ['selectedProducts']
+      relations: [
+        'selectedProducts',
+        'store'
+      ]
     });
 
     if (!user) {
@@ -119,6 +123,7 @@ export class UsersService {
           email: "",
           telegram_username: telegramUser.username || "",
           password: "123456",
+          store,
           basket: {
               telegram_id: telegramUser.id,
               products_count: 0,

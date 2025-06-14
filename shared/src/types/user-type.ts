@@ -26,6 +26,6 @@ export interface UserLoginResponse {
 }
 
 export type AuthJwtPayload = {
-    sub: number
+    id: number
     role: Roles
 }

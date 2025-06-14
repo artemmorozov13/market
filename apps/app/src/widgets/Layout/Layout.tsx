@@ -37,7 +37,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
   const location = useLocation();
 
   const navigate = useNavigate();
-  const { role } = userStore;
+  const { user, role } = userStore;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -90,7 +90,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
       <AppBar position="sticky" color="default" elevation={1} className={styles.appBar}>
         <Toolbar className={styles.toolbar}>
           <Typography variant="h6" component="div" className={styles.title}>
-            Фрукты
+            {user.user.store.name}
           </Typography>
           
           <div className={styles.basketControls}>

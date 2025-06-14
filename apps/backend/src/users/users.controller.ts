@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CreateUserBodyDto } from './dto/create-user.dto';
-import { UsersService } from './users.service';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
 import { TelegramLoginDto } from './dto/telegram-login.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
@@ -9,6 +8,7 @@ import { AuthJwtPayload } from '@core/types/user-type';
 import { AllowRoles } from 'src/auth/decorators/roles.decorator';
 import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -19,13 +19,13 @@ export class UsersController {
     @Get()
     @UseGuards(JwtAuthGuard)
     getUserByToken(@User() user: AuthJwtPayload) {
-        return this.usersService.getUserById(user.sub)
+        return this.usersService.getUserById(user.id)
     }
 
     @Get('order')
     @UseGuards(JwtAuthGuard)
     getActiveOrders(@User() user: AuthJwtPayload) {
-        return this.usersService.getUserById(user.sub)
+        return this.usersService.getUserById(user.id)
     }
 
     @Get("list")
@@ -53,7 +53,10 @@ export class UsersController {
     }
 
     @Post('login')
-    loginWithTelegram(@Body() body: TelegramLoginDto) {
-        return this.usersService.loginWithTelegram(body.initData);
+    loginWithTelegram(
+        @User() user: JwtAuthGuard,
+        @Body() body: TelegramLoginDto
+    ) {
+        return this.usersService.loginWithTelegram(body.initData, body.storeId);
     }
 }

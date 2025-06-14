@@ -13,6 +13,7 @@ import { OrderedProductsEntity } from "./ordered-products.entity";
 import { PickupPoint } from "./pickup-point.entity";
 import { DeliveryTime } from "./delivery-time.entity";
 import { OrderStatusEnum } from "../enums/order-status-enum";
+import { StoreEntity } from "./store.entity";
   
   @Entity({ name: "order" })
   export class OrderEntity {
@@ -59,6 +60,9 @@ import { OrderStatusEnum } from "../enums/order-status-enum";
   
       @ManyToOne(() => DeliveryTime, { onDelete: 'SET NULL', nullable: true })
       deliveryTime?: DeliveryTime;
+
+      @ManyToOne(() => StoreEntity, store => store.orders)
+      store: StoreEntity
   
       @ManyToOne(() => UsersEntity, (user) => user.orders, { onDelete: 'CASCADE' })
       user: UsersEntity;

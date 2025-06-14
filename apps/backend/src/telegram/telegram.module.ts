@@ -5,18 +5,23 @@ import { TelegramService } from './telegram.service';
 import { TelegramErrorService } from './telegram-error.service';
 import { TelegramErrorNotificationService } from './telegram-error-notification.service';
 import { TelegramController } from './telegram.controller';
-import { UsersService } from '../users/users.service';
 import { AuthModule } from '../auth/auth.module';
-import { BasketModule } from '../basket/basket.module';
 import { OrderEntity } from '@core/entities/order.entity';
 import { UsersEntity } from '@core/entities/users.entity';
+import { StoreModule } from '@app/store/store.module';
+import { BasketModule } from '@app/basket/basket.module';
+import { UsersService } from '@app/users/users.service';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([UsersEntity, OrderEntity]), // Импортируем репозитории напрямую
-    forwardRef(() => AuthModule), // Обрабатываем циклические зависимости
-    BasketModule,
+    TypeOrmModule.forFeature([
+      UsersEntity,
+      OrderEntity
+    ]),
+    forwardRef(() => AuthModule),
+    forwardRef(() => StoreModule),
+    forwardRef(() => BasketModule)
   ],
   providers: [
     UsersService,

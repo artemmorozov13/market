@@ -8,12 +8,14 @@ export class TelegramErrorNotificationService {
   ) {}
 
   async notifyError(error: Error, context?: Record<string, any>): Promise<void> {
-    // Отправляем в Telegram
-    await this.telegramService.sendErrorNotification(
-      error, 
-      JSON.stringify(context, null, 2)
-    );
-    
-    // Здесь можно добавить другие способы уведомлений (email, etc.)
+    try {
+      await this.telegramService.sendErrorNotification(
+        error, 
+        JSON.stringify(context, null, 2)
+      );
+    } catch(err) {
+      console.log(err)
+      throw err
+    }
   }
 }

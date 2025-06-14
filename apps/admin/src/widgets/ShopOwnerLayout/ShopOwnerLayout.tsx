@@ -11,13 +11,13 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { storeStorage } from "../../entities/Store";
 import { Button, Skeleton, IconButton } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import styles from "./ShopOwnerLayout.module.scss"
 import { routeConfig } from "../../shared/lib/consts/routeConfig";
 import TelegramIcon from '@mui/icons-material/Telegram';
+import SettingsIcon from '@mui/icons-material/Settings';
 import Cookies from "js-cookie";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../shared/lib/consts/consts";
 
@@ -33,6 +33,7 @@ import {
     PointOfSale as PointOfSaleIcon,
     Inventory as InventoryIcon
   } from '@mui/icons-material';
+import { useUser } from "@entities/User";
   
 
 
@@ -44,7 +45,7 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
     const { children } = props
 
     const [mobileOpen, setMobileOpen] = useState<boolean>(false)
-    const { store } = storeStorage
+    const { user, isLoading } = useUser()
 
     const drawerWidth = 240;
 
@@ -89,6 +90,11 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             label: "Создать телеграм рассулку",
             href: routeConfig["telegram-broadcast"],
             icon: <TelegramIcon />
+        },
+        {
+            label: "Настройки",
+            href: routeConfig["shop/settings"],
+            icon: <SettingsIcon />
         }
     ]
 
@@ -175,14 +181,13 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
                         <MenuIcon />
                     </IconButton>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {store?.case({
-                            pending: () => <Skeleton height={40} width={150} />,
-                            fulfilled: (storeData) => (
-                                <Typography variant="h6" noWrap>
-                                    {storeData.name}
-                                </Typography>
-                            ),
-                        })}
+                        {isLoading ? (
+                            <Skeleton height={40} width={150} />
+                        ) : (
+                            <Typography variant="h6" noWrap>
+                                {user?.store.name}
+                            </Typography>
+                        )}
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Button

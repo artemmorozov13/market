@@ -1,5 +1,5 @@
+import { UsersService } from '@app/users/users.service';
 import { Injectable } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { Telegraf } from 'telegraf';
 
 @Injectable()

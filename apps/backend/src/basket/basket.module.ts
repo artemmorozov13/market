@@ -7,6 +7,7 @@ import { BasketEntity } from '@core/entities/basket.entity';
 import { ProductEntity } from '@core/entities/product.entity';
 import { UsersEntity } from '@core/entities/users.entity';
 import { SelectedProductEntity } from '@core/entities/selected-product.entity';
+import { UsersModule } from '@app/users/users.module';
 
 @Module({
   imports: [
@@ -16,9 +17,12 @@ import { SelectedProductEntity } from '@core/entities/selected-product.entity';
       UsersEntity,
       SelectedProductEntity
     ]),
-    forwardRef(() => AuthModule)
+    forwardRef(() => AuthModule),
+    forwardRef(() => UsersModule)
   ],
-  providers: [BasketService],
+  providers: [
+    BasketService
+  ],
   controllers: [BasketController],
   exports: [BasketService],
 })

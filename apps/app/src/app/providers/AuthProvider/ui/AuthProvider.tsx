@@ -8,6 +8,7 @@ import { userStore } from "@/entities/User"
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { InstallButton } from "@/shared/ui/InstallButton";
 import { useUser } from "../api/fetchUserData";
+import { LOCALSTORAGE_STOREID_KEY } from "@/shared/consts/applicationConsts";
 
 interface AuthProviderProps {
   children: ReactNode
@@ -15,11 +16,21 @@ interface AuthProviderProps {
 
 const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [initData, setInitData] = useState<TelegramAuthData | null>(null)
-  const user = useUser({ initData })
   const { role } = userStore
+
+  const user = useUser({ initData })
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    const storeId = urlParams.get("store");
+    const storageStoreId = localStorage.getItem(LOCALSTORAGE_STOREID_KEY)
+
+    if (storeId && !storageStoreId) {
+      localStorage.setItem(LOCALSTORAGE_STOREID_KEY, storeId)
+    }
+
+    console.log(storageStoreId)
+
     if (urlParams.toString()) {
       const data = {
         id: urlParams.get('id'),
@@ -28,11 +39,12 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         username: urlParams.get('username'),
         photo_url: urlParams.get('photo_url'),
         auth_date: urlParams.get('auth_date'),
-        hash: urlParams.get('hash')
+        hash: urlParams.get('hash'),
       } as any;
       
-      setInitData(data);      
-      window.history.replaceState({}, document.title, window.location.pathname);
+      if (data.hash) {
+        setInitData(data)
+      }
     }
   }, []);
 

@@ -1,3 +1,4 @@
+import { StoreBaseType } from "@core/types/store-type"
 export type UserRoleType = 'customer' | 'notAuthed';
 
 export interface UserType {
@@ -11,6 +12,7 @@ export interface UserType {
   age: number,
   created_at: Date
   updated_at: Date
+  store: StoreBaseType
   selectedProducts: {
     id: number,
     productId: number,

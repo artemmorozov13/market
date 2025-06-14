@@ -6,6 +6,8 @@ import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
 import { PickupPoint } from "@core/entities/pickup-point.entity";
 import { ProductEntity } from "@core/entities/product.entity";
 import { SelectedProductEntity } from "@core/entities/selected-product.entity";
+import { StoreUserEntity } from "@core/entities/store-user.entity";
+import { StoreEntity } from "@core/entities/store.entity";
 import { UsersEntity } from "@core/entities/users.entity";
 import { registerAs } from "@nestjs/config";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
@@ -28,7 +30,9 @@ export default registerAs('database', (): PostgresConnectionOptions => {
              PickupPoint,
              ProductEntity,
              SelectedProductEntity,
-             UsersEntity
+             UsersEntity,
+             StoreUserEntity,
+             StoreEntity
         ],
         migrationsTableName: 'migrations',
     })
