@@ -6,6 +6,7 @@ import { BasketEntity } from '@core/entities/basket.entity';
 import { ProductEntity } from '@core/entities/product.entity';
 import { SelectedProductEntity } from '@core/entities/selected-product.entity';
 import { UsersEntity } from '@core/entities/users.entity';
+import { StoreService } from '@app/store/store.service';
 
 @Injectable()
 export class BasketService {
@@ -147,11 +148,9 @@ export class BasketService {
   }
 
   async getBasketById(userJwt: AuthJwtPayload): Promise<SelectedProductEntity[]> {
-    const store = await this.usersRepository.findOneBy({ id: userJwt.id });
     const user = await this.usersRepository.findOne({
       where: {
-        id: userJwt.id,
-        store
+        id: userJwt.id
       }
     })
     const selectedProducts = await this.selectedProductRepository.find({
