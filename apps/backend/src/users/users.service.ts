@@ -38,7 +38,8 @@ export class UsersService {
         'role',
         'telegram_id',
         'telegram_username'
-      ]
+      ],
+      relations: ['store']
     })
   }
 
