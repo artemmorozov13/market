@@ -1,29 +1,28 @@
 # Этап сборки
 FROM node:20-alpine as builder
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# 1. Копируем только package.json (для лучшего кэширования)
-COPY apps/app/package*.json ./
-RUN npm ci  # Используем ci вместо install для production
+# 1. Копируем package.json и package-lock.json
+COPY package*.json ./
+COPY apps/app/package*.json ./apps/app/
+COPY apps/app/package-lock.json ./apps/app/
+COPY shared/package*.json ./shared/
 
-# 2. Копируем shared модули и исходный код
-COPY shared ./shared
-COPY apps/app/. .
+# 2. Устанавливаем зависимости
+WORKDIR /usr/src/app/apps/app
+RUN npm install
 
-# 3. Сборка приложения
+# 3. Копируем все остальные файлы
+WORKDIR /usr/src/app
+COPY . .
+
+# 4. Собираем приложение
+WORKDIR /usr/src/app/apps/app
 RUN npm run build
 
-# Финальный образ (используем nginx для статики)
+# Финальный образ
 FROM nginx:alpine
-
-# Копируем собранные файлы из builder-этапа
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Копируем конфиг nginx (убедитесь, что файл существует)
+COPY --from=builder /usr/src/app/apps/app/dist /usr/share/nginx/html
 COPY apps/app/nginx.conf /etc/nginx/conf.d/default.conf
-
-# Проверка наличия файлов (опционально)
-RUN ls -la /usr/share/nginx/html
-
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

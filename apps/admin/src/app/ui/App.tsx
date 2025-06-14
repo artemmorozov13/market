@@ -1,6 +1,5 @@
-import { BrowserRouter, useNavigate } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
-import { storeStorage } from '../../entities/Store'
 import { FC, useEffect } from 'react'
 import Cookies from 'js-cookie'
 import { REFRESH_TOKEN } from '../../shared/lib/consts/consts'
@@ -10,7 +9,6 @@ import './App.css'
 import { userStore } from '../../entities/User'
 import { observer } from 'mobx-react-lite'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { routeConfig } from '@shared/lib/consts/routeConfig'
 import ErrorBoundary from '@app/providers/ErrorBoundary/ErrorBoundary'
 
 const client = new QueryClient()
