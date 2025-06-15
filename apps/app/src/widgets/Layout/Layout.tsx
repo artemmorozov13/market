@@ -90,7 +90,7 @@ export const Layout: FC<LayoutProps> = observer((props) => {
       <AppBar position="sticky" color="default" elevation={1} className={styles.appBar}>
         <Toolbar className={styles.toolbar}>
           <Typography variant="h6" component="div" className={styles.title}>
-            {user.user.store.name}
+            {user.user?.store?.name}
           </Typography>
           
           <div className={styles.basketControls}>

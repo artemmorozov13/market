@@ -8,7 +8,6 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { TelegramService } from 'src/telegram/telegram.service';
 import { formatUserOrderMessage } from './notifications/formatUserOrderMessage';
-import { DELIVERY_PRICE, FREE_DELIVERY_MIN_PRICE } from 'src/utils/constants';
 import { exportToExcelWithInnerTable } from './export-generator/export-excel-with-inner-table';
 import { exportToWideFormatExcel } from './export-generator/export-to-wide-format-excel';
 import { formatUpdatedOrderMessage } from './notifications/formatUpdatedOrderMessage';
@@ -267,7 +266,7 @@ export class OrderService {
       comment: createOrderDto.comment,
       deliveryDate: createOrderDto.deliveryDate,
       status: OrderStatusEnum.WaitForPay,
-      totalAmount: totalAmount < FREE_DELIVERY_MIN_PRICE ? totalAmount + DELIVERY_PRICE : totalAmount,
+      totalAmount: totalAmount < store.deliveryFreeFromLimit ? totalAmount + store.deliveryCost : totalAmount,
       pickupPoint: pickupPoint,
       deliveryTime: deliveryTime,
       user: user,
@@ -384,7 +383,7 @@ export class OrderService {
     const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
   
     // Обновляем заказ
-    order.totalAmount = totalAmount < FREE_DELIVERY_MIN_PRICE ? totalAmount + DELIVERY_PRICE : totalAmount;
+    order.totalAmount = totalAmount < store.deliveryFreeFromLimit ? totalAmount + store.deliveryCost : totalAmount;
     order.ordered_products = savedProducts;
   
     const savedOrder = await this.orderRepository.save(order);

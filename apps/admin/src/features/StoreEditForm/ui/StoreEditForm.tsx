@@ -25,7 +25,7 @@ interface StoreEditFormProps {
 }
 
 export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
-  const [isCopied, setIsCopied] = useState<boolean>(false)
+  const [isCopiedTelegram, setIsCopiedTelegram] = useState<boolean>(false)
   const [isCopiedBrowser, setIsCopiedBrowser] = useState<boolean>(false)
   const { updateStore } = useUpdateStore()
   const { refetch } = useUser({})
@@ -37,13 +37,13 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   const isDeliveryFree = watch('isDeliveryFree');
 
   const handleCopyMiniAppUrl = () => {
-    navigator.clipboard.writeText(`http://localhost:3000/?startapp=shop_${storeData.id}`);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    navigator.clipboard.writeText(`https://t.me/fricti_test_bot/?startapp=shop_${storeData.id}`);
+    setIsCopiedTelegram(true);
+    setTimeout(() => setIsCopiedTelegram(false), 2000);
   }
 
   const handleCopyBrowserLink = () => {
-    navigator.clipboard.writeText(`http://localhost:3000/app/?store=${storeData.id}`);
+    navigator.clipboard.writeText(`https://fruvost.ru/app/?store=${storeData.id}`);
     setIsCopiedBrowser(true);
     setTimeout(() => setIsCopiedBrowser(false), 2000);
   }
@@ -174,13 +174,13 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
           <div className={styles.buttonGroup}>
             <Button
                 onClick={handleCopyMiniAppUrl}
-                className={clsx(styles.copyButton, { [styles.copied]: isCopied })}
-                startIcon={isCopied ? <CheckCircleOutline /> : <FileCopyOutlined />}
+                className={clsx(styles.copyButton, { [styles.copied]: isCopiedTelegram })}
+                startIcon={isCopiedTelegram ? <CheckCircleOutline /> : <FileCopyOutlined />}
                 variant="contained"
                 color="primary"
                 fullWidth
             >
-                {isCopied ? "Скопировано!" : "Скопировать ссылку для Telegram Mini App"}
+                {isCopiedTelegram ? "Скопировано!" : "Скопировать ссылку для Telegram Mini App"}
             </Button>
             <Button
                 onClick={handleCopyBrowserLink}

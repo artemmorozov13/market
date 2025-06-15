@@ -36,7 +36,9 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
     dayBeforeDelivery.setDate(deliveryDate.getDate() - 1);
     dayBeforeDelivery.setHours(23, 0, 0, 0);
     
-    return now < dayBeforeDelivery;
+    return (
+      now < dayBeforeDelivery
+    );
   };
 
   const isAvailable = isDeliveryAvailable(order)
