@@ -45,7 +45,7 @@ export class UsersEntity {
     @Column({ default: 0 })
     age: number
 
-    @Column({ default: "" })
+    @Column({ default: "123456" })
     password: string
 
     @Column({
@@ -82,6 +82,8 @@ export class UsersEntity {
 
     @BeforeInsert()
     async hashPasword() {
-        this.password = await bcrypt.hash(this.password, 10)
+        if (this.password) {
+            this.password = await bcrypt.hash(this.password, 10)
+        }
     }
 }
