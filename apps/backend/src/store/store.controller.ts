@@ -24,8 +24,8 @@ export class StoreController {
     }
 
     @Post('create')
-    createStore(@User() user: AuthJwtPayload, @Body() body: CreateStoreDto) {
-        return this.storeService.createStore(user, body)
+    createStore(@Body() body: CreateStoreDto) {
+        return this.storeService.createStore(body)
     }
 
     @AllowRoles(Roles.Admin, Roles.SuperAdmin)

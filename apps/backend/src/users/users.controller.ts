@@ -54,7 +54,6 @@ export class UsersController {
 
     @Post('login')
     loginWithTelegram(
-        @User() user: JwtAuthGuard,
         @Body() body: TelegramLoginDto
     ) {
         return this.usersService.loginWithTelegram(body.initData, body.storeId);

@@ -33,7 +33,6 @@ export class ProductService {
             skip,
             take: limit,
             order: this.queryBuilder.getSortingOrder(),
-            relations: ['store'],
         });
 
         return this.responseBuilder.buildResponse(items, total, limit, skip);

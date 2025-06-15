@@ -30,35 +30,31 @@ export class BasketService {
   }
 
   async clearBasket(userJwt: AuthJwtPayload) {
-    const store = await this.usersRepository.findOneBy({ id: userJwt.id });
     const user = await this.usersRepository.findOne({
       where: {
         id: userJwt.id,
-        store: store
       }
     })
     return await this.selectedProductRepository.delete({
       user: {
         id: user.id,
-        store: store
+        store: user.store
       }
     });
   }
 
   async addProductToBasket(userJwt: AuthJwtPayload, productId: number) {
-    const store = await this.usersRepository.findOneBy({ id: userJwt.id });
     const user = await this.usersRepository.findOne({
       where: {
-        id: userJwt.id,
-        store
+        id: userJwt.id
       },
-      relations: ['basket']
+      relations: ['basket', 'store']
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
         user: {
           id: userJwt.id,
-          store
+          store: user.store
         },
         productId: productId
       }
@@ -69,7 +65,7 @@ export class BasketService {
         quantity: selectedProduct.quantity + 1,
         userTgchatId: user.telegram_id,
         basket: user.basket,
-        store: store,
+        store: user.store,
         user: user
       })
     }
@@ -78,25 +74,23 @@ export class BasketService {
       quantity: 1,
       userTgchatId: user.telegram_id,
       basket: user.basket,
-      store: store,
+      store: user.store,
       user: user
     })
   }
 
   async removeProductFromBasket(userJwt: AuthJwtPayload, productId: number) {
-    const store = await this.usersRepository.findOneBy({ id: userJwt.id });
     const user = await this.usersRepository.findOne({
       where: {
         id: userJwt.id,
-        store
       },
-      relations: ['basket']
+      relations: ['basket', 'store']
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
         user: { id: user.id },
         productId: productId,
-        store
+        store: user.store
       }
     })
 
@@ -114,26 +108,24 @@ export class BasketService {
       quantity: selectedProduct.quantity - 1,
       userTgchatId: user.telegram_id,
       basket: user.basket,
-      store,
+      store: user.store,
       user: user
     })
   }
 
   async resetBasketProduct(userJwt: AuthJwtPayload, productId: number) {
-    const store = await this.usersRepository.findOneBy({ id: userJwt.id });
     const user = await this.usersRepository.findOne({
       where: {
-        id: userJwt.id,
-        store
+        id: userJwt.id
       },
-      relations: ['basket']
+      relations: ['basket', 'store']
     })
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
         productId: productId,
         user: {
           id: user.id,
-          store
+          store: user.store
         }
       }
     })
@@ -151,7 +143,7 @@ export class BasketService {
     const user = await this.usersRepository.findOne({
       where: {
         id: userJwt.id
-      }
+      },
     })
     const selectedProducts = await this.selectedProductRepository.find({
       where: {

@@ -35,7 +35,7 @@ export class StoreService {
         }
     }
 
-    async createStore(userJwt: AuthJwtPayload, body: CreateStoreDto) {
+    async createStore(body: CreateStoreDto) {
         // 1. Создаем пользователя с указанной почтой и стандартным паролем
         const newUser = await this.storeUserService.createUser({
             email: body.userEmail,
