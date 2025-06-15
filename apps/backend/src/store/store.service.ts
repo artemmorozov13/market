@@ -18,21 +18,17 @@ export class StoreService {
   ) {}
 
     async getStoreDataById(storeId: number) {
-        try {
-            const store = await this.storeRepository.findOne({
-                where: {
-                    id: storeId
-                }
-            })
-
-            if (!store) {
-                throw new BadRequestException("Данные магазина не найдены")
+        const store = await this.storeRepository.findOne({
+            where: {
+                id: storeId
             }
+        })
 
-            return store
-        } catch (err) {
-            console.log(err)
+        if (!store) {
+            throw new BadRequestException("Данные магазина не найдены")
         }
+
+        return store
     }
 
     async createStore(body: CreateStoreDto) {
