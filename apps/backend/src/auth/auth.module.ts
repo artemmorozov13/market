@@ -14,6 +14,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
 import { UsersEntity } from '@core/entities/users.entity';
 import { BasketEntity } from '@core/entities/basket.entity';
 import { StoreUserModule } from '@app/store-user/store-user.module';
+import { StoreModule } from '@app/store/store.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { StoreUserModule } from '@app/store-user/store-user.module';
     ConfigModule.forFeature(refreshJwtConfig),
     forwardRef(() => UsersModule),
     forwardRef(() => BasketModule),
-    forwardRef(() => StoreUserModule)
+    forwardRef(() => StoreUserModule),
+    forwardRef(() => StoreModule)
   ],
   controllers: [AuthController],
   exports: [AuthService, JwtModule],

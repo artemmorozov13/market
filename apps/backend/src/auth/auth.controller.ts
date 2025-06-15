@@ -18,7 +18,7 @@ export class AuthController {
   
   @Post('login-telegram')
   async loginWebViaTelegram(@Body() body: LoginViaInitDataDto) {
-    return this.authService.loginWithTelegramWidget(body.initData)
+    return this.authService.loginWithTelegramWidget(body.initData, body.storeId)
   }
 
   @UseGuards(RefreshAuthGuard)

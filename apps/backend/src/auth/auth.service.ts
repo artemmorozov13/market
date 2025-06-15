@@ -11,6 +11,7 @@ import { AuthStoreUserDto } from './dto/auth-store-user.dto';
 import { StoreUserService } from '@app/store-user/store-user.service';
 import { StoreUserEntity } from '@core/entities/store-user.entity';
 import { UsersService } from '@app/users/users.service';
+import { StoreService } from '@app/store/store.service';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,8 @@ export class AuthService {
         private jwtService: JwtService,
         private storeUserService: StoreUserService,
         @Inject(refreshJwtConfig.KEY)
-        private refreshTokenConfig:ConfigType<typeof refreshJwtConfig>
+        private refreshTokenConfig:ConfigType<typeof refreshJwtConfig>,
+        private readonly storeService: StoreService
     ) {}
 
     async validateUser(email: string, password: string) {
@@ -88,16 +90,18 @@ export class AuthService {
       }
     }
 
-    async loginWithTelegramWidget(initData: TelegramAuthData) {
+    async loginWithTelegramWidget(initData: TelegramAuthData, storeId: string) {
       try {
         let user = await this.userService.getUserByTelegramId(initData.id);
+        const store = await this.storeService.getStoreDataById(Number(storeId))
 
         if (!user) {
           user = await this.userService.createUser({
             telegram_id: initData.id,
             name: initData.first_name,
             telegram_username: initData.username,
-            role: Roles.User
+            role: Roles.User,
+            store: store
           });
         }
 
