@@ -39,7 +39,7 @@ export class UsersEntity {
     @Column({ default: false })
     is_phone_confirmed: boolean
 
-    @Column()
+    @Column({ nullable: true })
     email: string
 
     @Column({ default: 0 })
