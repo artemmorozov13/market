@@ -91,31 +91,27 @@ export class AuthService {
     }
 
     async loginWithTelegramWidget(initData: TelegramAuthData, storeId: string) {
-      try {
-        let user = await this.userService.getUserByTelegramId(initData.id);
+      let user = await this.userService.getUserByTelegramId(initData.id);
+
+      if (!user) {
         const store = await this.storeService.getStoreDataById(Number(storeId))
-
-        if (!user) {
-          user = await this.userService.createUser({
-            telegram_id: initData.id,
-            name: initData.first_name,
-            telegram_username: initData.username,
-            role: Roles.User,
-            store: store
-          });
-        }
-
-        const token = await this.generateToken(user)
-        const refreshToken = await this.generateRefreshToken(user);
-
-        return {
-          user,
-          token,
-          refreshToken
-        };
-      } catch (error) {
-        throw error
+        user = await this.userService.createUser({
+          telegram_id: initData.id,
+          name: initData.first_name,
+          telegram_username: initData.username,
+          role: Roles.User,
+          store: store
+        });
       }
+
+      const token = await this.generateToken(user)
+      const refreshToken = await this.generateRefreshToken(user);
+
+      return {
+        user,
+        token,
+        refreshToken
+      };
     }
 
     async refreshAccessToken(userId: number) {
