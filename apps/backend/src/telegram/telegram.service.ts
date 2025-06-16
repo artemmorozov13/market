@@ -7,7 +7,9 @@ export class TelegramService {
   private bot: Telegraf;
 
   constructor(
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly BATCH_SIZE = 30,
+    private readonly DELAY_MS = 1000
   ) {
     this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
   }
@@ -20,6 +22,45 @@ export class TelegramService {
     } catch (error) {
       console.error('Error sending Telegram message:', error);
     }
+  }
+
+  async sendBatchMessages(messages: Array<{chatId: number, message: string}>) {
+    if (!messages.length) return;
+
+    const sendResults = {
+      total: messages.length,
+      success: 0,
+      failed: 0,
+      errors: [] as Array<{chatId: string, error: any}>
+    };
+
+    for (let i = 0; i < messages.length; i += this.BATCH_SIZE) {
+      const batch = messages.slice(i, i + this.BATCH_SIZE);
+      
+      const batchResults = await Promise.allSettled(
+        batch.map(({chatId, message}) => 
+          this.sendHtmlMessage(chatId.toString(), message)
+        )
+      )
+
+      batchResults.forEach((result, index) => {
+        const {chatId} = batch[index];
+        if (result.status === 'fulfilled') {
+          sendResults.success++;
+        } else {
+          sendResults.failed++;
+          sendResults.errors.push({
+            chatId: chatId.toString(),
+            error: result.reason
+          })
+        }
+      });
+
+      if (i + this.BATCH_SIZE < messages.length) {
+        await new Promise(resolve => setTimeout(resolve, this.DELAY_MS));
+      }
+    }
+    return sendResults;
   }
 
   async broadcastMessage(message: string) {

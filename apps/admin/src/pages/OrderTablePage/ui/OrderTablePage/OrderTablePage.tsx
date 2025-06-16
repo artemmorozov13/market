@@ -18,30 +18,37 @@ import {
   MenuItem,
   Chip,
   Box,
+  Checkbox,
 } from "@mui/material";
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import { adaptOrdersToTable } from "../../lib/adaptOrdersToTable";
 import { Row } from "../TableRow/TableRow";
-import { useUpdateOrderStatus } from "../../api/useUpdateOrderStatus";
+import { UpdateOrderStatusParams, useUpdateOrderStatus } from "../../api/useUpdateOrderStatus";
 import { useOrders } from "@pages/OrderTablePage/api/useOrders";
 import { useProducts } from "@pages/OrderTablePage/api/useProducts";
 import { exportOrdersWithInnerTable } from "../../api/exportOrders";
 import { exportOrdersWide } from "../../api/exportOrdersWide";
 import { useForm, Controller } from "react-hook-form";
 import { usePickupPoints } from "@entities/PickupPoint";
+import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 import styles from "./OrdersPage.module.scss";
+import { ChangeOrderStatusModal } from "@features/ChangeOrderStatus";
+import { ChangeStatusFormValues } from "@features/ChangeOrderStatus/lib/schema";
 
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE = 0;
 
 type FormValues = {
-  pickupPoints: number[]; // Для хранения выбранных пунктов выдачи
+  pickupPoints: number[];
 };
 
 const OrderTablePage: FC = observer(() => {
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE);
+  const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<typeof OrderStatusEnum | null>(null);
   
   const { control, watch } = useForm<FormValues>({
     defaultValues: {
@@ -49,7 +56,6 @@ const OrderTablePage: FC = observer(() => {
     },
   });
 
-  // Получаем выбранные пункты выдачи из формы
   const selectedPickupPoints = watch("pickupPoints");
   
   const { data: pickupPoints = [], isLoading: isPickupPointsLoading } = usePickupPoints();
@@ -69,18 +75,58 @@ const OrderTablePage: FC = observer(() => {
   const isLoading = isProductsLoading || isOrdersLoading || isPickupPointsLoading;
   const error = productsError || ordersError;
 
-  const handleStatusUpdate = (orderId: number) => {
-    updateOrderStatus(orderId);
+  const handleSelectOrder = (orderId: number, isSelected: boolean) => {
+    setSelectedOrders(prev => 
+      isSelected 
+        ? [...prev, orderId] 
+        : prev.filter(id => id !== orderId)
+    )
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const selectableOrders = tableOrders
+        .filter(order => order.status === OrderStatusEnum.WaitForPay)
+        .map(order => order.id);
+      setSelectedOrders(selectableOrders);
+    } else {
+      setSelectedOrders([]);
+    }
+  };
+
+  const handleOpenStatusDialog = () => {
+    setStatusDialogOpen(true);
+  };
+
+  const handleStatusSubmit = async (values: ChangeStatusFormValues) => {
+    if (values.status) {
+      updateOrderStatus({
+        orderIds: selectedOrders,
+        status: values.status,
+        cancelReason: values.cancelReason
+      })
+      setStatusDialogOpen(false)
+      setSelectedOrders([]);
+    }
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
+    setSelectedOrders([]);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+    setSelectedOrders([]);
   };
+
+  const numSelectableOrders = tableOrders.filter(
+    order => order.status === OrderStatusEnum.WaitForPay
+  ).length;
+
+  const numSelected = selectedOrders.length;
+  const allSelected = numSelected > 0 && numSelected === numSelectableOrders;
 
   return (
     <ShopOwnerLayout>
@@ -88,7 +134,7 @@ const OrderTablePage: FC = observer(() => {
         <div className={styles.header}>
           <h1 className={styles.title}>Список заказов</h1>
           <div className={styles.buttonGroup}>
-            <Button
+            {/* <Button
               variant="contained" 
               color="primary"
               onClick={() => exportOrdersWithInnerTable(selectedPickupPoints)}
@@ -96,7 +142,7 @@ const OrderTablePage: FC = observer(() => {
               className={styles.exportButton}
             >
               Экспорт в Excel (обычный)
-            </Button>
+            </Button> */}
             <Button 
               variant="contained" 
               color="secondary"
@@ -104,7 +150,16 @@ const OrderTablePage: FC = observer(() => {
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
-              Экспорт в Excel (широкий)
+              Экспорт Excel таблицы
+            </Button>
+            <Button
+              variant="contained"
+              color="info"
+              onClick={handleOpenStatusDialog}
+              disabled={selectedOrders.length === 0}
+              className={styles.statusButton}
+            >
+              Изменить статус ({selectedOrders.length})
             </Button>
           </div>
         </div>
@@ -123,7 +178,8 @@ const OrderTablePage: FC = observer(() => {
                   value={field.value}
                   onChange={(e) => {
                     field.onChange(e.target.value);
-                    setPage(0); // Сброс на первую страницу при изменении фильтра
+                    setPage(0);
+                    setSelectedOrders([]);
                   }}
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -137,10 +193,7 @@ const OrderTablePage: FC = observer(() => {
                   )}
                 >
                   {pickupPoints.map((point) => (
-                    <MenuItem 
-                      key={point.id} 
-                      value={point.id}
-                    >
+                    <MenuItem key={point.id} value={point.id}>
                       {point.name} ({point.fullAddress})
                     </MenuItem>
                   ))}
@@ -162,27 +215,27 @@ const OrderTablePage: FC = observer(() => {
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        indeterminate={numSelected > 0 && numSelected < numSelectableOrders}
+                        checked={allSelected}
+                        onChange={handleSelectAll}
+                        disabled={numSelectableOrders === 0}
+                      />
+                    </TableCell>
                     <TableCell />
                     <TableCell>
-                      <TableSortLabel>
-                        №
-                      </TableSortLabel>
+                      <TableSortLabel>№</TableSortLabel>
                     </TableCell>
                     <TableCell>
-                      <TableSortLabel>
-                        Адрес
-                      </TableSortLabel>
+                      <TableSortLabel>Адрес</TableSortLabel>
                     </TableCell>
                     <TableCell>Пункт выдачи</TableCell>
                     <TableCell>
-                      <TableSortLabel>
-                        Приор
-                      </TableSortLabel>
+                      <TableSortLabel>Приор</TableSortLabel>
                     </TableCell>
                     <TableCell>
-                      <TableSortLabel>
-                        Дата доставки
-                      </TableSortLabel>
+                      <TableSortLabel>Дата доставки</TableSortLabel>
                     </TableCell>
                     <TableCell>Время доставки</TableCell>
                     <TableCell>Телефон</TableCell>
@@ -196,7 +249,8 @@ const OrderTablePage: FC = observer(() => {
                     <Row
                       key={order.id} 
                       order={order}
-                      onStatusUpdate={() => handleStatusUpdate(order.id)}
+                      isSelected={selectedOrders.includes(order.id)}
+                      onSelect={handleSelectOrder}
                     />
                   ))}
                 </TableBody>
@@ -215,6 +269,13 @@ const OrderTablePage: FC = observer(() => {
               labelDisplayedRows={({ from, to, count }) => 
                 `${from}-${to} из ${count !== -1 ? count : `больше чем ${to}`}`
               }
+            />
+
+            <ChangeOrderStatusModal
+              onClose={() => setStatusDialogOpen(false)}
+              onSubmit={handleStatusSubmit}
+              open={statusDialogOpen}
+              selectedCount={numSelected}
             />
           </>
         )}

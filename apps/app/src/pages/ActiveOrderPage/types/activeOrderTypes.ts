@@ -30,6 +30,7 @@ export interface Order {
     comment: string;
     totalAmount: string;
     paymentMethod: string | null;
+    cancelReason?: string
     ordered_products: OrderedProduct[];
     deliveryTime: {
         id: number,

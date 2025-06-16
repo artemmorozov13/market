@@ -1,3 +1,4 @@
+import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import { ProductType } from "@entities/Product";
 import { StoreOwnerUserType } from "@entities/User/types/userTypes";
 
@@ -11,7 +12,12 @@ export interface OrderedProductType {
 
 export interface OrderType {
   id: number;
-  status: StatusEnum.Finished | StatusEnum.WaitForPay;
+  status: 
+    OrderStatusEnum.Finished |
+    OrderStatusEnum.WaitForPay |
+    OrderStatusEnum.CanceledByUser |
+    OrderStatusEnum.CancelByAdmin |
+    OrderStatusEnum.FinishedAndRated;
   createdAt: Date;
   updated_at: Date;
   address: string;
@@ -33,9 +39,3 @@ export interface OrderType {
     endTime: string;
   };
 }
-
-export enum StatusEnum {
-  WaitForPay = 'waitForPay',
-  Finished = 'finished'
-}
-

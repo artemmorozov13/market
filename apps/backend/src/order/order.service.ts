@@ -22,6 +22,8 @@ import { PickupPoint } from '@core/entities/pickup-point.entity';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { OrderStatusEnum } from '@core/enums/order-status-enum';
 import { OrderStoreResolver } from './lib/order-store-resolver';
+import { AdminUpdateOrderStatusDto } from './dto/admin-update-order-status.dto';
+import { getCanceledByAdminMessage } from './notifications/admin-order-status-change.message';
 
 @Injectable()
 export class OrderService {
@@ -114,11 +116,6 @@ export class OrderService {
     });
   }
 
-  async updateOrderStatus(updateStatusDto: UpdateOrderStatusDto) {
-    const { orderId } = updateStatusDto
-    return await this.orderRepository.update(orderId, { status: OrderStatusEnum.Finished })
-  }
-
   async cancelOrderByUser(cancelUserOrderDto: CancelUserOrderDto, userData: AuthJwtPayload) {
     const order = await this.orderRepository.findOne({
       where: {
@@ -167,6 +164,41 @@ export class OrderService {
       throw new InternalServerErrorException(
         `Произошла ошибка при отмене заказа: ${error.message}`
       );
+    }
+  }
+
+  async adminUpdateOrdersStatus(updateStatusDto: AdminUpdateOrderStatusDto) {
+    const { orderIds, status, cancelReason } = updateStatusDto;
+    
+    const orders = await this.orderRepository.find({
+      where: { id: In(orderIds) },
+      relations: ['user', 'store']
+    });
+
+    if (!orders.length) {
+      throw new NotFoundException("Заказы не найдены");
+    }
+
+    const allowedStatuses = [OrderStatusEnum.CancelByAdmin, OrderStatusEnum.Finished, OrderStatusEnum.WaitForPay];
+    if (!allowedStatuses.includes(status)) {
+      throw new BadRequestException(`Допустимые статусы: ${allowedStatuses.join(', ')}`);
+    }
+
+    await this.orderRepository.update(
+      { id: In(orderIds) },
+      { 
+        status: status,
+        cancelReason
+      }
+    );
+
+    if (status === OrderStatusEnum.CancelByAdmin) {
+      const notifications = orders.map(order => ({
+        chatId: order.user.telegram_id,
+        message: getCanceledByAdminMessage(order, cancelReason)
+      }));
+
+      return await this.telegramService.sendBatchMessages(notifications);
     }
   }
   

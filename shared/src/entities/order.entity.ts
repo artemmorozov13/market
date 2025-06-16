@@ -25,7 +25,7 @@ import { StoreEntity } from "./store.entity";
         enum: OrderStatusEnum, 
         default: OrderStatusEnum.WaitForPay
       })
-      status: OrderStatusEnum.CanceledByUser | OrderStatusEnum.Finished | OrderStatusEnum.WaitForPay;
+      status: OrderStatusEnum;
   
       @CreateDateColumn()
       createdAt: Date;
@@ -51,6 +51,9 @@ import { StoreEntity } from "./store.entity";
 
       @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
       totalAmount: number;
+
+       @Column({ type: 'text', nullable: true, default: null })
+      cancelReason?: string;
   
       @Column({ type: 'varchar', length: 50, nullable: true })
       paymentMethod?: string;

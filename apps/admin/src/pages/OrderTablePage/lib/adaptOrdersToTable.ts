@@ -1,3 +1,4 @@
+import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import { OrderType, OrderedProductType } from "@entities/Order";
 import { ProductType } from "@entities/Product";
 
@@ -13,7 +14,7 @@ export interface TableOrder {
   phone: string;
   customerName: string; // Добавил имя клиента
   deliveryDate: string,
-  status: string;
+  status: OrderStatusEnum;
   totalAmount: string; // Добавил общую сумму заказа
   comment?: string; // Добавил комментарий к заказу
 }

@@ -12,6 +12,7 @@ import { AllowRoles } from 'src/auth/decorators/roles.decorator';
 import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { CancelUserOrderDto } from './dto/cancel-user-order-dto';
+import { AdminUpdateOrderStatusDto } from './dto/admin-update-order-status.dto';
 
 @Controller('order')
 export class OrderController {
@@ -60,17 +61,6 @@ export class OrderController {
     return this.orderService.updateOrder(updateOrderDto, user)
   }
 
-  @Post('update-status')
-  @AllowRoles(Roles.Admin)
-  @UseGuards(RolesGuard)
-  @UseGuards(JwtAuthGuard)
-  updateStatus(
-    @User() user: AuthJwtPayload,
-    @Body() updateStatusDto: UpdateOrderStatusDto
-  ) {
-    return this.orderService.updateOrderStatus(updateStatusDto)
-  }
-
   @Patch('cancel')
   @AllowRoles(Roles.Admin, Roles.User)
   @UseGuards(RolesGuard)
@@ -80,6 +70,17 @@ export class OrderController {
     @User() user: AuthJwtPayload
   ) {
     return this.orderService.cancelOrderByUser(cancelUserOrderDto, user)
+  }
+
+  @Post('update-status')
+  @AllowRoles(Roles.Admin)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  async adminUpdateStatus(
+    @User() user: AuthJwtPayload,
+    @Body() updateStatusDto: AdminUpdateOrderStatusDto
+  ) {
+    return this.orderService.adminUpdateOrdersStatus(updateStatusDto);
   }
 
   @Post('export-inner-table')

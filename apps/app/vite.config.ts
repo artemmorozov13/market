@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
         '@widgets': path.resolve(__dirname, './src/widgets'),
         '@pages': path.resolve(__dirname, './src/pages'),
         '@shared': path.resolve(__dirname, './src/shared'),
-        '@core': path.resolve(__dirname, '../../shared'),
+        '@core': path.resolve(__dirname, '../../shared/src'),
       }
     }
   }

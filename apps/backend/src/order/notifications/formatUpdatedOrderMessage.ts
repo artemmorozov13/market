@@ -5,9 +5,11 @@ import { PickupPoint } from "@core/entities/pickup-point.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 const textByStatus: Record<OrderStatusEnum, string> = {
-    waitForPay: "Обновлен",
+    waitForPay: "Создан",
     finished: "Завершен",
-    canceled_by_user: 'Отменен'
+    canceled_by_user: 'Отменен',
+    cancel_by_admin: 'Отменен Администратором',
+    finished_and_rated: 'Заверешен и оценен'
 }
 
 export const formatUpdatedOrderMessage = (
