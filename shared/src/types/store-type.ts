@@ -7,5 +7,8 @@ export interface StoreBaseType {
     deliveryFreeFromLimit: number
     telegramBotToken: string;
     logoUrl: string;
+    isWeekLimited: boolean,
+    timezone: string;
+    minOrderBeforeDeliveryHours: number
     // staff: 
 }

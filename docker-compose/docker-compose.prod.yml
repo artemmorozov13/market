@@ -13,6 +13,8 @@ services:
       - backend
       - admin
       - app
+      - landing
+    restart: unless-stopped
 
   backend:
     build:
@@ -22,8 +24,6 @@ services:
       - NODE_ENV=production
     env_file:
       - ../.env
-    ports:
-      - "9000:9000"
     restart: unless-stopped
 
   admin:
@@ -45,3 +45,14 @@ services:
     env_file:
       - ../.env
     restart: unless-stopped
+
+  landing:
+    build:
+      context: ../
+      dockerfile: docker/landing.Dockerfile.prod
+    ports:
+      - "8080:80"  # Для тестирования
+    restart: unless-stopped
+
+volumes:
+  landing-static:

@@ -30,5 +30,7 @@ export interface OrderFormInputs {
   comment: string;
   pickupPointId: number | null;
   deliveryTimeId: number | null;
-  deliveryDate: Date | null;
+  deliveryDate: string | null;
+  timezone: string;
+  isWeekLimited: boolean;
 }

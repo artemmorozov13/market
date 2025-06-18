@@ -32,6 +32,23 @@ export class StoreEntity {
     @Column({ nullable: true })
     logoUrl: string;
 
+    @Column({ default: true })
+    isWeekLimited: boolean
+
+    @Column({ 
+        type: 'int', 
+        default: 25, 
+        comment: 'Минимальное время (в часах) между оформлением заказа и началом доставки. 0 - нет ограничений' 
+    })
+    minOrderBeforeDeliveryHours: number;
+
+    @Column({ 
+        type: 'varchar', 
+        default: 'Europe/Moscow',
+        comment: 'Часовой пояс магазина (например, Europe/Moscow)' 
+    })
+    timezone: string;
+
     @OneToMany(() => UsersEntity, user => user.store)
     users: UsersEntity[];
 

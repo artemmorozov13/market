@@ -29,21 +29,25 @@ import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { AddressType } from "@/entities/Addresses";
 import { basketStore } from "@/entities/Basket";
 import { calculateDistance } from "@/shared/helpers/calculateDistance";
-import { getAvailableDeliveryDates } from "@/shared/helpers/getAvailableDeliveryDates";
-import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import { useUpdateUser } from "@/entities/User";
+import { useDeliveryTimes } from "@/entities/DeliveryTime";
+import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
 }
 
+interface DeliveryTimeResponse {
+  date: string;
+  dayOfWeek: string;
+  times: DeliveryTime[];
+}
+
 export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deliveryTimes, setDeliveryTimes] = useState<DeliveryTime[]>([]);
-  const [weekDates, setWeekDates] = useState<Record<string, { date: Date; isToday: boolean; formattedDate: string }>>({});
   const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
 
   const {
@@ -70,21 +74,13 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         setValue('phone', user.user.phone_number)
       }
     }
-   });
+  });
+
   const { addresses, options } = useUserAddresses(user?.user?.id);
   const selectedPickupPointId = watch("pickupPointId");
-  const { updateUser } = useUpdateUser()
-
-  const availableDeliveryTimes = deliveryTimes.filter(time => 
-    weekDates[time.dayOfWeek] !== undefined
-  );
+  const { updateUser } = useUpdateUser();
   
-  const groupedDeliveryTimes = availableDeliveryTimes.reduce((acc, time) => {
-    const day = time.dayOfWeek;
-    if (!acc[day]) acc[day] = [];
-    acc[day].push(time);
-    return acc;
-  }, {} as Record<string, DeliveryTime[]>);
+  const { deliveryTimeData } = useDeliveryTimes(selectedPickupPointId);
 
   const confirmForm = (data: OrderFormInputs) => {
     onSubmit({
@@ -109,14 +105,15 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         const addressLon = parseFloat(address.geo_lon);
         
         const pointsWithDistance = pointsWithCoords.map(point => ({
-          ...point,
-          distance: calculateDistance(
-            addressLat,
-            addressLon,
-            parseFloat(point.geo_lat),
-            parseFloat(point.geo_lon)
-          )
-        }));
+            ...point,
+            distance: calculateDistance(
+              addressLat,
+              addressLon,
+              parseFloat(point.geo_lat),
+              parseFloat(point.geo_lon)
+            )
+          })
+        )
         
         const availablePoint = pointsWithDistance.filter(
           (pickupPoint) => pickupPoint.distance < pickupPoint.radius / 1000
@@ -166,39 +163,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     };
     fetchPickupPoints();
   }, []);
-
-  useEffect(() => {
-    if (selectedPickupPointId) {
-      const selectedPoint = pickupPoints.find(p => p.id === selectedPickupPointId);
-      if (selectedPoint) {
-        const deliveryTimes = selectedPoint.deliveryTimes;
-        setDeliveryTimes(deliveryTimes);
-  
-        const deliveryDays = deliveryTimes.map(time => {
-          const dayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(time.dayOfWeek);
-          return dayIndex === 0 ? 7 : dayIndex; // Приводим к 1-7
-        });
-  
-        const availableDates = getAvailableDeliveryDates(deliveryDays);
-        
-        const formattedDates = availableDates.reduce((acc, date) => {
-          const dayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
-          acc[dayKey] = {
-            date: date,
-            isToday: false,
-            formattedDate: formatToRussianDate(date.toString())
-          };
-          return acc;
-        }, {} as Record<string, { date: Date; isToday: boolean; formattedDate: string }>);
-  
-        setWeekDates(formattedDates);
-        setValue("deliveryTimeId", null);
-      }
-    } else {
-      setDeliveryTimes([]);
-      setWeekDates({});
-    }
-  }, [selectedPickupPointId, pickupPoints, setValue]);
 
   const isExpiredProduct = !!basketStore.basketList.find(basketItem => basketItem.product.is_expired)
 
@@ -284,65 +248,63 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             </Box>
           ) : null}
 
-          {selectedPickupPointId && deliveryTimes.length > 0 ? (
-            Object.keys(weekDates).length > 0 ? (
-              <Box mb={2}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel id="delivery-time-label">Время доставки</InputLabel>
-                  <Controller
-                    name="deliveryTimeId"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        labelId="delivery-time-label"
-                        label="Время доставки"
-                        error={!!errors.deliveryTimeId}
-                        startAdornment={
-                          <InputAdornment position="start">
-                            <ScheduleIcon color="action" />
-                          </InputAdornment>
-                        }
-                        renderValue={(selected) => {
-                          const selectedTime = deliveryTimes.find(time => time.id === selected);
-                          if (!selectedTime) return null;
-                          const date = weekDates[selectedTime.dayOfWeek]?.formattedDate;
-                          return `${date}, ${selectedTime.startTime?.substring(0,5)} - ${selectedTime.endTime?.substring(0,5)}`;
-                        }}
-                      >
-                        {Object.entries(groupedDeliveryTimes).map(([day, times]) => [
-                          <ListSubheader key={`header-${day}`}>
-                            {weekDates[day]?.formattedDate}
-                          </ListSubheader>,
-                          ...times.map((time) => (
-                            <MenuItem 
-                              key={time.id} 
-                              value={time.id}
-                              onClick={() => {
-                                setValue("deliveryDate", weekDates[day].date);
-                              }}
-                            >
-                              {time.startTime?.substring(0,5)} - {time.endTime?.substring(0,5)}
-                            </MenuItem>
-                          ))
-                        ])}
-                      </Select>
-                    )}
-                  />
-                  {errors.deliveryTimeId && (
-                    <Typography color="error" variant="body2">
-                      {errors.deliveryTimeId.message}
-                    </Typography>
+          {selectedPickupPointId && deliveryTimeData?.length > 0 ? (
+            <Box mb={2}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="delivery-time-label">Время доставки</InputLabel>
+                <Controller
+                  name="deliveryTimeId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      labelId="delivery-time-label"
+                      label="Время доставки"
+                      error={!!errors.deliveryTimeId}
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <ScheduleIcon color="action" />
+                        </InputAdornment>
+                      }
+                      renderValue={(selected) => {
+                        const selectedTime = deliveryTimeData
+                          ?.flatMap(day => day.times)
+                          ?.find(time => time.id === selected);
+                        if (!selectedTime) return null;
+                        
+                        const dayData = deliveryTimeData?.find(day => 
+                          day.times.some(t => t.id === selected)
+                        );
+                        
+                        return `${dayData?.date ? formatToRussianDate(dayData.date) : ''}, ${selectedTime.startTime?.substring(0,5)} - ${selectedTime.endTime?.substring(0,5)}`;
+                      }}
+                    >
+                      {deliveryTimeData?.map((dayData) => [
+                        <ListSubheader key={`header-${dayData.date}`}>
+                          {formatToRussianDate(dayData.date)}
+                        </ListSubheader>,
+                        ...dayData.times.map((time) => (
+                          <MenuItem 
+                            key={time.id} 
+                            value={time.id}
+                            onClick={() => {
+                              setValue("deliveryDate", dayData.date);
+                            }}
+                          >
+                            {time.startTime?.substring(0,5)} - {time.endTime?.substring(0,5)}
+                          </MenuItem>
+                        ))
+                      ])}
+                    </Select>
                   )}
-                </FormControl>
-              </Box>
-            ) : (
-              <Box mb={2} textAlign="center" py={2}>
-                <Typography variant="body1" color="textSecondary">
-                  Доставка на этой неделе по вашему адресу закончилась
-                </Typography>
-              </Box>
-            )
+                />
+                {errors.deliveryTimeId && (
+                  <Typography color="error" variant="body2">
+                    {errors.deliveryTimeId.message}
+                  </Typography>
+                )}
+              </FormControl>
+            </Box>
           ) : null}
 
           <Box mb={1}>

@@ -1,24 +1,54 @@
 import * as crypto from 'crypto';
+import { Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject } from '@nestjs/common';
+import type { Cache } from 'cache-manager';
+import { StoreService } from '@app/store/store.service';
 
+@Injectable()
 export class TelegramUtils {
-  private static BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  private readonly logger = new Logger(TelegramUtils.name);
+  private readonly TOKEN_CACHE_TTL = 300_000;
 
-  static validateInitData(initData: string): boolean {
-    if (!initData || !this.BOT_TOKEN) {
-      console.error('initData or BOT_TOKEN is missing!');
+  constructor(
+    private readonly storeService: StoreService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+  ) {}
+
+  private async getBotToken(storeId: number): Promise<string> {
+    const cacheKey = `bot_token_${storeId}`;
+    
+    try {
+      const cachedToken = await this.cacheManager.get<string>(cacheKey);
+      if (cachedToken) return cachedToken;
+
+      const token = await this.storeService.getStoreTelegramBotToken(storeId);
+      if (!token) throw new Error(`Bot token not found for store ${storeId}`);
+
+      await this.cacheManager.set(cacheKey, token, this.TOKEN_CACHE_TTL);
+      return token;
+    } catch (error) {
+      this.logger.error(`Failed to get bot token: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async validateInitData(storeId: number, initData: string): Promise<boolean> {
+    if (!initData) {
+      this.logger.error('initData is missing!');
       return false;
     }
 
     try {
+      const botToken = await this.getBotToken(storeId);
       const urlParams = new URLSearchParams(initData);
       const hash = urlParams.get('hash');
       
       if (!hash) {
-        console.error('Hash not found in initData');
+        this.logger.error('Hash not found in initData');
         return false;
       }
 
-      // Собираем все параметры, кроме `hash`, сортируем и объединяем
       const dataCheckString = Array.from(urlParams.entries())
         .filter(([key]) => key !== 'hash')
         .sort(([a], [b]) => a.localeCompare(b))
@@ -26,17 +56,15 @@ export class TelegramUtils {
         .join('\n');
 
       if (!dataCheckString) {
-        console.error('No data to validate (empty after filtering)');
+        this.logger.error('No data to validate');
         return false;
       }
 
-      // Генерируем секретный ключ
       const secretKey = crypto
         .createHmac('sha256', 'WebAppData')
-        .update(this.BOT_TOKEN)
+        .update(botToken)
         .digest();
 
-      // Вычисляем хеш
       const calculatedHash = crypto
         .createHmac('sha256', secretKey)
         .update(dataCheckString)
@@ -45,27 +73,29 @@ export class TelegramUtils {
       const isValid = calculatedHash === hash;
       
       if (!isValid) {
-        console.error('Hash mismatch!');
+        this.logger.warn(`Hash mismatch for store ${storeId}`);
       }
 
       return isValid;
     } catch (error) {
-      console.error('Error validating initData:', error);
+      this.logger.error(`Validation error: ${error.message}`);
       return false;
     }
   }
 
-  static parseInitData(initData: string) {
-    console.log('Received initData:', initData); // Добавьте это
+  async parseInitData(storeId: number, initData: string) {
     try {
-      const urlParams = new URLSearchParams(initData);
-      console.log('URLSearchParams entries:', [...urlParams.entries()]); // И это
+      // Сначала валидируем данные
+      const isValid = await this.validateInitData(storeId, initData);
+      if (!isValid) {
+        throw new Error('Invalid initData signature');
+      }
 
+      const urlParams = new URLSearchParams(initData);
       const userStr = urlParams.get('user');
       
-      if (!userStr) throw new Error('User data not found in initData');
+      if (!userStr) throw new Error('User data not found');
 
-      // Декодируем `user` (он приходит в URL-encoded формате)
       const userData = JSON.parse(decodeURIComponent(userStr));
       
       if (!userData?.id) {
@@ -76,9 +106,11 @@ export class TelegramUtils {
         id: userData.id,
         first_name: userData.first_name,
         username: userData.username,
+        storeId, // Добавляем ID магазина к результату
       };
     } catch (error) {
-      throw error
+      this.logger.error(`Parse error: ${error.message}`);
+      throw error;
     }
   }
 }

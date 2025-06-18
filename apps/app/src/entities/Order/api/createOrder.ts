@@ -18,7 +18,7 @@ export const createOrder = async (options: CreateOrderOptions) => {
             comment: data.comment,
             pickupPointId: data.pickupPointId,
             deliveryTimeId: data.deliveryTimeId,
-            deliveryDate: data.deliveryDate ? formatDateToYYYYMMDD(data.deliveryDate) : null
+            deliveryDate: data.deliveryDate ? formatDateToYYYYMMDD(new Date(data.deliveryDate)) : null
         }
 
         const response = await API.post("/order/create", body)

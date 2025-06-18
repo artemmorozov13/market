@@ -1,25 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreatePickupPointDto } from './dto/create-pickup-point.dto';
 import { UpdatePickupPointDto } from './dto/update-pickup-point.dto';
 import { PickupPoint } from '@core/entities/pickup-point.entity';
-import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { PickupPointStoreResolver } from './lib/pickup-point-store-resolver';
+import { DeliveryTimesService } from '../delivery-times/delivery-times.service';
 
 @Injectable()
 export class PickupPointService {
   constructor(
     @InjectRepository(PickupPoint)
     private pickupPointRepository: Repository<PickupPoint>,
-    @InjectRepository(DeliveryTime)
-    private deliveryTimeRepository: Repository<DeliveryTime>,
-    private readonly pickupPointResolver: PickupPointStoreResolver
+    private readonly pickupPointResolver: PickupPointStoreResolver,
+    private readonly deliveryTimesService: DeliveryTimesService
   ) {}
 
   async create(userJwt: AuthJwtPayload, createDto: CreatePickupPointDto): Promise<PickupPoint> {
-    const store = await this.pickupPointResolver.resolveStore(userJwt)
+    const store = await this.pickupPointResolver.resolveStore(userJwt);
 
     const pickupPoint = this.pickupPointRepository.create({
       name: createDto.name,
@@ -31,18 +30,15 @@ export class PickupPointService {
       fullAddress: createDto.address.fullAddress,
       status: 'active',
       store: store,
-    });
+    })
 
     const savedPoint = await this.pickupPointRepository.save(pickupPoint);
 
     if (createDto.deliveryTimes && createDto.deliveryTimes.length > 0) {
-      const deliveryTimes = createDto.deliveryTimes.map(timeDto =>
-        this.deliveryTimeRepository.create({
-          ...timeDto,
-          pickupPoint: savedPoint,
-        })
+      savedPoint.deliveryTimes = await this.deliveryTimesService.createDeliveryTimes(
+        savedPoint.id,
+        createDto.deliveryTimes
       );
-      savedPoint.deliveryTimes = await this.deliveryTimeRepository.save(deliveryTimes);
     }
 
     return savedPoint;
@@ -90,23 +86,15 @@ export class PickupPointService {
       if (updateDto.address.fias_id) point.fias_id = updateDto.address.fias_id;
       if (updateDto.address.geo_lat) point.geo_lat = updateDto.address.geo_lat;
       if (updateDto.address.geo_lon) point.geo_lon = updateDto.address.geo_lon;
+      if (updateDto.address.fullAddress) point.fullAddress = updateDto.address.fullAddress;
     }
     if (updateDto.status) point.status = updateDto.status;
 
     if (updateDto.deliveryTimes) {
-      // Удаляем старые deliveryTimes
-      if (point.deliveryTimes && point.deliveryTimes.length > 0) {
-        await this.deliveryTimeRepository.remove(point.deliveryTimes);
-      }
-      
-      // Создаем новые
-      const deliveryTimes = updateDto.deliveryTimes.map(timeDto =>
-        this.deliveryTimeRepository.create({
-          ...timeDto,
-          pickupPoint: point,
-        })
+      point.deliveryTimes = await this.deliveryTimesService.updateDeliveryTimes(
+        point.id,
+        updateDto.deliveryTimes
       );
-      point.deliveryTimes = await this.deliveryTimeRepository.save(deliveryTimes);
     }
 
     return this.pickupPointRepository.save(point);
@@ -118,8 +106,7 @@ export class PickupPointService {
       where: {
         id,
         store
-      },
-      relations: ['deliveryTimes']
+      }
     });
     
     if (!point) {
@@ -128,6 +115,20 @@ export class PickupPointService {
   
     await this.pickupPointRepository.update(id, {
       status: 'deleted'
+    });
+  }
+
+  async findByIds(userJwt: AuthJwtPayload, ids: number[]): Promise<PickupPoint[]> {
+    if (!ids || ids.length === 0) return [];
+    
+    const store = await this.pickupPointResolver.resolveStore(userJwt);
+    return this.pickupPointRepository.find({
+      where: {
+        id: In(ids),
+        store,
+        status: 'active'
+      },
+      relations: ['deliveryTimes']
     });
   }
 }

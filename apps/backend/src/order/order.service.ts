@@ -24,6 +24,8 @@ import { OrderStatusEnum } from '@core/enums/order-status-enum';
 import { OrderStoreResolver } from './lib/order-store-resolver';
 import { AdminUpdateOrderStatusDto } from './dto/admin-update-order-status.dto';
 import { getCanceledByAdminMessage } from './notifications/admin-order-status-change.message';
+import { UsersService } from '@app/users/users.service';
+import { StoreUserService } from '@app/store-user/store-user.service';
 
 @Injectable()
 export class OrderService {
@@ -43,7 +45,9 @@ export class OrderService {
     private readonly pickupPointRepository: Repository<PickupPoint>,
     @InjectRepository(DeliveryTime)
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
-    private readonly orderStoreResolver: OrderStoreResolver
+    private readonly orderStoreResolver: OrderStoreResolver,
+    private readonly storeUserService: StoreUserService,
+    private readonly userService: UsersService
   ) {}
 
   async getOrdersListData(userJwt: AuthJwtPayload, options: GetOrderQueryDto) {
@@ -117,11 +121,12 @@ export class OrderService {
   }
 
   async cancelOrderByUser(cancelUserOrderDto: CancelUserOrderDto, userData: AuthJwtPayload) {
+    const user = await this.userService.getUserById(userData.id)
     const order = await this.orderRepository.findOne({
       where: {
         id: cancelUserOrderDto.orderId,
         user: {
-          id: userData.id
+          id: user.id
         },
         status: In([OrderStatusEnum.WaitForPay])
       },
@@ -150,6 +155,7 @@ export class OrderService {
       if (order.user.telegram_id) {
         const userMessage = cancelOrderByUserMessage(order);
         await this.telegramService.sendHtmlMessage(
+            user.store.id,
             order.user.telegram_id.toString(),
             userMessage
         );
@@ -167,12 +173,14 @@ export class OrderService {
     }
   }
 
-  async adminUpdateOrdersStatus(updateStatusDto: AdminUpdateOrderStatusDto) {
+  async adminUpdateOrdersStatus(userJwt: AuthJwtPayload, updateStatusDto: AdminUpdateOrderStatusDto) {
+    const storeUser = await this.storeUserService.getStoreUserById(userJwt.id);
+
     const { orderIds, status, cancelReason } = updateStatusDto;
     
     const orders = await this.orderRepository.find({
       where: { id: In(orderIds) },
-      relations: ['user', 'store']
+      relations: ['user']
     });
 
     if (!orders.length) {
@@ -198,7 +206,7 @@ export class OrderService {
         message: getCanceledByAdminMessage(order, cancelReason)
       }));
 
-      return await this.telegramService.sendBatchMessages(notifications);
+      return await this.telegramService.sendBatchMessages(storeUser.id, notifications);
     }
   }
   
@@ -323,6 +331,7 @@ export class OrderService {
     if (user.telegram_id) {
       const userMessage = formatUserOrderMessage(order, orderedProducts, pickupPoint, deliveryTime);
       await this.telegramService.sendHtmlMessage(
+          store.id,
           user.telegram_id.toString(),
           userMessage
       );
@@ -335,17 +344,7 @@ export class OrderService {
     updateOrderDto: UpdateOrderDto,
     userJwt: AuthJwtPayload
   ): Promise<OrderEntity> {
-    const store = await this.orderStoreResolver.resolveStore(userJwt);
-    const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id,
-        store
-      }
-    });
-  
-    if (!user) {
-      throw new NotFoundException("Пользователь не найден");
-    }
+    const user = await this.userService.getUserById(userJwt.id)
 
     if (!updateOrderDto.products.length) {
       throw new BadRequestException("Вы не можете удалить все товары")
@@ -355,7 +354,7 @@ export class OrderService {
       where: {
         id: updateOrderDto.id,
         user: { id: user.id },
-        store
+        store: user.store
       },
       relations: [
         'ordered_products',
@@ -376,7 +375,7 @@ export class OrderService {
     const availableProducts = await this.productRepository.find({
       where: {
         id: In(selectedProducts),
-        store
+        store: user.store
       }
     });
   
@@ -415,7 +414,7 @@ export class OrderService {
     const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
   
     // Обновляем заказ
-    order.totalAmount = totalAmount < store.deliveryFreeFromLimit ? totalAmount + store.deliveryCost : totalAmount;
+    order.totalAmount = totalAmount < user.store.deliveryFreeFromLimit ? totalAmount + user.store.deliveryCost : totalAmount;
     order.ordered_products = savedProducts;
   
     const savedOrder = await this.orderRepository.save(order);
@@ -423,7 +422,7 @@ export class OrderService {
     const updatedOrder = await this.orderRepository.findOne({
       where: {
         id: savedOrder.id,
-        store
+        store: user.store
       },
       relations: ['ordered_products', 'ordered_products.product', 'deliveryTime'],
       loadEagerRelations: false
@@ -432,6 +431,7 @@ export class OrderService {
     if (user.telegram_id) {
       const userMessage = formatUpdatedOrderMessage(updatedOrder, savedProducts, updatedOrder.pickupPoint, updatedOrder.deliveryTime);
       await this.telegramService.sendHtmlMessage(
+          user.store.id,
           user.telegram_id.toString(),
           userMessage
       );

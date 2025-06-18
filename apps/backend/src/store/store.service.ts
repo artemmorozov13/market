@@ -23,11 +23,9 @@ export class StoreService {
                 id: storeId
             }
         })
-
         if (!store) {
             throw new BadRequestException("Данные магазина не найдены")
         }
-
         return store
     }
 
@@ -69,6 +67,11 @@ export class StoreService {
             throw new BadRequestException('Магазин не найден или у вас нет прав');
         }
 
+        if (body.isDeliveryFree) {
+            body.deliveryCost = 0;
+            body.deliveryFreeFromLimit = 0;
+        }
+
         // 4. Обновляем магазин
         await this.storeRepository.update(store.id, body);
 
@@ -77,5 +80,10 @@ export class StoreService {
             where: { id: store.id },
             relations: ['staff'],
         });
+    }
+
+    async getStoreTelegramBotToken(storeId: number) {
+        const store = await this.getStoreDataById(storeId);
+        return store.telegramBotToken;
     }
 }
