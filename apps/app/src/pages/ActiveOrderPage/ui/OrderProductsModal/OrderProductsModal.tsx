@@ -2,7 +2,7 @@ import { API } from "@/shared/api/API";
 import { FC, useState } from "react";
 import styles from "./OrderProductsModal.module.scss"
 import { Button, Modal, TextField, Typography } from "@mui/material";
-import { ProductType } from "@/entities/Product";
+import { ProductType } from "@core/types/product-item";
 
 export const OrderProductsModal: FC<any> = ({ open, onClose, order, refreshOrders }) => {
     const [products, setProducts] = useState(order?.products || []);

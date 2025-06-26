@@ -16,10 +16,11 @@ import { observer, useLocalObservable } from "mobx-react-lite";
 import { editOrderModalStore } from "../../store/editOrderModalStore";
 import { usePagedProductsList } from "@/entities/Product";
 import { useInView } from "react-intersection-observer";
-import { BasketType } from "@/entities/Basket";
+import { useUpdateOrder } from "../../api/useUpdateOrder";
 
 import styles from "./EditOrderModal.module.scss";
-import { useUpdateOrder } from "../../api/useUpdateOrder";
+import { BasketBaseType } from "@core/types/basket-tipe";
+import { StoreBaseType } from "@core/types/store-type";
 
 
 interface EditOrderModalProps {
@@ -28,7 +29,7 @@ interface EditOrderModalProps {
   order: Order | null;
 }
 
-export interface OrderBasketType extends Omit<BasketType, "id" | "userTgchatId"> {
+export interface OrderBasketType extends Omit<BasketBaseType, "id" | "userTgchatId"> {
   isInBasket: boolean
 }
 
@@ -173,6 +174,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
         product: product,
         productId: product.id,
         quantity: 0,
+        store: order?.store as StoreBaseType,
         isInBasket: false
       }))
     updateAdaptedProducts(update)

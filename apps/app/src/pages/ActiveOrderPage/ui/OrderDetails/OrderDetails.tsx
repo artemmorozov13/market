@@ -193,7 +193,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {item.quantity} × {item.product.price} ₽ ={' '}
-                    {(item.quantity * parseFloat(item.product.price)).toFixed(2)} ₽
+                    {(item.quantity * Number(item.product.price)).toFixed(2)} ₽
                   </Typography>
                 </Box>
               </Stack>

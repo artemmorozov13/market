@@ -13,15 +13,16 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { BasketType, basketStore } from "../..";
+import { basketStore } from "../..";
 import { observer } from "mobx-react-lite";
 import { ConfirmRemoveFromBasketModal } from "../ConfirmRemoveFromBasketModal/ConfirmRemoveFromBasketModal";
 import clsx from "clsx";
 import styles from "./BasketCard.module.scss";
 import { ProductStatusEnum } from "@core/enums/product-status-enum";
+import { BasketBaseType } from "@core/types/basket-tipe";
 
 interface BasketItemProps {
-  item: BasketType;
+  item: BasketBaseType;
   className?: string;
 }
 

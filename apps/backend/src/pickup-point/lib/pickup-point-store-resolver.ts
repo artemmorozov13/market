@@ -4,6 +4,7 @@ import { Roles } from '@core/enums/role-enum';
 import { UsersService } from '@app/users/users.service';
 import { StoreUserService } from '@app/store-user/store-user.service';
 import { StoreBaseType } from '@core/types/store-type';
+import { StoreEntity } from '@core/entities/store.entity';
 
 @Injectable()
 export class PickupPointStoreResolver {
@@ -12,7 +13,7 @@ export class PickupPointStoreResolver {
     private readonly userService: UsersService,
   ) {}
 
-  async resolveStore(userJwt: AuthJwtPayload): Promise<StoreBaseType | undefined> {
+  async resolveStore(userJwt: AuthJwtPayload): Promise<StoreEntity | undefined> {
     switch (userJwt.role) {
       case Roles.Admin:
         const admin = await this.storeUserService.getStoreUserById(userJwt.id);
