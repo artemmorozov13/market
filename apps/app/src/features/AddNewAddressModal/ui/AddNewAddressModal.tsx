@@ -14,37 +14,22 @@ import {
 } from "@mui/material";
 import styles from "./AddNewAddressModal.module.css";
 import { useAddressSuggestions } from "../api/queryAdreess";
-import { useSaveAddress } from "../api/putNewAddress";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
-import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes";
-import { AddressType } from "@/entities/Addresses";
+import { AddressType, useSaveAddress } from "@/entities/Addresses";
+import { AddressFormValues } from "../types/addressesTypes";
 
 interface AddressSuggestion {
   value: string;
   data: {
     [key: string]: any;
     house_type_full?: string;
-    // другие поля данных адреса
   };
 }
-
-interface AddressFormValues {
-  fullAddress: string;
-  entrance: string;
-  floor?: string;
-  apartment?: string;
-  intercom?: string;
-  addressData?: any;
-}
-
-
 
 interface AddNewAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
-  setAddressValue: UseFormSetValue<OrderFormInputs>
-  settingPickPoint: (address: AddressType) => void
 }
 
 const validationSchema = yup.object().shape({
@@ -67,8 +52,6 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
   const { 
     isOpen, 
     onClose,
-    setAddressValue,
-    settingPickPoint
   } = props
 
   const [inputValue, setInputValue] = useState('');
@@ -91,23 +74,19 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
     return () => clearTimeout(timerId);
   }, [inputValue]);
 
-  const { user } = useUser()
-  console.log(user)
-  const { refetch } = useUserAddresses(user?.user?.id)
   const { suggestions, isLoading } = useAddressSuggestions(debouncedQuery);
   const { saveAddress, isSaving } = useSaveAddress();
+  const { refetchUser } = useUser()
   
-
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     setInputValue('');
     setLastSelectedValue(null);
     reset();
     onClose();
-  }, [onClose, reset]);
+  };
 
-  const onSubmit = useCallback(async (data: AddressFormValues) => {
-    try {
-      const response = await saveAddress(data as any);
+  const onSubmit = async (data: AddressFormValues) => {
+      const response = await saveAddress(data,);
       const addressValue = {
         id: response.id,
         apartment: response.apartment,
@@ -123,22 +102,9 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = (props) => {
         createdAt: response.createdAt,
         updatedAt: response.updatedAt,
       };
-      
-      // Обновляем список адресов
-      await refetch();
-
-      settingPickPoint(addressValue)
-      
-      // Устанавливаем новый адрес как выбранный
-      setAddressValue("address", addressValue);
-
-      
-      // Закрываем модальное окно
       handleClose();
-    } catch (error) {
-      console.error('Ошибка при сохранении адреса:', error);
-    }
-  }, [saveAddress, handleClose, refetch, setAddressValue]);
+      refetchUser()
+  }
 
   const addressOptions = useMemo(() => suggestions.map(suggestion => ({
     label: suggestion.value,

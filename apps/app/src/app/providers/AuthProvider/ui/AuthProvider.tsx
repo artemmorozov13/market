@@ -9,6 +9,7 @@ import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { InstallButton } from "@/shared/ui/InstallButton";
 import { useUser } from "../api/fetchUserData";
 import { LOCALSTORAGE_STOREID_KEY } from "@/shared/consts/applicationConsts";
+import { Roles } from "@core/enums/role-enum";
 
 interface AuthProviderProps {
   children: ReactNode
@@ -28,8 +29,6 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     if (storeId && !storageStoreId) {
       localStorage.setItem(LOCALSTORAGE_STOREID_KEY, storeId)
     }
-
-    console.log(storageStoreId)
 
     if (urlParams.toString()) {
       const data = {
@@ -69,7 +68,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     )
   }
 
-  if (role === "notAuthed") {
+  if (role === Roles.NotAuthed) {
     return (
       <Box className={styles.authContainer}>
         <Box className={styles.authCard}>

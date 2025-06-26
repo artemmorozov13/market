@@ -1,0 +1,37 @@
+.modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalContent {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    outline: none;
+    margin: 16px;
+
+    .title {
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+    }
+
+    .message {
+        color: #666;
+        margin-bottom: 24px;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 24px;
+    }
+}

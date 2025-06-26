@@ -1,8 +1,6 @@
 import { BasketType } from "@entities/Basket";
 import { OrderType } from "@entities/Order";
 
-export type UserRoleType = 'customer' | 'storeOwner';
-
 // export type UserType = StoreOwnerUserType | CustomerUserType
 
 export interface StoreOwnerUserType {

@@ -3,6 +3,7 @@ import { userStore } from "@/entities/User"
 import { AuthViaTelegramResponse } from "@/entities/User/types/userTypes"
 import { API } from "@/shared/api/API"
 import { ACCESS_TOKEN, LOCALSTORAGE_STOREID_KEY, REFRESH_TOKEN } from "@/shared/consts/applicationConsts"
+import { Roles } from "@core/enums/role-enum"
 import { useQuery } from "@tanstack/react-query"
 import { TelegramAuthData } from "@telegram-auth/react"
 import Cookies from "js-cookie"
@@ -22,8 +23,6 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
         const tgWebAppStartParam = urlParams.get("tgWebAppStartParam");
         const storeId = tgWebAppStartParam?.split('_')[1];
 
-        console.log(tgWebAppStartParam, storeId)
-
         const response = await API.post("/users/login", {
             initData: window.Telegram?.WebApp.initData,
             storeId: Number(storeId)
@@ -33,7 +32,7 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
 
         Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 1 })
         setUserData(response.data)
-        setUserRole('customer')
+        setUserRole(Roles.User)
 
         await fetchBasketList()
         return response.data
@@ -51,7 +50,7 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
         Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 1 })
         Cookies.set(REFRESH_TOKEN, response.data.refreshToken, { expires: 30 })
         setUserData(response.data)
-        setUserRole('customer')
+        setUserRole(Roles.User)
 
         await fetchBasketList()
         return response.data
@@ -64,7 +63,7 @@ export const fetchUserData = async (options?: FetchUserDataOptions) => {
         const { fetchBasketList } = basketStore
 
         setUserData(response.data)
-        setUserRole('customer')
+        setUserRole(Roles.User)
 
         await fetchBasketList()
 
@@ -85,6 +84,7 @@ export const useUser = (options?: FetchUserDataOptions) => {
     })
     return {
         ...query,
-        user: query.data
+        user: query.data,
+        refetchUser: query.refetch
     }
 }

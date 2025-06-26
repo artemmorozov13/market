@@ -4,6 +4,7 @@ import { StoreUserBaseType } from "@core/types/store-user"
 
 interface FetchUserOptions {
     onSuccess?: (user: StoreUserBaseType) => void
+    enabled?: boolean
 }
 
 export const fetchUser = async (options?: FetchUserOptions) => {
@@ -24,6 +25,7 @@ export const useUser = (options?: FetchUserOptions) => {
     const query = useQuery({
         queryKey: ['user'],
         queryFn: () => fetchUser(options),
+        enabled: !!options?.enabled
     })
     return {
         ...query,

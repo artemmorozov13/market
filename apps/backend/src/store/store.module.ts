@@ -10,7 +10,7 @@ import { AuthModule } from '@app/auth/auth.module';
   imports: [
     TypeOrmModule.forFeature([StoreEntity]),
     forwardRef(() => AuthModule),
-    forwardRef(() => StoreUserModule),
+    forwardRef(() => StoreUserModule)
   ],
   providers: [StoreService],
   controllers: [StoreController],

@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsIn, IsNotEmpty, IsInt } from 'class-validator';
+import { UnitOfMeasuresEnum } from '@core/enums/units-of-measures';
+import { IsString, IsNumber, IsNotEmpty, IsInt, IsEnum } from 'class-validator';
 
 export class CreateProductDto {
     @IsString()
@@ -24,7 +25,7 @@ export class CreateProductDto {
     @IsNumber()
     unitValue: number
 
-    @IsIn(['гр', 'кг', 'шт'])
+    @IsEnum(UnitOfMeasuresEnum)
     @IsNotEmpty()
-    unitOfMeasurement: 'гр' | 'кг' | 'шт';
+    unitOfMeasurement: UnitOfMeasuresEnum;
 }

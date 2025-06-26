@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TelegramService } from './telegram.service';
 import { TelegramErrorService } from './telegram-error.service';
@@ -20,7 +20,7 @@ import { StoreUserService } from '@app/store-user/store-user.service';
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot(), // Добавлен forRoot() для правильной инициализации
     CacheModule.register(),
     TypeOrmModule.forFeature([UsersEntity, OrderEntity]),
     forwardRef(() => AuthModule),
@@ -34,19 +34,25 @@ import { StoreUserService } from '@app/store-user/store-user.service';
     {
       provide: TelegramService,
       useFactory: (
+        configService: ConfigService,
         usersService: UsersService,
         storeService: StoreService,
         storeUserService: StoreUserService,
         cacheManager: Cache
       ) => {
         return new TelegramService(
+          configService, // Добавлен ConfigService
           usersService,
-          storeService,
-          storeUserService,
-          cacheManager
+          storeUserService // StoreService больше не нужен в конструкторе TelegramService
         );
       },
-      inject: [UsersService, StoreService, StoreUserService, CACHE_MANAGER],
+      inject: [
+        ConfigService, // Добавлен ConfigService
+        UsersService, 
+        StoreService, 
+        StoreUserService, 
+        CACHE_MANAGER
+      ],
     },
     {
       provide: TelegramErrorService,

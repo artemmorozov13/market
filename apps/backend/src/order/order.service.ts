@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Not, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GetOrderQueryDto } from './dto/get-order-query.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { TelegramService } from 'src/telegram/telegram.service';
@@ -26,6 +25,8 @@ import { AdminUpdateOrderStatusDto } from './dto/admin-update-order-status.dto';
 import { getCanceledByAdminMessage } from './notifications/admin-order-status-change.message';
 import { UsersService } from '@app/users/users.service';
 import { StoreUserService } from '@app/store-user/store-user.service';
+import { ProductStatusEnum } from '@core/enums/product-status-enum';
+import { StoreService } from '@app/store/store.service';
 
 @Injectable()
 export class OrderService {
@@ -47,17 +48,18 @@ export class OrderService {
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
     private readonly orderStoreResolver: OrderStoreResolver,
     private readonly storeUserService: StoreUserService,
-    private readonly userService: UsersService
+    private readonly userService: UsersService,
+    private readonly storeService: StoreService
   ) {}
 
   async getOrdersListData(userJwt: AuthJwtPayload, options: GetOrderQueryDto) {
-    const store = await this.orderStoreResolver.resolveStore(userJwt);
     const { limit = 10, skip, pickupPointId } = options;
     const whereOptions: FindOptionsWhere<OrderEntity> = {
-      store
+      store: {
+        id: userJwt.storeId
+      }
     };
 
-    // Обрабатываем как массив ID, даже если пришел один ID
     if (pickupPointId) {
         const pointIds = Array.isArray(pickupPointId) 
             ? pickupPointId 
@@ -94,28 +96,21 @@ export class OrderService {
     };
   }
 
-  async getCurrentUserOrders(userPayload: AuthJwtPayload): Promise<OrderEntity[]> {
-    const user = await this.usersRepository.findOne({
-      where: { id: userPayload.id },
-    });
-  
-    if (!user) {
-      throw new NotFoundException("Пользователь не найден");
-    }
-  
+  async getCurrentUserOrders(userJwt: AuthJwtPayload): Promise<OrderEntity[]> {
     return await this.orderRepository.find({
       where: { 
-        user: { id: user.id },
+        user: { id: userJwt.id },
       },
       relations: [
         'ordered_products',
         'ordered_products.product',
         'deliveryTime',
-        'pickupPoint'
+        'pickupPoint',
+        'store'
       ],
       order: {
-        deliveryDate: "DESC", // Сортировка по убыванию даты
-        createdAt: "DESC"     // Дополнительная сортировка по дате создания
+        deliveryDate: "DESC",
+        createdAt: "DESC"
       }
     });
   }
@@ -154,8 +149,7 @@ export class OrderService {
 
       if (order.user.telegram_id) {
         const userMessage = cancelOrderByUserMessage(order);
-        await this.telegramService.sendHtmlMessage(
-            user.store.id,
+        await this.telegramService.sendMessage(
             order.user.telegram_id.toString(),
             userMessage
         );
@@ -174,8 +168,6 @@ export class OrderService {
   }
 
   async adminUpdateOrdersStatus(userJwt: AuthJwtPayload, updateStatusDto: AdminUpdateOrderStatusDto) {
-    const storeUser = await this.storeUserService.getStoreUserById(userJwt.id);
-
     const { orderIds, status, cancelReason } = updateStatusDto;
     
     const orders = await this.orderRepository.find({
@@ -202,33 +194,21 @@ export class OrderService {
 
     if (status === OrderStatusEnum.CancelByAdmin) {
       const notifications = orders.map(order => ({
-        chatId: order.user.telegram_id,
+        chatId: order.user.telegram_id.toString(),
         message: getCanceledByAdminMessage(order, cancelReason)
       }));
 
-      return await this.telegramService.sendBatchMessages(storeUser.id, notifications);
+      return await this.telegramService.sendBatchMessages(notifications);
     }
   }
   
   async createOrder(createOrderDto: CreateOrderDto, userJwt: AuthJwtPayload) {
-    const store = await this.orderStoreResolver.resolveStore(userJwt);
-    const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id,
-        store
-      }
-    });
+    const store = await this.storeService.getStoreDataById(createOrderDto.storeId);
+    const user = await this.userService.getUserById(userJwt.id)
 
-    if (!user) {
-      throw new NotFoundException("Пользователь не найден");
-    }
-
-    // Проверяем количество активных заказов пользователя
     const activeOrdersCount = await this.orderRepository.count({
       where: {
-        user: {
-          id: user.id
-        },
+        user: user,
         store,
         status: OrderStatusEnum.WaitForPay
       }
@@ -241,9 +221,7 @@ export class OrderService {
     // Проверяем, есть ли уже заказ на выбранную дату
     const existingOrderOnSameDate = await this.orderRepository.findOne({
       where: {
-        user: {
-          id: user.id
-        },
+        user: user,
         store,
         deliveryDate: createOrderDto.deliveryDate,
         address: createOrderDto.address,
@@ -260,9 +238,11 @@ export class OrderService {
         user: {
           id: user.id
         },
-        store,
+        store: {
+          id: store.id
+        },
         product: {
-          is_expired: false
+          status: In([ProductStatusEnum.Accepted, ProductStatusEnum.Active])
         }
       },
       relations: ["product"]
@@ -275,7 +255,9 @@ export class OrderService {
     const pickupPoint = await this.pickupPointRepository.findOne({
       where: {
         id: createOrderDto.pickupPointId,
-        store: store
+        store: {
+          id: store.id
+        }
       }
     });
 
@@ -326,12 +308,18 @@ export class OrderService {
     });
 
     await this.orderedProductsRepository.save(orderedProducts);
-    await this.selectedProductsRepository.delete({ userTgchatId: user.telegram_id });
+    await this.selectedProductsRepository.delete({
+      user: {
+        id: user.id
+      },
+      store: {
+        id: store.id
+      }
+    });
 
     if (user.telegram_id) {
       const userMessage = formatUserOrderMessage(order, orderedProducts, pickupPoint, deliveryTime);
-      await this.telegramService.sendHtmlMessage(
-          store.id,
+      await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
       );
@@ -353,10 +341,9 @@ export class OrderService {
     const order = await this.orderRepository.findOne({
       where: {
         id: updateOrderDto.id,
-        user: { id: user.id },
-        store: user.store
       },
       relations: [
+        'store',
         'ordered_products',
         'ordered_products.product'
       ]
@@ -375,7 +362,9 @@ export class OrderService {
     const availableProducts = await this.productRepository.find({
       where: {
         id: In(selectedProducts),
-        store: user.store
+        store: {
+          id: order.store.id
+        }
       }
     });
   
@@ -384,7 +373,7 @@ export class OrderService {
       return acc;
     }, {} as Record<number, ProductEntity>);
   
-    const isSomeExpired = availableProducts.some(product => product.is_expired);
+    const isSomeExpired = availableProducts.some(product => product.status === ProductStatusEnum.Expired || product.status === ProductStatusEnum.Revoked);
   
     if (isSomeExpired) {
       throw new BadRequestException("В списке присутствует недоступный товар");
@@ -405,7 +394,7 @@ export class OrderService {
       .map(product => ({
         quantity: product.quantity,
         telegram_id: user.telegram_id,
-        product: normalizedProducts[product.productId],
+        product: { id: product.productId },
         order: { id: order.id }, // Только ID, чтобы избежать циклической ссылки
         user: { id: user.id },
       }));
@@ -421,17 +410,20 @@ export class OrderService {
   
     const updatedOrder = await this.orderRepository.findOne({
       where: {
-        id: savedOrder.id,
-        store: user.store
+        id: savedOrder.id
       },
-      relations: ['ordered_products', 'ordered_products.product', 'deliveryTime'],
+      relations: [
+        'ordered_products',
+        'ordered_products.product',
+        'pickupPoint',
+        'deliveryTime',
+      ],
       loadEagerRelations: false
     });
 
     if (user.telegram_id) {
       const userMessage = formatUpdatedOrderMessage(updatedOrder, savedProducts, updatedOrder.pickupPoint, updatedOrder.deliveryTime);
-      await this.telegramService.sendHtmlMessage(
-          user.store.id,
+      await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
       );
@@ -441,10 +433,11 @@ export class OrderService {
   }
   
   async exportExcelWithInnerTable(userJwt: AuthJwtPayload, pickupPointIds?: number[]): Promise<Uint8Array> {
-    const store = await this.orderStoreResolver.resolveStore(userJwt);
     const whereOptions: FindOptionsWhere<OrderEntity> = { 
         status: OrderStatusEnum.WaitForPay,
-        store
+        store: {
+          id: userJwt.storeId
+        }
     };
 
     if (pickupPointIds && pickupPointIds.length > 0) {
@@ -464,10 +457,11 @@ export class OrderService {
   }
 
   async exportToWideFormatExcel(userJwt: AuthJwtPayload, pickupPointIds?: number[]): Promise<Uint8Array> {
-      const store = await this.orderStoreResolver.resolveStore(userJwt);
       const whereOptions: FindOptionsWhere<OrderEntity> = { 
           status: OrderStatusEnum.WaitForPay,
-          store
+          store: {
+            id: userJwt.storeId
+          }
       };
 
       // Добавляем фильтрацию по пунктам выдачи, если они переданы
@@ -477,8 +471,10 @@ export class OrderService {
 
       const products = await this.productRepository.find({
           where: {
-              is_expired: false,
-              store
+              status: In([ProductStatusEnum.Accepted, ProductStatusEnum.Active]),
+              store: {
+                id: userJwt.storeId
+              }
           },
           order: {
             updatedAt: "DESC"

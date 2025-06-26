@@ -1,7 +1,6 @@
 export const routeConfig = {
-    "home": "/admin",
+    // role Admin
     "statistic": "/admin/statistic",
-    "login": "/admin/login",
     "product": "/admin/product",
     "product/create": "/admin/product/create",
     "courier": "/admin/courier",
@@ -11,5 +10,15 @@ export const routeConfig = {
     "orders": "/admin/orders",
     "pickup-points": "/admin/pickup-points",
     "order-table": "/admin/order-table",
-    "telegram-broadcast": "/admin/telegram-broadcast"
+    "telegram-broadcast": "/admin/telegram-broadcast",
+    "suppliers": "/admin/suppliers",
+
+    // role Supplier
+    "supplier-orders": "/admin/supplier/orders",
+    "supplier-products": "/admin/supplier/offer",
+    "supplier-statistic": "/admin/supplier/statistic",
+
+    // role NotAuthed
+    "home": "/admin",
+    "login": "/admin/login",
 }

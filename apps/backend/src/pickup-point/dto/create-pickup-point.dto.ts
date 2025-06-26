@@ -1,27 +1,22 @@
-import { IsString, ValidateNested, IsArray, IsOptional, IsEnum, IsNumber } from 'class-validator';
+import { IsString, ValidateNested, IsArray, IsOptional, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AddressDataDto } from './address-pick-point.dto';
 import { CreateDeliveryTimeDto } from '@app/delivery-times/dto/create-delivery-times.dto';
 
 export class CreatePickupPointDto {
-  @IsString()
+  @IsString({ message: 'Название должно быть строкой' })
   name: string;
 
-  @IsNumber()
+  @IsNumber({}, { message: 'Радиус должен быть числом' })
   @Type(() => Number)
   radius: number;
 
-  @ValidateNested()
+  @ValidateNested({ message: 'Адрес должен быть объектом с полями адреса' })
   @Type(() => AddressDataDto)
-  @IsOptional()
-  address?: AddressDataDto;
+  address: AddressDataDto;
 
-  @IsEnum(['active', 'deleted'])
-  @IsOptional()
-  status?: 'active' | 'deleted';
-
-  @IsArray()
-  @ValidateNested({ each: true })
+  @IsArray({ message: 'Время доставки должно быть массивом' })
+  @ValidateNested({ each: true, message: 'Каждый элемент времени доставки должен быть валидным' })
   @Type(() => CreateDeliveryTimeDto)
   @IsOptional()
   deliveryTimes?: CreateDeliveryTimeDto[];

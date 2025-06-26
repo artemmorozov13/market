@@ -1,16 +1,35 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Matches, IsEnum } from 'class-validator';
+
+export enum DayOfWeek {
+    Monday = 'monday',
+    Tuesday = 'tuesday',
+    Wednesday = 'wednesday',
+    Thursday = 'thursday',
+    Friday = 'friday',
+    Saturday = 'saturday',
+    Sunday = 'sunday'
+}
 
 export class CreateDeliveryTimeDto {
-  @IsString()
-  dayOfWeek: string
+    @IsString({ message: 'День недели должен быть строкой' })
+    @IsEnum(DayOfWeek, { 
+        message: 'День недели должен быть одним из: monday, tuesday, wednesday, thursday, friday, saturday, sunday' 
+    })
+    dayOfWeek: string;
 
-  @IsString()
-  startTime: string;
+    @IsString({ message: 'Время начала должно быть строкой' })
+    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { 
+        message: 'Время начала должно быть в формате HH:MM (например: 09:00)' 
+    })
+    startTime: string;
 
-  @IsString()
-  endTime: string;
+    @IsString({ message: 'Время окончания должно быть строкой' })
+    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { 
+        message: 'Время окончания должно быть в формате HH:MM (например: 18:00)' 
+    })
+    endTime: string;
 
-  @IsOptional()
-  @IsBoolean()
-  isActive: boolean
+    @IsOptional()
+    @IsBoolean({ message: 'isActive должен быть boolean' })
+    isActive?: boolean = true;
 }

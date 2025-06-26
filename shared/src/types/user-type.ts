@@ -17,6 +17,9 @@ export interface UserType {
     quantity: number,
     userTgchatId: number
   }[]
+  selectedAddressId: string
+  selectedAddress: any
+  addresses: any[]
 }
 
 export interface UserLoginResponse {
@@ -28,4 +31,5 @@ export interface UserLoginResponse {
 export type AuthJwtPayload = {
     id: number
     role: Roles
+    storeId?: number
 }

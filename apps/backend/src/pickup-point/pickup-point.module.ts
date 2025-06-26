@@ -9,6 +9,7 @@ import { PickupPointStoreResolver } from './lib/pickup-point-store-resolver';
 import { StoreUserModule } from '@app/store-user/store-user.module';
 import { UsersModule } from '@app/users/users.module';
 import { DeliveryTimesModule } from '@app/delivery-times/delivery-times.module';
+import { StoreModule } from '@app/store/store.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { DeliveryTimesModule } from '@app/delivery-times/delivery-times.module';
     StoreUserModule,
     UsersModule,
     AuthModule,
-    DeliveryTimesModule
+    DeliveryTimesModule,
+    StoreModule
   ],
   controllers: [PickupPointController],
   providers: [

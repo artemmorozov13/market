@@ -1,25 +1,4 @@
-import { StoreBaseType } from "@core/types/store-type"
-export type UserRoleType = 'customer' | 'notAuthed';
-
-export interface UserType {
-  id: number,
-  telegram_id: number,
-  telegram_username: string,
-  name: string,
-  phone_number: string,
-  is_phone_confirmed: boolean,
-  email: string,
-  age: number,
-  created_at: Date
-  updated_at: Date
-  store: StoreBaseType
-  selectedProducts: {
-    id: number,
-    productId: number,
-    quantity: number,
-    userTgchatId: number
-  }[]
-}
+import { UserType } from "@core/types/user-type"
 
 export interface AuthViaTelegramResponse {
   user: UserType

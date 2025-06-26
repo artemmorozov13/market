@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { StoreEntity } from "./store.entity";
 import { Roles } from "../enums/role-enum";
+import { ProductEntity } from "./product.entity";
 
 @Entity({ name: "store-user" })
 export class StoreUserEntity {
@@ -25,6 +26,9 @@ export class StoreUserEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToMany(() => ProductEntity, product => product.storeUser)
+    products: ProductEntity[]
 
     @ManyToOne(() => StoreEntity, store => store.staff)
     @JoinColumn({ name: 'store_id' })

@@ -1,5 +1,7 @@
 export enum Roles {
     User = 'telegram_customer',
     Admin = 'store_owner',
-    SuperAdmin = 'super_admin'
+    Vendor = 'store_vendor',
+    SuperAdmin = 'super_admin',
+    NotAuthed = 'not_authed'
 }

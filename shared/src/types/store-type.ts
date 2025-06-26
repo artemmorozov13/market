@@ -1,3 +1,5 @@
+import { ProductType } from "./product-item";
+
 export interface StoreBaseType {
     id: number
     name: string
@@ -10,5 +12,6 @@ export interface StoreBaseType {
     isWeekLimited: boolean,
     timezone: string;
     minOrderBeforeDeliveryHours: number
+    products: ProductType[]
     // staff: 
 }

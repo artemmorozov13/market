@@ -1,5 +1,5 @@
-import { FC, useEffect, useState } from "react";
-import { useForm, Controller, ControllerRenderProps } from "react-hook-form";
+import { FC, useEffect, useState, useMemo } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { 
   TextField, 
@@ -12,148 +12,125 @@ import {
   InputLabel,
   CircularProgress,
   Button,
-  ListSubheader
+  ListSubheader,
+  Paper,
+  Chip
 } from "@mui/material";
 import styles from "./OrderForm.module.scss";
-import { DeliveryTime, OrderFormInputs, PickupPoint } from "../types/orderFormTypes";
+import { OrderFormInputs, PickupPoint } from "../types/orderFormTypes";
 import { orderFormSchema } from "../lib/orderFormSchema";
 import { observer } from "mobx-react-lite";
 import { formatToRussianPhone } from "@/shared/helpers/formatRussianPhone";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CommentIcon from "@mui/icons-material/Comment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { API } from "@/shared/api/API";
-import clsx from "clsx";
-import { AddNewAddressModal } from "@/features/AddNewAddressModal";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { AddressType } from "@/entities/Addresses";
 import { basketStore } from "@/entities/Basket";
 import { calculateDistance } from "@/shared/helpers/calculateDistance";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
 import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
-import { useUpdateUser } from "@/entities/User";
+import { userStore, useUpdateUser } from "@/entities/User";
 import { useDeliveryTimes } from "@/entities/DeliveryTime";
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
+import { ProductStatusEnum } from "@core/enums/product-status-enum";
+import { AddNewAddressModal } from "@/features/AddNewAddressModal";
+import { useSearchParams } from "react-router";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
 }
 
-interface DeliveryTimeResponse {
-  date: string;
-  dayOfWeek: string;
-  times: DeliveryTime[];
-}
-
 export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
+  const [searchParams] = useSearchParams();
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOpenAddAdressModal, setIsOpenAddAdressModal] = useState<boolean>(false);
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue
-  } = useForm<OrderFormInputs>({
-    resolver: yupResolver(orderFormSchema) as any,
-    defaultValues: {
-      address: null,
-      phone: "",
-      comment: "",
-      pickupPointId: null,
-      deliveryTimeId: null,
-      deliveryDate: null
-    },
-  });
+  const [showAddressModal, setShowAddressModal] = useState(false);
 
   const { user } = useUser({ 
     onSuccess: () => {
       if (user?.user?.phone_number) {
-        setValue('phone', user.user.phone_number)
+        setValue('phone', user.user.phone_number);
+      }
+      if (user?.user?.selectedAddress) {
+        setValue('addressId', user.user.selectedAddress.id);
       }
     }
   });
 
-  const { addresses, options } = useUserAddresses(user?.user?.id);
+  const { selectedStore } = userStore
+  const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<OrderFormInputs>({
+    resolver: yupResolver(orderFormSchema) as any,
+    defaultValues: {
+      phone: user?.user.phone_number,
+      comment: "",
+      pickupPointId: null,
+      deliveryTimeId: null,
+      deliveryDate: null,
+      addressId: null
+    },
+  });
+
   const selectedPickupPointId = watch("pickupPointId");
-  const { updateUser } = useUpdateUser();
-  
+  const selectedAddressId = watch("addressId");
   const { deliveryTimeData } = useDeliveryTimes(selectedPickupPointId);
+  const { updateUser } = useUpdateUser();
+  const { addresses } = useUserAddresses();
+
+  const selectedAddress = useMemo(() => {
+    return addresses?.find(addr => addr.id === selectedAddressId) || user?.user?.selectedAddress;
+  }, [addresses, selectedAddressId, user?.user?.selectedAddress]);
 
   const confirmForm = (data: OrderFormInputs) => {
+    const storeId = searchParams.get('storeId');
     onSubmit({
       ...data,
+      address: user?.user.selectedAddress,
+      addressId: user?.user.selectedAddressId as any,
       deliveryDate: data.deliveryDate,
+      storeId: selectedStore?.id || Number(storeId)
     });
-    updateUser({ phone_number: data.phone })
+    updateUser({ phone_number: data.phone });
   };
 
-  const handleOpenAddAdressModal = () => {
-    setIsOpenAddAdressModal(true);
-  };
+  const findNearestPickupPoint = (address: AddressType, points: PickupPoint[]) => {
+    if (!address || !points?.length) return null;
 
-  const settingPickPoint = (address: AddressType) => {
-    if (address && pickupPoints) {
-      const pointsWithCoords = pickupPoints.filter(
-        point => point.geo_lat && point.geo_lon
-      );
-      
-      if (pointsWithCoords.length > 0) {
-        const addressLat = parseFloat(address.geo_lat);
-        const addressLon = parseFloat(address.geo_lon);
-        
-        const pointsWithDistance = pointsWithCoords.map(point => ({
-            ...point,
-            distance: calculateDistance(
-              addressLat,
-              addressLon,
-              parseFloat(point.geo_lat),
-              parseFloat(point.geo_lon)
-            )
-          })
-        )
-        
-        const availablePoint = pointsWithDistance.filter(
-          (pickupPoint) => pickupPoint.distance < pickupPoint.radius / 1000
-        );
-        const nearestPoint = availablePoint.sort((a, b) => a.distance - b.distance)[0];
+    const pointsWithCoords = points.filter(point => point.geo_lat && point.geo_lon);
+    if (!pointsWithCoords.length) return null;
 
-        if (nearestPoint) {
-          setValue("pickupPointId", nearestPoint.id);
-          setValue("deliveryTimeId", null);
-        } else {
-          const defaultPickUpPoint = pointsWithDistance.find(point => point.name === DEFAULT_STATIC_PICKUP_POINT_NAME)
-          
-          if (defaultPickUpPoint?.id) {
-            setValue("pickupPointId", defaultPickUpPoint.id);
-            setValue("deliveryTimeId", defaultPickUpPoint.deliveryTimes[0].id);
-          } else {
-            setValue("pickupPointId", null);
-            setValue("deliveryTimeId", null);
-          }
-        }
-      } else {
-        setValue("pickupPointId", null);
-        setValue("deliveryTimeId", null);
-      }
-    }
-  }
+    const addressLat = parseFloat(address.geo_lat);
+    const addressLon = parseFloat(address.geo_lon);
 
-  const handleSelectAddress = (field: ControllerRenderProps<OrderFormInputs, "address">) => (event: any) => {
-    const address = addresses?.find(item => item.id === event?.target?.value);
-    
-    if (address) {
-      field.onChange(address);
-      settingPickPoint(address)
-    }
+    const pointsWithDistance = pointsWithCoords.map(point => ({
+      ...point,
+      distance: calculateDistance(
+        addressLat,
+        addressLon,
+        parseFloat(point.geo_lat),
+        parseFloat(point.geo_lon)
+      )
+    }));
+
+    const availablePoints = pointsWithDistance.filter(
+      point => point.distance < point.radius / 1000
+    );
+
+    const nearestPoint = [...availablePoints].sort((a, b) => a.distance - b.distance)[0];
+    if (nearestPoint) return nearestPoint;
+
+    return pointsWithDistance.find(
+      point => point.name === DEFAULT_STATIC_PICKUP_POINT_NAME
+    ) || null;
   };
 
   useEffect(() => {
     const fetchPickupPoints = async () => {
       try {
-        const response = await API.get<PickupPoint[]>('/pickup-points');
+        const storeId = searchParams.get('storeId');
+        const response = await API.post<PickupPoint[]>('/pickup-points', { storeId });
         setPickupPoints(response.data);
       } catch (error) {
         console.error('Error fetching pickup points:', error);
@@ -164,7 +141,19 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     fetchPickupPoints();
   }, []);
 
-  const isExpiredProduct = !!basketStore.basketList.find(basketItem => basketItem.product.is_expired)
+  useEffect(() => {
+    if (selectedAddress && pickupPoints.length) {
+      const nearestPoint = findNearestPickupPoint(selectedAddress, pickupPoints);
+      if (nearestPoint) {
+        setValue("pickupPointId", nearestPoint.id);
+        setValue("deliveryTimeId", null);
+      }
+    }
+  }, [selectedAddress, pickupPoints, setValue]);
+
+  const isExpiredProduct = basketStore.basketList.some(
+    item => item.product.status === ProductStatusEnum.Expired
+  );
 
   if (loading) {
     return (
@@ -174,84 +163,61 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     );
   }
 
-  const selectedPickupPoint = pickupPoints.find(pickupPoint => pickupPoint.id === selectedPickupPointId)
+  const selectedPickupPoint = pickupPoints.find(p => p.id === selectedPickupPointId);
 
   return (
-    <>
-      <AddNewAddressModal
-        key={isOpenAddAdressModal ? 'open' : 'closed'}
-        isOpen={isOpenAddAdressModal}
-        onClose={() => setIsOpenAddAdressModal(false)}
-        setAddressValue={setValue}
-        settingPickPoint={settingPickPoint}
-      />
+    <Paper className={styles.paper}>
       <Box className={styles.modalContainer}>
-        <Typography variant="h6" className={styles.modalTitle} gutterBottom>
-          Данные для доставки
-        </Typography>
         <form onSubmit={handleSubmit(confirmForm)}>
-          {!!options?.length ? (
-            <div className={styles.addressInput}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel id="address-label">
-                  Выберите адрес доставки
-                </InputLabel>
-                <Controller
-                  name="address"
-                  control={control}
-                  defaultValue={options[0].value}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value?.id}
-                      onChange={handleSelectAddress(field)}
-                      labelId="address-label"
-                      label={!options?.length ? 'Нет доступных адресов' : 'Выберите адрес доставки'}
-                      error={!!errors.address}
-                      MenuProps={{
-                        classes: {
-                          paper: clsx(styles.menuPaper, styles.paperRoot),
-                          list: styles.addressesList
-                        }
-                      }}
-                    >
-                      {options?.map((option) => (
-                        <MenuItem key={option.value} value={option.value} className={styles.menuItem}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
+          <Box mb={3}>
+            <Typography variant="h6" gutterBottom>
+              Адрес доставки
+            </Typography>
+            
+            {selectedAddress ? (
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <LocationOnIcon color="primary" />
+                <Typography variant="body1">
+                  {selectedAddress.fullAddress}
+                  {selectedAddress.apartment && `, кв. ${selectedAddress.apartment}`}
+                  {selectedAddress.entrance && `, подъезд ${selectedAddress.entrance}`}
+                  {selectedAddress.floor && `, этаж ${selectedAddress.floor}`}
+                </Typography>
+                <Chip 
+                  label="Изменить" 
+                  onClick={() => setShowAddressModal(true)}
+                  variant="outlined"
+                  size="small"
                 />
-                {errors.address && (
-                  <Typography color="error" variant="body2">
-                    {errors.address.message}
-                  </Typography>
-                )}
-              </FormControl>
-            </div>
-          ) : null}
-          <Button
-            onClick={handleOpenAddAdressModal}
-            className={styles.addAdressBtn}
-            variant="outlined"
-            color="info"
-            fullWidth
-          >
-            Добавить новый адрес
-          </Button>
-          
-          {selectedPickupPoint?.name === DEFAULT_STATIC_PICKUP_POINT_NAME ? (
+              </Box>
+            ) : (
+              <Button 
+                variant="outlined" 
+                startIcon={<LocationOnIcon />}
+                onClick={() => setShowAddressModal(true)}
+                fullWidth
+              >
+                Выбрать адрес доставки
+              </Button>
+            )}
+          </Box>
+
+          {selectedPickupPoint?.name === DEFAULT_STATIC_PICKUP_POINT_NAME && (
             <Box mb={2} textAlign="center" py={2}>
               <Typography variant="body1" color="textSecondary">
-                К сожалению, доставка по вашему адресу пока недоступна. Но вы всё равно можете оформить заказ — мы сделаем всё возможное, чтобы его доставить!
+                К сожалению, доставка по вашему адресу пока недоступна. 
+                Но вы всё равно можете оформить заказ — мы сделаем всё возможное, чтобы его доставить!
               </Typography>
             </Box>
-          ) : null}
+          )}
 
-          {selectedPickupPointId && deliveryTimeData?.length > 0 ? (
-            <Box mb={2}>
+          {selectedPickupPointId && deliveryTimeData?.length > 0 && (
+            <Box mb={3}>
+              <Typography variant="h6" gutterBottom>
+                Время доставки
+              </Typography>
               <FormControl fullWidth margin="normal">
-                <InputLabel id="delivery-time-label">Время доставки</InputLabel>
+                <InputLabel id="delivery-time-label">Выберите время</InputLabel>
                 <Controller
                   name="deliveryTimeId"
                   control={control}
@@ -259,7 +225,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                     <Select
                       {...field}
                       labelId="delivery-time-label"
-                      label="Время доставки"
+                      label="Выберите время"
                       error={!!errors.deliveryTimeId}
                       startAdornment={
                         <InputAdornment position="start">
@@ -268,18 +234,20 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                       }
                       renderValue={(selected) => {
                         const selectedTime = deliveryTimeData
-                          ?.flatMap(day => day.times)
-                          ?.find(time => time.id === selected);
+                          .flatMap(day => day.times)
+                          .find(time => time.id === selected);
                         if (!selectedTime) return null;
                         
-                        const dayData = deliveryTimeData?.find(day => 
+                        const dayData = deliveryTimeData.find(day => 
                           day.times.some(t => t.id === selected)
                         );
                         
-                        return `${dayData?.date ? formatToRussianDate(dayData.date) : ''}, ${selectedTime.startTime?.substring(0,5)} - ${selectedTime.endTime?.substring(0,5)}`;
+                        return `${formatToRussianDate(dayData?.date || '')}, 
+                                ${selectedTime.startTime?.substring(0,5)} - 
+                                ${selectedTime.endTime?.substring(0,5)}`;
                       }}
                     >
-                      {deliveryTimeData?.map((dayData) => [
+                      {deliveryTimeData.map((dayData) => [
                         <ListSubheader key={`header-${dayData.date}`}>
                           {formatToRussianDate(dayData.date)}
                         </ListSubheader>,
@@ -287,9 +255,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                           <MenuItem 
                             key={time.id} 
                             value={time.id}
-                            onClick={() => {
-                              setValue("deliveryDate", dayData.date);
-                            }}
+                            onClick={() => setValue("deliveryDate", dayData.date)}
                           >
                             {time.startTime?.substring(0,5)} - {time.endTime?.substring(0,5)}
                           </MenuItem>
@@ -305,9 +271,12 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                 )}
               </FormControl>
             </Box>
-          ) : null}
+          )}
 
-          <Box mb={1}>
+          <Box mb={3}>
+            <Typography variant="h6" gutterBottom>
+              Контактные данные
+            </Typography>
             <Controller
               name="phone"
               control={control}
@@ -333,14 +302,16 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             />
           </Box>
 
-          <Box mb={1}>
+          <Box mb={3}>
+            <Typography variant="h6" gutterBottom>
+              Дополнительная информация
+            </Typography>
             <Controller
               name="comment"
               control={control}
-              render={({ field: { value, onChange } }) => (
+              render={({ field }) => (
                 <TextField
-                  value={value}
-                  onChange={onChange}
+                  {...field}
                   label="Комментарий к заказу (необязательно)"
                   fullWidth
                   variant="outlined"
@@ -358,16 +329,24 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
               )}
             />
           </Box>
+
           <Button
             type="submit"
             variant="contained"
-            disabled={isExpiredProduct}
+            color="primary"
+            size="large"
             fullWidth
+            disabled={isExpiredProduct || !selectedAddress}
           >
-            Заказать
+            Оформить заказ
           </Button>
         </form>
+
+        <AddNewAddressModal
+          isOpen={false}
+          onClose={() => setShowAddressModal(false)}
+        />
       </Box>
-    </>
+    </Paper>
   );
 });

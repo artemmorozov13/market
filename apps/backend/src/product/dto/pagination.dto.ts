@@ -9,8 +9,4 @@ export class PaginationDto {
     @IsPositive()
     @IsOptional()
     limit: number
-
-    @IsBoolean()
-    @IsOptional()
-    is_expired?: boolean
 }

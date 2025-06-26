@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API } from '@shared/api/instance';
-import { DayOption, PickupPoint, PickupPointForm, PickupPointResponse, TimeOption } from '../types/pickupPointTypes';
-import { dayOptions } from '@pages/PickPointPage/consts/intervals';
+import { PickupPoint, PickupPointForm, PickupPointResponse, TimeOption } from '../types/pickupPointTypes';
+import { dayOptions } from '@pages/AdminPages/PickPointPage/consts/intervals';
 
 
 // Типы для параметров запросов
 interface FetchPickupPointsOptions {
-
 };
 
 interface CreatePickupPointData extends PickupPointForm {
@@ -39,18 +38,19 @@ const formatPickupPointData = (point: PickupPointResponse): PickupPoint => ({
 
 // Запрос на получение списка пунктов выдачи
 export const usePickupPoints = (options?: FetchPickupPointsOptions) => {
-  const query = useQuery<PickupPoint[]>({
+  const query = useQuery<PickupPoint[], Error>({
     queryKey: ['pickupPoints'],
     queryFn: async () => {
-      const response = await API.get<PickupPointResponse[]>('/pickup-points');
+      const response = await API.post<PickupPointResponse[]>('/pickup-points');
       return response.data.map(formatPickupPointData);
     },
-    staleTime: 5 * 60 * 1000, // 5 минут
+    staleTime: 5 * 60 * 1000,
   });
+  
   return {
     ...query,
-    pickupPoints: query.data
-  }
+    pickupPoints: query.data,
+  };
 };
 
 // Запрос на создание пункта выдачи
@@ -76,7 +76,7 @@ export const useCreatePickupPoint = () => {
         }))
       };
       
-      const response = await API.post('/pickup-points', payload);
+      const response = await API.post('/pickup-points/create', payload);
       return formatPickupPointData(response.data);
     },
     onSuccess: (newPoint) => {

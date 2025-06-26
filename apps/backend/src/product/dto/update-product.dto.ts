@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsIn, IsOptional } from 'class-validator';
+import { UnitOfMeasuresEnum } from '@core/enums/units-of-measures';
+import { IsString, IsNumber, IsIn, IsOptional, IsEnum } from 'class-validator';
 
 export class UpdateProductDto {
     @IsString()
@@ -15,13 +16,17 @@ export class UpdateProductDto {
 
     @IsNumber()
     @IsOptional()
+    offeredPrice?: number;
+
+    @IsNumber()
+    @IsOptional()
     discount?: number;
 
     @IsString()
     @IsOptional()
     image?: string;
 
-    @IsIn(['гр', 'кг', 'шт'])
+    @IsEnum(UnitOfMeasuresEnum)
     @IsOptional()
-    unitOfMeasurement?: 'гр' | 'кг' | 'шт';
+    unitOfMeasurement?: UnitOfMeasuresEnum;
 }

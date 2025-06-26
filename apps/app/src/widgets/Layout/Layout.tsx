@@ -1,7 +1,7 @@
-import { DetailedHTMLProps, FC, HTMLAttributes, ReactNode, useState } from "react";
-import { RoutePath } from "@/shared/routes/routeConfig";
-import { ShoppingBasket, Storefront, ListAlt, HelpOutline } from "@mui/icons-material";
-import ShareIcon from '@mui/icons-material/Share';
+import { FC, useState, useMemo, ReactNode, MouseEvent } from "react";
+import { observer } from "mobx-react-lite";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { clsx } from "clsx";
 import {
   BottomNavigation,
   BottomNavigationAction,
@@ -16,92 +16,132 @@ import {
   MenuItem,
   Divider
 } from "@mui/material";
-import { basketStore, postClearBasket } from "@/entities/Basket";
-import { observer } from "mobx-react-lite";
-import { Link, useLocation, useNavigate } from "react-router";
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import styles from "./Layout.module.css";
-import { clsx } from "yet-another-react-lightbox";
+import {
+  ShoppingBasket,
+  Storefront,
+  ListAlt,
+  HelpOutline,
+  Share as ShareIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Delete as DeleteIcon,
+  ArrowForward as ArrowForwardIcon,
+  MoreVert as MoreVertIcon
+} from "@mui/icons-material";
+
+import { RoutePath } from "@/shared/routes/routeConfig";
 import { userStore } from "@/entities/User";
 import { InstallButton } from "@/shared/ui/InstallButton";
+import { Roles } from "@core/enums/role-enum";
+import { useBasket, useClearBasket } from "@/entities/Basket";
+import styles from "./Layout.module.css";
 
-interface LayoutProps extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
-    children: ReactNode;
+interface LayoutProps {
+  children: ReactNode;
+  className?: string;
 }
 
-export const Layout: FC<LayoutProps> = observer((props) => {
-  const { children, ...otherProps } = props;
+interface NavigationItem {
+  path: string;
+  icon: ReactNode;
+  label: string;
+  badgeContent?: number;
+}
+
+export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
   const location = useLocation();
-
   const navigate = useNavigate();
-  const { user, role } = userStore;
+  const { role } = userStore;
+  
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const { clearBasket } = useClearBasket();
+  const { summary } = useBasket();
+  
+  const totalProducts = summary?.totalItems || 0;
+  const totalPrice = summary?.totalPrice || 0;
+  const isMenuOpen = Boolean(menuAnchor);
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const open = Boolean(anchorEl);
-  const { basketList, totalPrice, totalItems, clearBasket } = basketStore;
-  const totalProducts = basketList.reduce((acc, product) => acc + product.quantity, 0);
-
-  const getActiveTab = () => {
+  const activeTab = useMemo(() => {
+    if (location.pathname?.startsWith(RoutePath.products)) return 0;
     if (location.pathname?.startsWith(RoutePath.basket)) return 2;
-    if (location.pathname?.startsWith(RoutePath.activeOrders)) return 3;
-    if (location.pathname?.startsWith(RoutePath.products)) return 1;
-    if (location.pathname?.startsWith(RoutePath.help)) return 4;
+    if (location.pathname?.startsWith(RoutePath.activeOrders)) return 1;
+    if (location.pathname?.startsWith(RoutePath.help)) return 3;
     return 0;
-  };
+  }, [location.pathname]);
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
+  const navigationItems: NavigationItem[] = useMemo(() => [
+    {
+      path: RoutePath.products,
+      icon: <Storefront className={clsx(styles.menuImageIcon, styles.icon)} />,
+      label: "Продукты"
+    },
+    {
+      path: RoutePath.activeOrders,
+      icon: <ListAlt className={clsx(styles.menuImageIcon, styles.icon)} />,
+      label: "Заказы"
+    },
+    {
+      path: RoutePath.basket,
+      icon: (
+        <Badge 
+          badgeContent={totalProducts > 0 ? totalProducts : null} 
+          color="error"
+          overlap="circular"
+        >
+          <ShoppingBasket className={clsx(styles.menuImageIcon, styles.icon)} />
+        </Badge>
+      ),
+      label: "Корзина"
+    },
+    {
+      path: RoutePath.help,
+      icon: <HelpOutline className={clsx(styles.menuImageIcon, styles.icon)} />,
+      label: "Поддержка"
+    }
+  ], [totalProducts]);
+
+  const handleMenuClose = () => setMenuAnchor(null);
+  const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setMenuAnchor(event.currentTarget);
   };
 
   const handleClearBasket = async () => {
-    if (role === 'customer') {
-      await postClearBasket()
+    if (role === Roles.User) {
+      await clearBasket();
     }
-    clearBasket()
     handleMenuClose();
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleShare = () => {
+    const shareUrl = new URL("https://t.me/share/url");
+    shareUrl.searchParams.set("url", "https://t.me/fricti_test_bot");
+    shareUrl.searchParams.set("title", "Доставка фруктов и овощей");
+    window.open(shareUrl.toString());
   };
 
-  const handleShare = () => {
-    const shareOptions = {
-      baseUrl: "https://t.me/share/url",
-      params: {
-        url: `https://t.me/fricti_test_bot/?startapp=shop_3`,
-        title: "Доставка фруктов и овощей",
-      }
-    };
-    const shareUrl = new URL(shareOptions.baseUrl);
-    Object.entries(shareOptions.params).forEach(([key, value]) => {
-      shareUrl.searchParams.set(key, value);
-    });
-    window.open(shareUrl.toString());
-  }
-
   return (
-    <div className={styles.container} {...otherProps}>
+    <div className={clsx(styles.container, className)}>
       {window?.Telegram?.WebApp?.initData && <InstallButton />}
-      <AppBar position="sticky" color="default" elevation={1} className={styles.appBar}>
+      
+      <AppBar 
+        position="sticky" 
+        color="default" 
+        elevation={1} 
+        className={styles.appBar}
+      >
         <Toolbar className={styles.toolbar}>
           <Typography variant="h6" component="div" className={styles.title}>
-            {user.user?.store?.name}
+            {/* Магазины */}
           </Typography>
           
           <div className={styles.basketControls}>
-            {totalItems > 0 && (
+            {totalProducts > 0 && (
               <Typography variant="body1" className={styles.basketTotal}>
-                {totalPrice} ₽
+                {totalPrice.toFixed(2)} ₽
               </Typography>
             )}
             
             <Badge 
-              badgeContent={totalItems} 
+              badgeContent={totalProducts > 0 ? totalProducts : null} 
               color="primary"
               className={styles.badge}
             >
@@ -110,15 +150,16 @@ export const Layout: FC<LayoutProps> = observer((props) => {
                 className={styles.cartButton}
                 startIcon={<ShoppingCartIcon />}
                 onClick={() => navigate(RoutePath.basket)}
+                disabled={totalProducts === 0}
               >
                 Корзина
               </Button>
             </Badge>
             
-            {totalItems > 0 && (
+            {totalProducts > 0 && (
               <>
                 <IconButton 
-                  aria-label="more"
+                  aria-label="Дополнительные действия с корзиной"
                   onClick={handleMenuOpen}
                   className={styles.moreButton}
                 >
@@ -126,8 +167,8 @@ export const Layout: FC<LayoutProps> = observer((props) => {
                 </IconButton>
                 
                 <Menu
-                  anchorEl={anchorEl}
-                  open={open}
+                  anchorEl={menuAnchor}
+                  open={isMenuOpen}
                   onClose={handleMenuClose}
                   className={styles.menu}
                 >
@@ -149,64 +190,43 @@ export const Layout: FC<LayoutProps> = observer((props) => {
                 </Menu>
               </>
             )}
-            <IconButton onClick={handleShare} color="primary">
+            
+            <IconButton 
+              onClick={handleShare} 
+              color="primary"
+              aria-label="Поделиться приложением"
+            >
               <ShareIcon />
             </IconButton>
           </div>
         </Toolbar>
       </AppBar>
 
-      <div className={styles.content}>
+      <main className={styles.content}>
         {children}
-      </div>
+      </main>
 
-      <Paper className={styles.bottomNav} elevation={3}>
+      <Paper 
+        component="nav" 
+        className={styles.bottomNav} 
+        elevation={3}
+        sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
+      >
         <BottomNavigation
-          value={getActiveTab()}
+          value={activeTab}
           className={styles.bottomNavigation}
           showLabels
         >
-          <BottomNavigationAction
-            component={Link}
-            to={RoutePath.products}
-            className={styles.navItem}
-            icon={<Storefront className={clsx(styles.menuImageIcon, styles.icon)} />}
-            label="Продукты"
-            value={1}
-          />
-          <BottomNavigationAction
-            component={Link}
-            to={RoutePath.activeOrders}
-            className={styles.navItem}
-            icon={<ListAlt className={clsx(styles.menuImageIcon, styles.icon)} />}
-            label="Заказы"
-            value={3}
-          />
-          <BottomNavigationAction
-            component={Link}
-            to={RoutePath.basket}
-            className={styles.navItem}
-            value={2}
-            icon={
-              <Badge 
-                badgeContent={totalProducts || null} 
-                color="error"
-                overlap="circular"
-                invisible={totalProducts === 0}
-              >
-                <ShoppingBasket className={clsx(styles.menuImageIcon, styles.icon)} />
-              </Badge>
-            }
-            label="Корзина"
-          />
-          <BottomNavigationAction
-            component={Link}
-            to={RoutePath.help}
-            className={styles.navItem}
-            icon={<HelpOutline className={clsx(styles.menuImageIcon, styles.icon)} />}
-            label="Поддержка"
-            value={4}
-          />
+          {navigationItems.map((item, index) => (
+            <BottomNavigationAction
+              key={index}
+              component={Link}
+              to={item.path}
+              className={styles.navItem}
+              icon={item.icon}
+              label={item.label}
+            />
+          ))}
         </BottomNavigation>
       </Paper>
     </div>

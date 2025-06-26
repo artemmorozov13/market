@@ -5,14 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersEntity } from '@core/entities/users.entity';
 import { AddressesEntity } from '@core/entities/addresses.entity';
+import { UsersModule } from '@app/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      AddressesEntity,
-      UsersEntity
+      AddressesEntity
     ]),
-    AuthModule
+    AuthModule,
+    UsersModule
   ],
   providers: [AddressesService],
   controllers: [AddressesController]

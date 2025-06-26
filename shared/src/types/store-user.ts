@@ -1,4 +1,5 @@
 import { Roles } from "../enums/role-enum"
+import { ProductType } from "./product-item"
 import { StoreBaseType } from "./store-type"
 
 export interface StoreUserBaseType {
@@ -8,5 +9,6 @@ export interface StoreUserBaseType {
     role: Roles,
     createdAt: Date,
     updatedAt: Date,
-    store: StoreBaseType
+    store?: StoreBaseType
+    products?: ProductType[]
 }

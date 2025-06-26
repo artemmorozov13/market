@@ -2,12 +2,12 @@ import { FC } from "react";
 import { Box, Button, CircularProgress, IconButton, Tooltip, Typography } from "@mui/material";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import { BasketType } from "@/entities/Basket";
 import styles from "./BasketTools.module.scss"
 import { observer } from "mobx-react-lite";
+import { BasketBaseType } from "@core/types/basket-tipe";
 
 interface BasketToolsProps {
-    basketItem: BasketType
+    basketItem: BasketBaseType
     className?: string
     totalPrice: number
     isInBasket: boolean
@@ -37,7 +37,7 @@ export const BasketTools: FC<BasketToolsProps> = observer((props) => {
                     </IconButton>
                     </Tooltip>
                     <Typography className={styles.quantityValue}>
-                        {basketItem.quantity}
+                        {basketItem?.quantity}
                     </Typography>
                     <Tooltip title="Увеличить количество">
                     <IconButton

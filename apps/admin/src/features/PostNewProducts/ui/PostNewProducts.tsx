@@ -7,7 +7,6 @@ import styles from './PostNewProducts.module.scss';
 import { ProductFormType } from '../types/postNewProductTypes';
 import { Uploader } from '@entities/Uploader/ui/Uploader';
 import { UploaderReturnType } from '@entities/Uploader';
-import { ProductType } from '@entities/Product';
 
 interface ProductFormProps {
   initialValues?: ProductFormType
@@ -27,7 +26,7 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
       unitValue: '',
       image: '',
       unitOfMeasurement: 'шт',
-    },
+    } as any,
   });
   const {
     control,

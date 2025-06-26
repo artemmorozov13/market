@@ -14,6 +14,7 @@ import { ProductEntity } from '@core/entities/product.entity';
 import { OrderStoreResolver } from './lib/order-store-resolver';
 import { UsersModule } from '@app/users/users.module';
 import { StoreUserModule } from '@app/store-user/store-user.module';
+import { StoreModule } from '@app/store/store.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { StoreUserModule } from '@app/store-user/store-user.module';
     forwardRef(() => UsersModule),
     forwardRef(() => StoreUserModule),
     forwardRef(() => AuthModule),
-    forwardRef(() => TelegramModule)
+    forwardRef(() => TelegramModule),
+    StoreModule
   ],
   providers: [
     OrderService,

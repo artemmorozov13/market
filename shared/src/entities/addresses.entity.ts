@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UsersEntity } from './users.entity';
 
 @Entity()
@@ -35,13 +35,16 @@ export class AddressesEntity {
 
   @Column({ type: 'varchar', nullable: false })
   geo_lon: string
+  
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+  
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
+
+  @OneToOne(() => UsersEntity, user => user.selectedAddress)
+  selectedByUser: UsersEntity;
 
   @ManyToOne(() => UsersEntity, user => user.addresses)
   user: UsersEntity;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
 }

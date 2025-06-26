@@ -1,5 +1,5 @@
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
-import { ProductType } from "@entities/Product";
+import { ProductType } from "@core/types/product-item";
 import { StoreOwnerUserType } from "@entities/User/types/userTypes";
 
 

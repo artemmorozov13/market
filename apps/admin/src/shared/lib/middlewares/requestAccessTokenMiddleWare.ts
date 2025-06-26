@@ -25,7 +25,7 @@ export const requestTokenMiddleware: any = async (
 
   const refreshToken = Cookies.get(REFRESH_TOKEN)
 
-  if (!accessToken) {
+  if (!accessToken && refreshToken) {
     isRefreshing = true;
 
     const response = await axios.post(

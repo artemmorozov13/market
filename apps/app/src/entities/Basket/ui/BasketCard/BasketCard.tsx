@@ -18,6 +18,7 @@ import { observer } from "mobx-react-lite";
 import { ConfirmRemoveFromBasketModal } from "../ConfirmRemoveFromBasketModal/ConfirmRemoveFromBasketModal";
 import clsx from "clsx";
 import styles from "./BasketCard.module.scss";
+import { ProductStatusEnum } from "@core/enums/product-status-enum";
 
 interface BasketItemProps {
   item: BasketType;
@@ -67,7 +68,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
   return (
     <>
       <Card
-        className={clsx(styles.card, className, { [styles.disabled]: item.product.is_expired })}
+        className={clsx(styles.card, className, { [styles.disabled]: item.product.status === ProductStatusEnum.Expired })}
         elevation={0}
       >
         <Box className={styles.imageWrapper}>
@@ -91,7 +92,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
             {item.product.name}
           </Typography>
           
-          {item.product.is_expired && (
+          {item.product.status === ProductStatusEnum.Expired && (
             <Box className={styles.unavailableBadge}>
               <ErrorOutlineIcon fontSize="small" />
               <Typography variant="caption">Товар недоступен для доставки</Typography>
@@ -124,7 +125,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
               Убрать
             </Button>
             
-            {!item.product.is_expired && (
+            {item.product.status !== ProductStatusEnum.Expired && (
               <>
                 <IconButton
                   className={styles.quantityButton}

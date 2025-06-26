@@ -2,6 +2,7 @@ import { IsString, ValidateNested, IsArray, IsOptional, IsEnum, IsNumber } from 
 import { Type } from 'class-transformer';
 import { AddressDataDto } from './address-pick-point.dto';
 import { CreateDeliveryTimeDto } from '@app/delivery-times/dto/create-delivery-times.dto';
+import { UpdateDeliveryTimeDto } from '@app/delivery-times/dto/update-delivery-times.dto';
 
 export class UpdatePickupPointDto {
   @IsString()
@@ -22,7 +23,7 @@ export class UpdatePickupPointDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateDeliveryTimeDto)
+  @Type(() => UpdateDeliveryTimeDto)
   @IsOptional()
-  deliveryTimes?: CreateDeliveryTimeDto[];
+  deliveryTimes?: UpdateDeliveryTimeDto[];
 }

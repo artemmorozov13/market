@@ -28,8 +28,12 @@ export class AuthService {
     async generateToken(user: UsersEntity | StoreUserEntity | AuthJwtPayload) {
       const currentUser: AuthJwtPayload = {
         id: user.id,
-        role: user.role
+        role: user.role,
       }
+      if (user.role === Roles.Admin) {
+        currentUser.storeId = (user as StoreUserEntity).store.id;
+      }
+
       return await this.jwtService.sign(currentUser)
     }
 
@@ -37,6 +41,9 @@ export class AuthService {
       const currentUser: AuthJwtPayload = {
         id: user.id,
         role: user.role
+      }
+      if (user.role === Roles.Admin) {
+        currentUser.storeId = (user as StoreUserEntity).store.id;
       }
       return this.jwtService.sign(currentUser, this.refreshTokenConfig)
     }

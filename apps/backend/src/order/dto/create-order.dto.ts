@@ -8,18 +8,21 @@ export class CreateOrderDto {
   fullAddress: string;
 
   @IsString()
-  phoneNumber: string;
+  phoneNumber: string; // +
 
   @IsString()
   @IsOptional()
-  comment?: string;
+  comment?: string; // +
 
   @IsDate()
-  deliveryDate: Date;
+  deliveryDate: Date; // +
 
   @IsNumber()
-  pickupPointId: number;
+  pickupPointId: number; // +
 
   @IsNumber()
-  deliveryTimeId: number;
+  deliveryTimeId: number; // +
+
+  @IsNumber()
+  storeId: number
 }

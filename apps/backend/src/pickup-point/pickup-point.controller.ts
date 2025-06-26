@@ -9,8 +9,8 @@ import { Roles } from '@core/enums/role-enum';
 import { PickupPoint } from '@core/entities/pickup-point.entity';
 import { User } from '@app/decorators/user.decorator';
 import { AuthJwtPayload } from '@core/types/user-type';
-import { GetAvailableDeliveryTimesDto } from '@app/delivery-times/dto/get-available-delivery-times.dto';
 import { DeliveryTimesService } from '@app/delivery-times/delivery-times.service';
+import { FindPickupPointDto } from './dto/find-pickup-point-body';
 
 @Controller('pickup-points')
 export class PickupPointController {
@@ -19,7 +19,7 @@ export class PickupPointController {
     private readonly deliveryTimeService: DeliveryTimesService
   ) {}
 
-  @Post()
+  @Post('create')
   @AllowRoles(Roles.Admin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
@@ -45,10 +45,13 @@ export class PickupPointController {
     );
   }
 
-  @Get()
+  @Post()
   @UseGuards(JwtAuthGuard)
-  findAll(@User() user: AuthJwtPayload): Promise<PickupPoint[]> {
-    return this.pickupPointService.findAll(user);
+  findAll(
+    @User() user: AuthJwtPayload,
+    @Body() body: FindPickupPointDto
+  ): Promise<PickupPoint[]> {
+    return this.pickupPointService.findAll(user, body);
   }
 
   @Get(':id')

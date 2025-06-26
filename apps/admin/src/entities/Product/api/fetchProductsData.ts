@@ -1,50 +1,45 @@
-import { API } from "@shared/api/instance";
 import { useQuery } from "@tanstack/react-query";
+import { API } from "@shared/api/instance";
 import { AxiosRequestConfig } from "axios";
-import { ProductType } from "../types/productTypes";
+import { ProductType } from "@core/types/product-item";
 
-export interface FetchProductsDataOptions {
-  take?: number;
+export interface FetchProductsOptions {
   skip?: number;
+  limit?: number;
 }
 
 interface ResponseType {
-  items: ProductType[]
+  items: ProductType[];
   pagination: {
-    total: number,
-    limit: number,
-    skip: number,
-    hasMore: boolean
-}
+    total: number;
+    limit: number;
+    skip: number;
+    hasMore: boolean;
+  };
 }
 
-export const fetchProductsData = async (options: FetchProductsDataOptions) => {
-  try {
-    const config: AxiosRequestConfig = {
-      params: {
-        skip: options?.skip,
-        limit: options?.take,
-      },
-    };
-    const response = await API.get<ResponseType>(`/product`, config);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+const fetchProducts = async (options?: FetchProductsOptions) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      skip: options?.skip || 0,
+      limit: options?.limit || 12,
+    },
+  };
+  const response = await API.get<ResponseType>("/product", config);
+  return response.data;
 };
 
-// export const useProductsList = (options?: FetchProductsDataOptions) => {
-//   return useQuery({
-//     queryKey: ['productsList', 'paged', options?.take, options?.page],
-//     queryFn: () =>
-//       fetchProductsData({
-//         skip: options?.skip,
-//         take: options?.take,
-//         page: options?.page,
-//         enabled: !!options?.enabled,
-//       }),
-//     staleTime: 0,
-//     retry: 2,
-//     enabled: options?.enabled,
-//   });
-// };
+export const useProducts = (options?: FetchProductsOptions) => {
+  const query = useQuery({
+    queryKey: ['products', options],
+    queryFn: () => fetchProducts(options),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    ...query,
+    products: query.data,
+    isProductsLoading: query.isLoading,
+    productsError: query.error
+  }
+};

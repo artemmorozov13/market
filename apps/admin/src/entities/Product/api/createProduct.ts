@@ -1,11 +1,25 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "@shared/api/instance";
-import { ProductType } from "../types/productTypes";
+import { ProductType } from "@core/types/product-item";
 
-export const createProduct = async (data: ProductType) => {
-    try {
-        const response = await API.post("/product", data)
-        return response.data
-    } catch(error) {
-        throw error
-    }
-}
+const createProduct = async (data: ProductType) => {
+  const response = await API.post("/product", data);
+  return response.data;
+};
+
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['products'] 
+      });
+    },
+  });
+  return {
+    ...mutation,
+    createProduct: mutation.mutateAsync
+  }
+};

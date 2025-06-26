@@ -18,6 +18,7 @@ import { GlobalExceptionFilter } from 'src/filters/global-exception.filter';
 import { StatisticModule } from 'src/statistic/statistic.module';
 import { StoreUserModule } from '@app/store-user/store-user.module';
 import { StoreModule } from '@app/store/store.module';
+import { OfferedProductsModule } from '@app/offered-products/offered-products.module';
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { StoreModule } from '@app/store/store.module';
     DadataModule,
     AddressesModule,
     StoreUserModule,
-    StoreModule
+    StoreModule,
+    OfferedProductsModule
   ],
   controllers: [AppController],
   providers: [

@@ -1,78 +1,86 @@
 import { FC, useState } from "react";
-import { ProductType } from "../types/productTypes";
-import { Card, CardContent, CardMedia, Typography, Chip, Box, Divider, Button, Badge } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Chip, Box, Divider, Button } from '@mui/material';
 import styles from './Product.module.scss';
 import { PostNewProductModalForm } from "@features/PostNewProducts";
-import { deleteProduct } from "../api/deleteProduct";
-import { recoverProduct } from "../api/recoverProduct";
+import { ProductType } from "@core/types/product-item";
+import clsx from "clsx";
+import { ProductStatusEnum } from "@core/enums/product-status-enum";
 
 interface ProductProps {
     product: ProductType;
-    handleUpdateProducts: (value: React.SetStateAction<ProductType[]>) => void;
+    handleUpdateProduct: (data: ProductType) => void;
+    handleDeleteProduct: (productId: number) => void;
+    handleRecoverProduct: (productId: number) => void;
+    handleRevokeProduct: (productId: number) => void;
 }
 
 export const Product: FC<ProductProps> = (props) => {
-    const { product, handleUpdateProducts } = props;
+    const {
+        product,
+        handleUpdateProduct,
+        handleDeleteProduct,
+        handleRecoverProduct,
+        handleRevokeProduct
+    } = props;
+
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
     const handleEditProduct = () => {
         setIsEditModalOpen(true);
     };
 
-    const handleDeleteProduct = async () => {
-        try {
-            await deleteProduct(product.id);
-            handleUpdateProducts(prev => prev.map(p => {
-                if (p.id === product.id) {
-                    return { ...p, is_expired: true };
-                }
-                return p;
-            }));
-        } catch (error) {
-            console.error('Failed to delete product:', error);
+    const discountedPrice = Number(product.price) * (1 - Number(product.discount) / 100);
+    const isExpired = product.status === ProductStatusEnum.Expired;
+    const isAccepted = product.status === ProductStatusEnum.Accepted;
+    const isRevoked = product.status === ProductStatusEnum.Revoked;
+    const hasOfferedPrice = isAccepted && product.offeredPrice;
+
+    const getStatusChip = () => {
+        switch (product.status) {
+            case ProductStatusEnum.Accepted:
+                return <Chip label="Принят" color="success" size="small" />;
+            case ProductStatusEnum.Rejected:
+                return <Chip label="Отклонён" color="error" size="small" />;
+            case ProductStatusEnum.Moderation:
+                return <Chip label="На модерации" color="warning" size="small" />;
+            case ProductStatusEnum.Expired:
+                return <Chip label="Просрочено" color="error" size="small" />;
+            case ProductStatusEnum.Revoked:
+                return <Chip label="Отозвано" color="default" size="small" />;
+            default:
+                return null;
         }
     };
 
-    const handleRecoverProduct = async () => {
-        await recoverProduct(product.id)
-        handleUpdateProducts(prev => prev.map(p => {
-            if (p.id === product.id) {
-                return { ...p, is_expired: false };
-            }
-            return p;
-        }));
-    }
-
-    const discountedPrice = Number(product.price) * (1 - Number(product.discount) / 100);
-
     return (
-        <Card className={`${styles.productCard} ${product.is_expired ? styles.expired : ''}`}>
+        <Card className={clsx(styles.productCard, { 
+            [styles.expired]: isExpired,
+            [styles.revoked]: isRevoked
+        })}>
             <PostNewProductModalForm
                 product={product}
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
-                handleUpdateProducts={handleUpdateProducts}
+                handleUpdateProduct={handleUpdateProduct}
             />
+            
             <CardMedia
                 component="img"
                 height="200"
                 image={product.image}
                 alt={product.name}
-                className={`${styles.image} ${product.is_expired ? styles.expiredImage : ''}`}
+                className={clsx(styles.image, {
+                    [styles.expiredImage]: isExpired,
+                    [styles.revokedImage]: isRevoked
+                })}
             />
+            
             <CardContent className={styles.wrapper}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                     <Typography variant="h5" className={styles.name}>
                         {product.name}
                     </Typography>
-                    {product.is_expired && (
-                        <Chip
-                            label="Просрочено"
-                            color="error"
-                            size="small"
-                            className={styles.expiredChip}
-                        />
-                    )}
+                    {getStatusChip()}
                 </Box>
 
                 <Typography variant="body2" color="textSecondary" className={styles.description}>
@@ -81,13 +89,33 @@ export const Product: FC<ProductProps> = (props) => {
 
                 <Divider className={styles.divider} />
 
+                {hasOfferedPrice && (
+                    <>
+                        <Box className={styles.vendorPriceContainer}>
+                            <Typography variant="body2" className={styles.vendorPriceLabel}>
+                                Цена поставщика:
+                            </Typography>
+                            <Typography variant="h6" className={styles.vendorPriceValue}>
+                                {Number(product.offeredPrice).toFixed(2)} ₽
+                            </Typography>
+                        </Box>
+                        <Divider className={styles.divider} />
+                    </>
+                )}
+
                 <Box display="flex" alignItems="center" gap={1} className={styles.priceSection}>
                     {!!Number(product.discount) ? (
                         <>
-                            <Typography variant="body1" className={`${styles.oldPrice} ${product.is_expired ? styles.expiredText : ''}`}>
+                            <Typography variant="body1" className={clsx(styles.oldPrice, {
+                                [styles.expiredText]: isExpired,
+                                [styles.revokedText]: isRevoked
+                            })}>
                                 {product.price}&nbsp;₽
                             </Typography>
-                            <Typography variant="h6" className={`${styles.newPrice} ${product.is_expired ? styles.expiredText : ''}`}>
+                            <Typography variant="h6" className={clsx(styles.newPrice, {
+                                [styles.expiredText]: isExpired,
+                                [styles.revokedText]: isRevoked
+                            })}>
                                 {discountedPrice.toFixed(2)}&nbsp;₽
                             </Typography>
                             <Chip
@@ -98,45 +126,77 @@ export const Product: FC<ProductProps> = (props) => {
                             />
                         </>
                     ) : (
-                        <Typography variant="h6" className={`${styles.newPrice} ${product.is_expired ? styles.expiredText : ''}`}>
+                        <Typography variant="h6" className={clsx(styles.newPrice, {
+                            [styles.expiredText]: isExpired,
+                            [styles.revokedText]: isRevoked
+                        })}>
                             {product.price}&nbsp;₽
                         </Typography>
                     )}
                 </Box>
 
-                <Typography variant="body2" className={`${styles.unit} ${product.is_expired ? styles.expiredText : ''}`}>
+                <Typography variant="body2" className={clsx(styles.unit, {
+                    [styles.expiredText]: isExpired,
+                    [styles.revokedText]: isRevoked
+                })}>
                     Единица измерения: {product.unitValue}{product.unitOfMeasurement}
                 </Typography>
 
                 <Divider className={styles.divider} />
 
                 <Box className={styles.actions}>
-                    {!product.is_expired ? (
+                    {isExpired ? (
+                        <Button 
+                            variant="contained" 
+                            color="primary" 
+                            onClick={() => handleRecoverProduct(product.id)}
+                        >
+                            Восстановить
+                        </Button>
+                    ) : isRevoked ? (
+                        <Button
+                            variant="outlined" 
+                            color="error"
+                            onClick={() => handleDeleteProduct(product.id)}
+                        >
+                            Удалить
+                        </Button>
+                    ) : isAccepted ? (
+                        <>
+                            <Button 
+                                variant="outlined" 
+                                color="error"
+                                onClick={() => handleRevokeProduct(product.id)}
+                                sx={{ mr: 2 }}
+                            >
+                                Отозвать
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={handleEditProduct}
+                            >
+                                Редактировать
+                            </Button>
+                        </>
+                    ) : (
                         <>
                             <Button 
                                 variant="contained" 
                                 color="primary" 
                                 onClick={handleEditProduct}
                                 sx={{ mr: 2 }}
-                                disabled={product.is_expired}
                             >
                                 Редактировать
                             </Button>
-                            <Button 
+                            <Button
                                 variant="outlined" 
                                 color="error"
-                                onClick={handleDeleteProduct}
-                            >Удалить</Button>
+                                onClick={() => handleDeleteProduct(product.id)}
+                            >
+                                Удалить
+                            </Button>
                         </>
-                    ) : (
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
-                            onClick={handleRecoverProduct}
-                            sx={{ mr: 2 }}
-                        >
-                            Востановить
-                        </Button>
                     )}
                 </Box>
             </CardContent>
