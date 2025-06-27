@@ -4,10 +4,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import styles from "./AuthProvider.module.scss"
 import 'react-toastify/dist/ReactToastify.css'
 import clsx from "clsx"
-import { userStore } from "@/entities/User"
+import { userStore, useUser } from "@/entities/User"
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { InstallButton } from "@/shared/ui/InstallButton";
-import { useUser } from "../api/fetchUserData";
 import { LOCALSTORAGE_STOREID_KEY } from "@/shared/consts/applicationConsts";
 import { Roles } from "@core/enums/role-enum";
 

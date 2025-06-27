@@ -67,7 +67,11 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
   };
 
   const handleMinusProduct = async () => {
-    if (!basketItemIndex || basketItemIndex < 0) {
+    if (typeof basketItemIndex === 'undefined') {
+      return
+    }
+    
+    if (basketItemIndex < 0) {
       return
     }
 
@@ -121,24 +125,20 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
         
         <CardContent className={styles.content}>
           <div className={styles.infoSection} onClick={() => setIsOpenProduct(true)}>
-            <Typography variant="h6" className={styles.name} noWrap>
+            <Box className={styles.priceRow}>
+              <Typography variant='body1' className={clsx(styles.price, styles.text)}>
+                {`${discountedPrice}₽`}
+              </Typography>
+              {discountPercentage > 0 && (
+                <Typography className={clsx(styles.originalPrice, styles.text)}>
+                  {originalPrice}&nbsp;₽
+                </Typography>
+              )}
+            </Box>
+            <Typography variant="body1" className={styles.name} noWrap>
               {product.name}
             </Typography>
-            <Typography variant="body2" className={styles.description}>
-              {product.description}
-            </Typography>
-            
             <Box className={styles.priceSection}>
-              <Box className={styles.priceRow}>
-                <Typography className={clsx(styles.price, styles.text)}>
-                  {`${discountedPrice}₽`}
-                </Typography>
-                {discountPercentage > 0 && (
-                  <Typography className={clsx(styles.originalPrice, styles.text)}>
-                    {originalPrice}&nbsp;₽
-                  </Typography>
-                )}
-              </Box>
               <Typography variant="caption" className={styles.unit}>
                 {`${displayUnitValue}${displayUnitOfMeasurement}`}
               </Typography>

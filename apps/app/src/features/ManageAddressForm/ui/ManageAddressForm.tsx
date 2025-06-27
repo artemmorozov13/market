@@ -1,44 +1,42 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Box, Skeleton } from "@mui/material";
-import { AddressesSelect, useUpdateSelectedAddress } from "@/entities/Addresses";
+import { Button, Box, Skeleton, Typography, Chip } from "@mui/material";
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import styles from "./ManageAddressForm.module.scss";
-import { useUser } from "@/app/providers/AuthProvider/api/fetchUserData";
 import clsx from "clsx";
 import { AddNewAddressModal } from "../../AddNewAddressModal";
 import { SelectOptionType } from "@/shared/ui/Select/types";
+import { useUser } from "@/entities/User";
+import { AddressType } from "@core/types/address-type";
 
-export const ManageAddressForm: FC = () => {
+interface ManageAddressFormProps {
+    onAddressChange?: (address: AddressType) => void
+}
+
+export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState<SelectOptionType | null>(null);
     const { user, isLoading } = useUser();
-    const { updateSelectedAddress } = useUpdateSelectedAddress()
 
     useEffect(() => {
-        if (user?.user.selectedAddress) {
+        if (user?.selectedAddress) {
             setSelectedAddress({
-                value: user.user.selectedAddress.id,
-                label: user.user.selectedAddress.fullAddress
+                value: user.selectedAddress.id,
+                label: user.selectedAddress.fullAddress
             });
         }
     }, [user]);
-
-    const handleAddressChange = (newAddress: SelectOptionType | null) => {
-        if (newAddress) {
-            setSelectedAddress(newAddress);
-            updateSelectedAddress(newAddress.value)
-        }
-    };
 
     if (isLoading) {
         return <Skeleton className={clsx(styles.skeleton, styles.fieldSkeleton)} />;
     }
 
-    if (!user?.user.addresses?.length) {
+    if (!user?.addresses?.length) {
         return (
             <>
                 <AddNewAddressModal
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
+                    onAddressChange={onAddressChange}
                 />
                 <Box className={styles.emptyAddressSection}>
                     <Button
@@ -53,31 +51,38 @@ export const ManageAddressForm: FC = () => {
         );
     }
 
-    const addressOptions = user.user.addresses.map(address => ({
-        value: address.id,
-        label: address.fullAddress
-    }));
+    // Находим полный объект адреса для отображения деталей
+    const currentAddress = user?.addresses?.find(
+        address => address.id === selectedAddress?.value
+    ) || user?.addresses?.[0];
 
     return (
-        <Box className={styles.addressSection}>
-            <AddressesSelect
-                options={addressOptions}
-                value={selectedAddress}
-                onChange={handleAddressChange}
-                placeholder="Выберите адрес"
-            />
-            <Button
-                variant="outlined"
-                onClick={() => setIsOpen(true)}
-                sx={{ mt: 2 }}
-                fullWidth
-            >
-                Добавить новый адрес
-            </Button>
+        <>
+            <Box className={styles.addressSection}>
+                <Box className={styles.wrapper}>
+                    <Box className={styles.addressInfo}>
+                        <LocationOnIcon color="primary" />
+                        <Typography variant="body1">
+                            {currentAddress.fullAddress}
+                            {currentAddress.apartment && `, кв. ${currentAddress.apartment}`}
+                            {currentAddress.entrance && `, подъезд ${currentAddress.entrance}`}
+                            {currentAddress.floor && `, этаж ${currentAddress.floor}`}
+                        </Typography>
+                    </Box>
+                    <Chip 
+                        label="Изменить" 
+                        onClick={() => setIsOpen(true)}
+                        variant="filled"
+
+                        size="medium"
+                    />
+                </Box>
+            </Box>
             <AddNewAddressModal 
                 isOpen={isOpen} 
-                onClose={() => setIsOpen(false)} 
+                onClose={() => setIsOpen(false)}
+                onAddressChange={onAddressChange}
             />
-        </Box>
+        </>
     );
 };

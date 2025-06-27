@@ -81,10 +81,6 @@ const ProductsPage: FC = observer(() => {
     }
   };
 
-  const handleStorePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
-    setProductsPages({});
-  };
-
   const selectedProducts = basketItems.map(item => item.productId);
   const isLoading = isStoresLoading || isBasketLoading;
 
@@ -116,17 +112,6 @@ const ProductsPage: FC = observer(() => {
         <Paper className={styles.addressForm}>
           <ManageAddressForm/>
         </Paper>
-        {/* {pagination.total > 1 && (
-          <Box className={styles.storesPagination}>
-            <Pagination
-              count={pagination.totalPages}
-              page={currentPage}
-              onChange={handleStorePageChange}
-              color="primary"
-              disabled={isStoresFetching}
-            />
-          </Box>
-        )} */}
 
         {stores.map(store => {
           const currentPage = productsPages[store.id] || 1;
@@ -134,7 +119,7 @@ const ProductsPage: FC = observer(() => {
           
           return (
             <Paper key={store.id} elevation={0} className={styles.storeCard}>
-              <Box className={styles.storeHeader}>
+              {/* <Box className={styles.storeHeader}>
                 <Avatar 
                   src={store.logoUrl || undefined} 
                   className={styles.storeAvatar}
@@ -156,7 +141,7 @@ const ProductsPage: FC = observer(() => {
                 {store.description}
               </Typography>
               
-              <Divider className={styles.divider} />
+              <Divider className={styles.divider} /> */}
               
               <Box className={styles.storeDetails}>
                 <Box className={styles.detailItem}>
@@ -180,18 +165,11 @@ const ProductsPage: FC = observer(() => {
                     Заказ за {store.minOrderBeforeDeliveryHours} ч до доставки
                   </Typography>
                 </Box>
-                
-                <Box className={styles.detailItem}>
-                  <MonetizationOnIcon color="primary" />
-                  <Typography variant="body2">
-                    {store.isWeekLimited ? 'Лимит заказов на неделю' : 'Без лимитов'}
-                  </Typography>
-                </Box>
               </Box>
 
-              <Box className={styles.productSection}>
+              <Box>
                 <Typography variant="h6" component="h2" className={styles.sectionTitle}>
-                  Товары магазина
+                  {/* Товары магазина */}
                 </Typography>
                 
                 {!visibleProducts.length ? (
@@ -206,7 +184,6 @@ const ProductsPage: FC = observer(() => {
                   <>
                     <Box className={styles.grid}>
                       {visibleProducts.map((product) => {
-                        const basketItem = basketItems.find(item => item.productId === product.id);
                         return (
                           <ProductCard
                             key={product.id}

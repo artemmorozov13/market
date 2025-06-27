@@ -1,4 +1,6 @@
 import { Roles } from "../enums/role-enum"
+import { AddressType } from "./address-type"
+import { BasketBaseType } from "./basket-tipe"
 
 export interface UserType {
   id: number,
@@ -11,15 +13,10 @@ export interface UserType {
   age: number,
   created_at: Date
   updated_at: Date
-  selectedProducts: {
-    id: number,
-    productId: number,
-    quantity: number,
-    userTgchatId: number
-  }[]
+  selectedProducts: BasketBaseType[]
   selectedAddressId: string
-  selectedAddress: any
-  addresses: any[]
+  selectedAddress: AddressType
+  addresses: AddressType[]
 }
 
 export interface UserLoginResponse {

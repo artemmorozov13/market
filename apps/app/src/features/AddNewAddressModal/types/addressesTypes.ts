@@ -32,4 +32,5 @@ export interface AddressFormValues {
   apartment?: string;
   intercom?: string;
   addressData?: any;
+  selectedAddress?: number;
 }

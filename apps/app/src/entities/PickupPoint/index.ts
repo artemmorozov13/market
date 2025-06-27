@@ -1,0 +1,1 @@
+export { usePickupPoints } from "./api/usePickupPoint";

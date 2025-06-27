@@ -64,7 +64,7 @@ export const BasketTools: FC<BasketToolsProps> = observer((props) => {
                     fullWidth
                     startIcon={isLoadingAdd || isLoadingRemove ? <CircularProgress size={16} /> : null}
                 >
-                    {isLoadingAdd || isLoadingRemove ? "" : "Добавить"}
+                    {isLoadingAdd || isLoadingRemove ? "Кладем..." : "Добавить"}
                 </Button>
             )}
         </>
