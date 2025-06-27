@@ -42,7 +42,7 @@ export class UsersService {
         'telegram_id',
         'telegram_username'
       ],
-      relations: ['addresses', 'selectedAddress', 'store']
+      relations: ['selectedProducts', 'selectedAddress', 'store', 'addresses']
     })
   }
 
@@ -113,7 +113,7 @@ export class UsersService {
 
     let user = await this.usersRepository.findOne({
       where: { telegram_id: telegramUser.id },
-      relations: ['selectedProducts', 'store', 'addresses']
+      relations: ['selectedProducts', 'selectedAddress', 'store', 'addresses']
     });
 
     if (!user) {
