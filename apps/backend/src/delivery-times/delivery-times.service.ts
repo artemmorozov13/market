@@ -2,7 +2,7 @@ import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { isAfter } from 'date-fns';
+import { format, isAfter, isBefore, subHours } from 'date-fns';
 import { CreateDeliveryTimeDto } from './dto/create-delivery-times.dto';
 import { UpdateDeliveryTimeDto } from './dto/update-delivery-times.dto';
 import { DeliveryTimeBase } from '@core/types/delivery-time';
@@ -41,10 +41,9 @@ export class DeliveryTimesService {
             order: { dayOfWeek: 'ASC', startTime: 'ASC' }
         });
 
-        console.log("Все интервалы доставки из БД:", JSON.stringify(allTimes, null, 2));
-
         if (!allTimes.length) return [];
 
+        // Группируем по дням недели
         const timesByDay = allTimes.reduce((acc, time) => {
             acc[time.dayOfWeek] = acc[time.dayOfWeek] || [];
             acc[time.dayOfWeek].push(time);
@@ -55,7 +54,7 @@ export class DeliveryTimesService {
         const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         
         const currentDayOfWeek = currentDate.getDay();
-        const daysToCheck = store.isWeekLimited ? 6 - currentDayOfWeek : 13;
+        const daysToCheck = store.isWeekLimited ? 6 : 13; // Проверяем 2 недели если нет ограничения
 
         for (let i = 0; i <= daysToCheck; i++) {
             const targetDate = new Date(currentDate);
@@ -63,33 +62,25 @@ export class DeliveryTimesService {
             const targetDayOfWeek = daysOfWeek[targetDate.getDay()];
             const dayTimes = timesByDay[targetDayOfWeek] || [];
 
-            console.log(`\nПроверяем день: ${targetDate.toISOString().split('T')[0]} (${targetDayOfWeek})`);
-
             const availableTimes = dayTimes.filter(time => {
                 const deliveryStart = this.combineDateAndTime(targetDate, time.startTime);
-                console.log(`- Интервал: ${time.startTime} → ${time.endTime}`);
+                const deliveryEnd = this.combineDateAndTime(targetDate, time.endTime);
 
-                // 1. Проверка, не прошло ли время доставки (если includePassedTimes = false)
+                // 1. Проверка для текущего дня (исключаем прошедшее время)
                 if (i === 0 && !includePassedTimes) {
-                    const isDeliveryInFuture = isAfter(deliveryStart, currentDate);
-                    console.log(`  • Доставка сегодня. Время ещё не прошло? ${isDeliveryInFuture}`);
-                    if (!isDeliveryInFuture) return false;
+                    if (isBefore(deliveryEnd, currentDate)) {
+                        return false;
+                    }
                 }
 
-                // 2. Проверка дедлайна заказа (за X часов до доставки)
-                const orderDeadline = new Date(deliveryStart);
-                orderDeadline.setHours(orderDeadline.getHours() - store.minOrderBeforeDeliveryHours);
-                
-                const isBeforeDeadline = isAfter(orderDeadline, currentDate);
-                console.log(`  • Дедлайн заказа: ${orderDeadline.toISOString()}`);
-                console.log(`  • Текущее время < дедлайна? ${isBeforeDeadline}`);
-
-                return isBeforeDeadline;
+                // 2. Проверка дедлайна заказа
+                const orderDeadline = subHours(deliveryStart, store.minOrderBeforeDeliveryHours);
+                return isAfter(orderDeadline, currentDate);
             });
 
             if (availableTimes.length > 0) {
                 result.push({
-                    date: targetDate.toISOString().split('T')[0],
+                    date: format(targetDate, 'yyyy-MM-dd'),
                     dayOfWeek: targetDayOfWeek,
                     times: availableTimes.map(t => ({
                         id: t.id,
@@ -100,7 +91,6 @@ export class DeliveryTimesService {
             }
         }
 
-        console.log("\nРезультат фильтрации:", JSON.stringify(result, null, 2));
         return result;
     }
 
