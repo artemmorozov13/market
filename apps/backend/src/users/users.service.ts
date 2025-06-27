@@ -113,7 +113,7 @@ export class UsersService {
 
     let user = await this.usersRepository.findOne({
       where: { telegram_id: telegramUser.id },
-      relations: ['selectedProducts', 'store']
+      relations: ['selectedProducts', 'store', 'addresses']
     });
 
     if (!user) {
