@@ -21,7 +21,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import styles from "./AddNewAddressModal.module.css";
 import { useAddressSuggestions } from "../api/queryAdreess";
-import { useSaveAddress } from "@/entities/Addresses";
+import { useSaveAddress, useUpdateSelectedAddress } from "@/entities/Addresses";
 import { AddressFormValues } from "../types/addressesTypes";
 import { useUser } from "@/entities/User";
 import { AddressType } from "@core/types/address-type";
@@ -74,6 +74,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
   const { user, refetchUser } = useUser();
   const { suggestions, isLoading } = useAddressSuggestions(debouncedQuery);
   const { saveAddress, isSaving } = useSaveAddress();
+  const { updateSelectedAddress } = useUpdateSelectedAddress()
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -93,22 +94,8 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
   const handleSelectExistingAddress = async (addressId: string) => {
     const selected = user?.addresses.find(a => a.id === addressId);
     if (selected) {
-      const result = await saveAddress({
-        fullAddress: selected.fullAddress,
-        entrance: selected.entrance,
-        floor: selected.floor,
-        apartment: selected.apartment,
-        intercom: selected.intercom,
-        addressData: {
-          postal_code: selected.postal_code,
-          fias_id: selected.fias_id,
-          geo_lat: selected.geo_lat,
-          geo_lon: selected.geo_lon,
-        }
-      });
-      if (result && onAddressChange) {
-        onAddressChange(result);
-      }
+      await updateSelectedAddress(selected.id)
+      onAddressChange?.(selected as any);
       handleClose();
       refetchUser();
     }
