@@ -104,7 +104,7 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Название пункта выдачи"
+                  label="Название зоны доставки"
                   fullWidth
                   error={!!errors.name}
                   helperText={errors.name?.message}
@@ -136,7 +136,7 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
                   control={control}
                   value={value}
                   name="address"
-                  label="Адрес пункта выдачи"
+                  label="Адрес зоны доставки"
                   error={errors.address}
                   onAddressSelect={(addressData) => {
                     if (addressData) {

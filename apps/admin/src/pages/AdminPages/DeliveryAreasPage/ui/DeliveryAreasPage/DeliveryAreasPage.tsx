@@ -99,14 +99,18 @@ const DeliveryAreasPage: FC = () => {
   };
 
   if (error) {
-    return <div>Ошибка при загрузке пунктов выдачи</div>;
+    return (
+      <ShopOwnerLayout>
+        Ошибка при загрузке зон доставки
+      </ShopOwnerLayout>
+    )
   }
 
   return (
     <ShopOwnerLayout>
       <Box className={styles.container}>
         <Box className={styles.header}>
-          <Typography variant="h4">Пункты выдачи</Typography>
+          <Typography variant="h4">Зоны доставки</Typography>
           <Button
             variant="contained"
             color="primary"
@@ -117,7 +121,7 @@ const DeliveryAreasPage: FC = () => {
               setIsDialogOpen(true);
             }}
           >
-            Добавить ПВЗ
+            Добавить зону доставки
           </Button>
         </Box>
 
