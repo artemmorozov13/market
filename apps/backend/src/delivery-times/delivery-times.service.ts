@@ -18,15 +18,15 @@ export class DeliveryTimesService {
         private readonly deliveryTimeStoreResolver: DeliveryTimeStoreResolver
     ) {}
 
-    async findByPickupPoint(pickupPointId: number): Promise<DeliveryTime[]> {
+    async findByDeliveryArea(deliveryAreaId: number): Promise<DeliveryTime[]> {
         return this.deliveryTimeRepository.find({
-            where: { pickupPoint: { id: pickupPointId } },
+            where: { deliveryArea: { id: deliveryAreaId } },
             order: { dayOfWeek: 'ASC', startTime: 'ASC' }
         });
     }
 
     async getAvailableDeliveryTimes(
-        pickupPointId: number,
+        deliveryAreaId: number,
         userJwt: AuthJwtPayload,
         options: { includePassedTimes?: boolean } = {}
     ): Promise<DeliveryTimeBase[]> {
@@ -37,7 +37,7 @@ export class DeliveryTimesService {
         const currentDate = convertToStoreTimezone(new Date(), store.timezone);
 
         const allTimes = await this.deliveryTimeRepository.find({
-            where: { pickupPoint: { id: pickupPointId }, isActive: true },
+            where: { deliveryArea: { id: deliveryAreaId }, isActive: true },
             order: { dayOfWeek: 'ASC', startTime: 'ASC' }
         });
 
@@ -95,14 +95,14 @@ export class DeliveryTimesService {
     }
 
     async createDeliveryTimes(
-        pickupPointId: number,
+        deliveryAreaId: number,
         times: CreateDeliveryTimeDto[]
     ): Promise<DeliveryTime[]> {
         const deliveryTimes = times.map(time => 
             this.deliveryTimeRepository.create({
                 ...time,
-                pickupPoint: { id: pickupPointId },
-                isActive: true
+                deliveryArea: { id: deliveryAreaId },
+                isActive: true,
             })
         );
         
@@ -110,11 +110,11 @@ export class DeliveryTimesService {
     }
 
     async updateDeliveryTimes(
-        pickupPointId: number,
+        deliveryAreaId: number,
         times: UpdateDeliveryTimeDto[]
     ): Promise<DeliveryTime[]> {
         // Удаляем старые времена, которых нет в новом списке
-        const existingTimes = await this.findByPickupPoint(pickupPointId);
+        const existingTimes = await this.findByDeliveryArea(deliveryAreaId);
         const timesToKeep = times.filter(t => t.id).map(t => t.id);
         const timesToRemove = existingTimes.filter(t => !timesToKeep.includes(t.id));
         
@@ -128,12 +128,12 @@ export class DeliveryTimesService {
                 return this.deliveryTimeRepository.create({
                     id: time.id,
                     ...time,
-                    pickupPoint: { id: pickupPointId }
+                    deliveryArea: { id: deliveryAreaId }
                 });
             }
             return this.deliveryTimeRepository.create({
                 ...time,
-                pickupPoint: { id: pickupPointId },
+                deliveryArea: { id: deliveryAreaId },
                 isActive: time.isActive ?? true
             });
         });

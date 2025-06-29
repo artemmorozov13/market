@@ -5,7 +5,7 @@ import { OrderType } from "../types/orderTypes";
 export interface FetchOrdersDataOptions {
     skip?: number
     take?: number
-    pickupPointId?: number[]
+    deliveryAreaId?: number[]
     enabled?: boolean
 }
 
@@ -24,7 +24,7 @@ export const fetchOrderData = async (options?: FetchOrdersDataOptions) => {
       params: {
         skip: options?.skip,
         limit: options?.take,
-        pickupPointId: options?.pickupPointId
+        deliveryAreaId: options?.deliveryAreaId
       },
     };
     const response = await API.get<OrderResponse>(`/order`, config);

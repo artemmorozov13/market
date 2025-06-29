@@ -1,1 +1,1 @@
-export { AddProductPage } from "./AddProductPage";
+export { AddProductPageLazy as AddProductPage } from "./AddProductPageLazy";

@@ -18,6 +18,7 @@ import styles from "./ShopOwnerLayout.module.scss"
 import { routeConfig } from "../../shared/lib/consts/routeConfig";
 import TelegramIcon from '@mui/icons-material/Telegram';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { LocationOn as DeliveryAreasIcon,} from '@mui/icons-material';
 import Cookies from "js-cookie";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../shared/lib/consts/consts";
 
@@ -79,9 +80,15 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             roles: [Roles.Admin]
         },
         {
+            label: "Районы доставки",
+            href: routeConfig["delivery-areas"],
+            icon: <DeliveryIcon />,
+            roles: [Roles.Admin]
+        },
+        {
             label: "Пункты выдачи",
             href: routeConfig["pickup-points"],
-            icon: <DeliveryIcon />,
+            icon: <DeliveryAreasIcon />,
             roles: [Roles.Admin]
         },
         {

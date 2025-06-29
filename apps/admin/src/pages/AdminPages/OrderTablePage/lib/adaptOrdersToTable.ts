@@ -7,7 +7,7 @@ export interface TableOrder {
   fullAddress: string
   priority: number;
   deliveryTimeRange: string; // Изменил название для ясности
-  pickupPointName: string; // Добавил информацию о пункте выдачи
+  deliveryAreaName: string; // Добавил информацию о пункте выдачи
   ordered_products: OrderedProductType[];
   createdAt: Date;
   phone: string;
@@ -24,7 +24,7 @@ export const adaptOrdersToTable = (orders: OrderType[]): TableOrder[] => {
       ? `${order.deliveryTime.startTime}-${order.deliveryTime.endTime}`
       : 'не указано';
 
-    const pickupPointName = order.pickupPoint?.name || 'не указан';
+    const deliveryAreaName = order.deliveryArea?.name || 'не указан';
 
     return {
       id: order.id,
@@ -34,7 +34,7 @@ export const adaptOrdersToTable = (orders: OrderType[]): TableOrder[] => {
       status: order.status,
       priority: calculatePriority(order),
       deliveryTimeRange,
-      pickupPointName,
+      deliveryAreaName,
       phone: order.phoneNumber || 'не указан',
       ordered_products: order.ordered_products,
       customerName: order.user?.name || order.user?.telegram_username || 'не указан',

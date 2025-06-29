@@ -2,23 +2,23 @@ import { API } from "@/shared/api/API";
 import { useQuery } from "@tanstack/react-query";
 import { DeliveryTimeBase } from "@core/types/delivery-time";
 
-const fetchDeliveryTimes = async (pickupPointId: number): Promise<DeliveryTimeBase[]> => {
-  const response = await API.get<DeliveryTimeBase[]>(`/pickup-points/${pickupPointId}/available-times`);
+const fetchDeliveryTimes = async (deliveryAreaId: number): Promise<DeliveryTimeBase[]> => {
+  const response = await API.get<DeliveryTimeBase[]>(`/delivery-areas/${deliveryAreaId}/available-times`);
   return response.data;
 };
 
-export const useDeliveryTimes = (pickupPointId: number | null) => {
+export const useDeliveryTimes = (deliveryAreaId: number | null) => {
   const query = useQuery({
-    queryKey: ['delivery-times', pickupPointId],
+    queryKey: ['delivery-times', deliveryAreaId],
     queryFn: () => {
-      if (!pickupPointId) return Promise.resolve([]);
-      return fetchDeliveryTimes(pickupPointId);
+      if (!deliveryAreaId) return Promise.resolve([]);
+      return fetchDeliveryTimes(deliveryAreaId);
     },
-    enabled: !!pickupPointId,
+    enabled: !!deliveryAreaId,
   });
 
   return {
     ...query,
-    deliveryTimeData: pickupPointId ? query.data : []
+    deliveryTimeData: deliveryAreaId ? query.data : []
   };
 };

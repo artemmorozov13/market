@@ -1,7 +1,7 @@
 import { DeliveryTime } from "@core/entities/delivery-time.entity";
 import { OrderEntity } from "@core/entities/order.entity";
 import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
-import { PickupPoint } from "@core/entities/pickup-point.entity";
+import { DeliveryArea } from "@core/entities/delivery-area.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 
@@ -16,7 +16,7 @@ const textByStatus: Record<OrderStatusEnum, string> = {
 export const formatUserOrderMessage = (
     order: OrderEntity,
     orderedProducts: OrderedProductsEntity[],
-    pickupPoint: PickupPoint,
+    deliveryArea: DeliveryArea,
     deliveryTime: DeliveryTime
 ): string => {
     const escape = (str: string) => str
@@ -37,7 +37,7 @@ export const formatUserOrderMessage = (
     const startTime = escape(deliveryTime.startTime.toString().slice(0, 5));
     const endTime = escape(deliveryTime.endTime.toString().slice(0, 5));
     const address = escape(order.fullAddress || order.address);
-    const pickupName = escape(pickupPoint?.name || '');
+    const pickupName = escape(deliveryArea?.name || '');
     
     // Расчет общей стоимости товаров
     const productsTotal = orderedProducts.reduce((sum, p) => {

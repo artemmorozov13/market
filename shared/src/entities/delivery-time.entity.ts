@@ -6,17 +6,18 @@ import {
   CreateDateColumn, 
   UpdateDateColumn 
 } from 'typeorm';
-import { PickupPoint } from './pickup-point.entity';
+import { DeliveryArea } from './delivery-area.entity';
+import { WeekdayEnum } from '../enums/weekday.enum';
 
 @Entity()
 export class DeliveryTime {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'], 
+  @Column({ type: 'enum', enum: WeekdayEnum, 
     comment: 'День недели' 
   })
-  dayOfWeek: string;
+  dayOfWeek: WeekdayEnum;
 
   @Column({ type: 'time', comment: 'Время начала доставки в формате HH:MM' })
   startTime: string;
@@ -33,8 +34,9 @@ export class DeliveryTime {
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
-  @ManyToOne(() => PickupPoint, pickupPoint => pickupPoint.deliveryTimes, { 
+  @ManyToOne(() => DeliveryArea, deliveryArea => deliveryArea.deliveryTimes, { 
     onDelete: 'CASCADE'
   })
-  pickupPoint: PickupPoint;
+  deliveryArea: DeliveryArea;
+
 }

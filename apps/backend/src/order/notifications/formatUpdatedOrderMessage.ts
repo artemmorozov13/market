@@ -1,7 +1,7 @@
 import { DeliveryTime } from "@core/entities/delivery-time.entity";
 import { OrderEntity } from "@core/entities/order.entity";
 import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
-import { PickupPoint } from "@core/entities/pickup-point.entity";
+import { DeliveryArea } from "@core/entities/delivery-area.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 const textByStatus: Record<OrderStatusEnum, string> = {
@@ -15,7 +15,7 @@ const textByStatus: Record<OrderStatusEnum, string> = {
 export const formatUpdatedOrderMessage = (
     order: OrderEntity,
     orderedProducts: OrderedProductsEntity[],
-    pickupPoint?: PickupPoint | null,  // Делаем параметр опциональным
+    deliveryArea?: DeliveryArea | null,  // Делаем параметр опциональным
     deliveryTime?: DeliveryTime | null, // Делаем параметр опциональным
     changes?: string[]
 ): string => {
@@ -38,7 +38,7 @@ export const formatUpdatedOrderMessage = (
     const startTime = escape(deliveryTime?.startTime?.toString().slice(0, 5)); // Используем optional chaining
     const endTime = escape(deliveryTime?.endTime?.toString().slice(0, 5));     // Используем optional chaining
     const address = escape(order.fullAddress || order.address || 'Адрес не указан');
-    const pickupName = escape(pickupPoint?.name || 'Пункт выдачи не указан');
+    const pickupName = escape(deliveryArea?.name || 'Пункт выдачи не указан');
 
     const productsTotal = orderedProducts.reduce(
         (sum, p) => {

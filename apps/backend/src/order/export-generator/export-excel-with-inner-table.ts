@@ -34,7 +34,7 @@ export const exportToExcelWithInnerTable = (options: TableExportOptions) => {
       excelData.push([
         order.id,
         order.fullAddress,
-        order.pickupPoint.name || 'Не указан',
+        order.deliveryArea.name || 'Не указан',
         1,
         order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана',
         `${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}`,

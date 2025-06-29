@@ -18,7 +18,7 @@ export class CreateOrderDto {
   deliveryDate: Date; // +
 
   @IsNumber()
-  pickupPointId: number; // +
+  deliveryAreaId: number; // +
 
   @IsNumber()
   deliveryTimeId: number; // +

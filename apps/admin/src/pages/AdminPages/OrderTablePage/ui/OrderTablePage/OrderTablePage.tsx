@@ -27,7 +27,7 @@ import { useUpdateOrderStatus } from "../../api/useUpdateOrderStatus";
 import { useOrders } from "@pages/AdminPages/OrderTablePage/api/useOrders";
 import { exportOrdersWide } from "../../api/exportOrdersWide";
 import { useForm, Controller } from "react-hook-form";
-import { usePickupPoints } from "@entities/PickupPoint";
+import { useDeliveryAreas } from "@entities/DeliveryArea";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 import styles from "./OrdersPage.module.scss";
@@ -39,7 +39,7 @@ const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE = 0;
 
 type FormValues = {
-  pickupPoints: number[];
+  deliveryAreas: number[];
 };
 
 const OrderTablePage: FC = observer(() => {
@@ -51,18 +51,18 @@ const OrderTablePage: FC = observer(() => {
   
   const { control, watch } = useForm<FormValues>({
     defaultValues: {
-      pickupPoints: [],
+      deliveryAreas: [],
     },
   });
 
-  const selectedPickupPoints = watch("pickupPoints");
+  const selectedDeliveryAreas = watch("deliveryAreas");
   
-  const { data: pickupPoints = [], isLoading: isPickupPointsLoading } = usePickupPoints();
+  const { data: deliveryAreas = [], isLoading: isDeliveryAreasLoading } = useDeliveryAreas();
   const { isProductsLoading, productsError } = useProducts();
   const { ordersData, isOrdersLoading, ordersError } = useOrders({
     skip: page * rowsPerPage,
     take: rowsPerPage,
-    pickupPointId: selectedPickupPoints.length > 0 ? selectedPickupPoints : undefined,
+    deliveryAreaId: selectedDeliveryAreas.length > 0 ? selectedDeliveryAreas : undefined,
   });
   
   const { updateOrderStatus } = useUpdateOrderStatus();
@@ -71,7 +71,7 @@ const OrderTablePage: FC = observer(() => {
   const totalOrders = ordersData?.pagination?.total || 0;
   const tableOrders = adaptOrdersToTable(orders);
   
-  const isLoading = isProductsLoading || isOrdersLoading || isPickupPointsLoading;
+  const isLoading = isProductsLoading || isOrdersLoading || isDeliveryAreasLoading;
   const error = productsError || ordersError;
 
   const handleSelectOrder = (orderId: number, isSelected: boolean) => {
@@ -136,7 +136,7 @@ const OrderTablePage: FC = observer(() => {
             {/* <Button
               variant="contained" 
               color="primary"
-              onClick={() => exportOrdersWithInnerTable(selectedPickupPoints)}
+              onClick={() => exportOrdersWithInnerTable(selectedDeliveryAreas)}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
@@ -145,7 +145,7 @@ const OrderTablePage: FC = observer(() => {
             <Button 
               variant="contained" 
               color="secondary"
-              onClick={() => exportOrdersWide(selectedPickupPoints)}
+              onClick={() => exportOrdersWide(selectedDeliveryAreas)}
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
@@ -167,7 +167,7 @@ const OrderTablePage: FC = observer(() => {
           <FormControl fullWidth variant="outlined" className={styles.filterControl}>
             <InputLabel>Пункты выдачи</InputLabel>
             <Controller
-              name="pickupPoints"
+              name="deliveryAreas"
               control={control}
               render={({ field }) => (
                 <Select
@@ -185,13 +185,13 @@ const OrderTablePage: FC = observer(() => {
                       {(selected as number[]).map((value) => (
                         <Chip 
                           key={value} 
-                          label={pickupPoints.find(p => p.id === value)?.name || value}
+                          label={deliveryAreas.find(p => p.id === value)?.name || value}
                         />
                       ))}
                     </Box>
                   )}
                 >
-                  {pickupPoints.map((point) => (
+                  {deliveryAreas.map((point) => (
                     <MenuItem key={point.id} value={point.id}>
                       {point.name} ({point.fullAddress})
                     </MenuItem>

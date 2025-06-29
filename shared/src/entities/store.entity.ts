@@ -2,9 +2,10 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { StoreUserEntity } from "./store-user.entity";
 import { UsersEntity } from "./users.entity";
 import { ProductEntity } from "./product.entity";
-import { PickupPoint } from "./pickup-point.entity";
 import { OrderEntity } from "./order.entity";
 import { SelectedProductEntity } from "./selected-product.entity";
+import { StoreDeliveryStrategy } from "./store-delivery-strategy.entity";
+import { DeliveryArea } from "./delivery-area.entity";
 
 @Entity({ name: "store" })
 export class StoreEntity {
@@ -58,11 +59,14 @@ export class StoreEntity {
     @OneToMany(() => StoreUserEntity, user => user.store)
     staff: StoreUserEntity[]
 
-    @OneToMany(() => PickupPoint, pickupPoint => pickupPoint.store)
-    pickupPoints: PickupPoint[]
+    @OneToMany(() => DeliveryArea, deliveryArea => deliveryArea.store)
+    deliveryAreas: DeliveryArea[]
 
     @OneToMany(() => OrderEntity, order => order)
     orders: OrderEntity[]
+
+    @OneToMany(() => StoreDeliveryStrategy, storeStrategy => storeStrategy.store)
+    deliveryStrategies: StoreDeliveryStrategy[]
 
     @OneToMany(() => SelectedProductEntity, selectedProduct => selectedProduct.store)
     selectedProducts: SelectedProductEntity[]

@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import { ProductType } from '@core/types/product-item';
 
 
-export const AddProductPage: FC = observer(() => {
+const AddProductPage: FC = observer(() => {
     const { createProduct } = useCreateProduct()
 
     const createNewProduct = (data: ProductType, methods: UseFormReturn<ProductFormType, any, undefined>) => {
@@ -29,3 +29,5 @@ export const AddProductPage: FC = observer(() => {
         </ShopOwnerLayout>
     )
 })
+
+export default AddProductPage

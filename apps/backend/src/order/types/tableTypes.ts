@@ -6,7 +6,7 @@ export interface TableOrder {
     fullAddress: string
     priority: number;
     deliveryTimeRange: string; // Изменил название для ясности
-    pickupPointName: string; // Добавил информацию о пункте выдачи
+    deliveryAreaName: string; // Добавил информацию о пункте выдачи
     ordered_products: OrderedProductsEntity[];
     createdAt: Date;
     phone: string;

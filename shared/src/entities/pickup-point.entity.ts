@@ -1,62 +1,54 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  OneToMany, 
-  CreateDateColumn, 
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { DeliveryTime } from './delivery-time.entity';
-import { StoreEntity } from './store.entity';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { DeliveryTime } from "./delivery-time.entity";
+import { StoreEntity } from "./store.entity";
+import { PickupWorkingHoursEntity } from "./pickup-working-hours.entity";
 
-@Entity()
-export class PickupPoint {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity({ name: 'pickup_point' })
+export class PickupPointEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column({ comment: 'Название пункта выдачи' })
-  name: string;
+    @Column({ comment: 'Название зоны доставки' })
+    name: string;
 
-  @Column({ default: 5000 })
-  radius: number
+    @Column({ nullable: true })
+    fullAddress: string;
 
-  @Column({ nullable: true })
-  fullAddress: string;
+    @Column({ type: 'varchar', nullable: true })
+    postal_code: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  postal_code: string;
+    @Column({ type: 'varchar', nullable: true })
+    fias_id: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  fias_id: string
+    @Column({ type: 'varchar', nullable: true })
+    geo_lat: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  geo_lat: string
+    @Column({ type: 'varchar', nullable: true })
+    geo_lon: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  geo_lon: string
+    @Column({ 
+        type: 'enum', 
+        enum: ['active', 'deleted'],
+        default: 'active',
+        comment: 'Статус пункта выдачи' 
+    })
+    status: 'active' | 'deleted';
 
-  @Column({ 
-    type: 'enum', 
-    enum: ['active', 'deleted'],
-    default: 'active',
-    comment: 'Статус пункта выдачи' 
-  })
-  status: 'active' | 'deleted';
+    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    createdAt: Date;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+    updatedAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
+    @OneToMany(() => DeliveryTime, deliveryTime => deliveryTime.deliveryArea, { 
+        cascade: true,
+    })
+    deliveryTimes: DeliveryTime[];
 
-  @OneToMany(() => DeliveryTime, deliveryTime => deliveryTime.pickupPoint, { 
-    cascade: true,
-  })
-  deliveryTimes: DeliveryTime[];
+    @OneToMany(() => PickupWorkingHoursEntity, time => time.pickupPoint)
+    workingHours: PickupWorkingHoursEntity[];
 
-  @ManyToOne(() => StoreEntity, store => store.pickupPoints)
-  @JoinColumn({ name: 'store_id' })
-  store: StoreEntity
+    @ManyToOne(() => StoreEntity, store => store.deliveryAreas)
+    @JoinColumn({ name: 'store_id' })
+    store: StoreEntity;
 }

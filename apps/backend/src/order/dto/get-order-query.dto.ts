@@ -15,5 +15,5 @@ export class GetOrderQueryDto {
     @IsArray()
     @IsNumber({}, { each: true })
     @Type(() => Number)
-    pickupPointId?: number[]
+    deliveryAreaId?: number[]
 }

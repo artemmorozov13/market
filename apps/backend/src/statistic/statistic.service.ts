@@ -38,7 +38,7 @@ export class StatisticService {
             relations: [
                 'user',
                 'ordered_products.product',
-                'pickupPoint',
+                'deliveryArea',
                 'deliveryTime',
             ],
         });

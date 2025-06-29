@@ -1,7 +1,7 @@
 import { AddressType } from "@/entities/Addresses";
 import { StoreBaseType } from "@core/types/store-type";
 
-export interface PickupPoint {
+export interface DeliveryArea {
     id: number;
     name: string;
     radius: number
@@ -22,7 +22,7 @@ export interface DeliveryTime {
   dayOfWeek: string; // Добавлено поле дня недели
   startTime: string;
   endTime: string;  
-  pickupPointId: number;
+  deliveryAreaId: number;
 }
 
 export interface OrderFormInputs {
@@ -31,7 +31,7 @@ export interface OrderFormInputs {
   addressId: string | null;
   storeId: number| null
   comment: string;
-  pickupPointId: number | null;
+  deliveryAreaId: number | null;
   deliveryTimeId: number | null;
   deliveryDate: string | null;
   timezone: string;

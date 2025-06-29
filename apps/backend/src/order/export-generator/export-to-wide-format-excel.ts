@@ -42,7 +42,7 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
         const rowData = [
             order.id,
             order.fullAddress,
-            order.pickupPoint?.name || 'Не указан',
+            order.deliveryArea?.name || 'Не указан',
             1, // Приоритет
             order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("ru-RU") : 'Не указана',
             order.deliveryTime ? `${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}` : 'Не указано',

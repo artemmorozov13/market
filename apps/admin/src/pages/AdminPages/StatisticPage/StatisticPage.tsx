@@ -38,7 +38,7 @@ const StatisticPage: FC = () => {
     const districts: Record<string, number> = {};
 
     orderStatistic?.forEach((order: OrderType) => {
-      const district = order.pickupPoint?.name || "Неизвестный район";
+      const district = order.deliveryArea?.name || "Неизвестный район";
       districts[district] = (districts[district] || 0) + 1;
     });
 
@@ -53,7 +53,7 @@ const StatisticPage: FC = () => {
     const districts: Record<string, number> = {};
 
     orderStatistic?.forEach((order: OrderType) => {
-      const district = order.pickupPoint?.name || "Неизвестный район";
+      const district = order.deliveryArea?.name || "Неизвестный район";
       const amount = parseFloat(order.totalAmount) || 0;
       districts[district] = (districts[district] || 0) + amount;
     });

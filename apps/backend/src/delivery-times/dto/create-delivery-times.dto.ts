@@ -1,21 +1,12 @@
+import { WeekdayEnum } from "@core/enums/weekday.enum"
 import { IsBoolean, IsOptional, IsString, Matches, IsEnum } from 'class-validator';
-
-export enum DayOfWeek {
-    Monday = 'monday',
-    Tuesday = 'tuesday',
-    Wednesday = 'wednesday',
-    Thursday = 'thursday',
-    Friday = 'friday',
-    Saturday = 'saturday',
-    Sunday = 'sunday'
-}
 
 export class CreateDeliveryTimeDto {
     @IsString({ message: 'День недели должен быть строкой' })
-    @IsEnum(DayOfWeek, { 
+    @IsEnum(WeekdayEnum, { 
         message: 'День недели должен быть одним из: monday, tuesday, wednesday, thursday, friday, saturday, sunday' 
     })
-    dayOfWeek: string;
+    dayOfWeek: WeekdayEnum;
 
     @IsString({ message: 'Время начала должно быть строкой' })
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { 

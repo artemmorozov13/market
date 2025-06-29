@@ -17,7 +17,7 @@ import {
   Alert
 } from "@mui/material";
 import styles from "./OrderForm.module.scss";
-import { OrderFormInputs, PickupPoint } from "../types/orderFormTypes";
+import { OrderFormInputs, DeliveryArea } from "../types/orderFormTypes";
 import { orderFormSchema } from "../lib/orderFormSchema";
 import { observer } from "mobx-react-lite";
 import { formatToRussianPhone } from "@/shared/helpers/formatRussianPhone";
@@ -36,9 +36,9 @@ import { ProductStatusEnum } from "@core/enums/product-status-enum";
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
 import { useSearchParams } from "react-router";
 import { ManageAddressForm } from "@/features/ManageAddressForm";
-import { findNearestPickupPoint } from "@/shared/helpers/findNearestPickupPoint";
-import { usePickupPoints } from "@/entities/PickupPoint";
 import { AddressType } from "@core/types/address-type";
+import { findNearestDeliveryArea } from "@/shared/helpers/findNearestPickupPoint";
+import { useDeliveryAreas } from "@/entities/DeliveryArea";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -48,7 +48,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [searchParams] = useSearchParams();
   const storeId = searchParams.get('storeId');
 
-  const { pickupPoints, isLoadingPickupPoint } = usePickupPoints(storeId)
+  const { deliveryAreas, isLoadingDeliveryArea } = useDeliveryAreas(storeId)
   const { user } = useUser({ 
     onSuccess: () => {
       if (user?.phone_number) {
@@ -67,16 +67,16 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     defaultValues: {
       phone: user?.phone_number,
       comment: "",
-      pickupPointId: null,
+      deliveryAreaId: null,
       deliveryTimeId: null,
       deliveryDate: null,
       addressId: null
     },
   });
 
-  const selectedPickupPointId = watch("pickupPointId");
+  const selectedDeliveryAreaId = watch("deliveryAreaId");
   const selectedAddressId = watch("addressId");
-  const { deliveryTimeData } = useDeliveryTimes(selectedPickupPointId);
+  const { deliveryTimeData } = useDeliveryTimes(selectedDeliveryAreaId);
   const { updateUser } = useUpdateUser();
   const { addresses } = useUserAddresses();
 
@@ -102,33 +102,33 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   };
 
   const handleAddressChange = (address: AddressType) => {
-    if (address && pickupPoints?.length) {
-      const nearestPoint = findNearestPickupPoint(address, pickupPoints);
+    if (address && deliveryAreas?.length) {
+      const nearestPoint = findNearestDeliveryArea(address, deliveryAreas);
       if (nearestPoint) {
-        setValue("pickupPointId", nearestPoint.id);
+        setValue("deliveryAreaId", nearestPoint.id);
         setValue("deliveryTimeId", null);
       }
     }
   }
 
   useEffect(() => {
-    if (selectedAddress && pickupPoints?.length) {
-      const nearestPoint = findNearestPickupPoint(selectedAddress, pickupPoints);
+    if (selectedAddress && deliveryAreas?.length) {
+      const nearestPoint = findNearestDeliveryArea(selectedAddress, deliveryAreas);
       if (nearestPoint) {
-        setValue("pickupPointId", nearestPoint.id);
+        setValue("deliveryAreaId", nearestPoint.id);
         setValue("deliveryTimeId", null);
       } else {
-        setValue("pickupPointId", null);
+        setValue("deliveryAreaId", null);
         setValue("deliveryTimeId", null);
       }
     }
-  }, [selectedAddress, pickupPoints, setValue]);
+  }, [selectedAddress, deliveryAreas, setValue]);
 
   const isExpiredProduct = basketStore.basketList.some(
     item => item.product.status === ProductStatusEnum.Expired
   );
 
-  if (isLoadingPickupPoint) {
+  if (isLoadingDeliveryArea) {
     return (
       <Box display="flex" justifyContent="center" p={4}>
         <CircularProgress />
@@ -136,7 +136,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     );
   }
 
-  const selectedPickupPoint = pickupPoints?.find(p => p.id === selectedPickupPointId);
+  const selectedDeliveryArea = deliveryAreas?.find(p => p.id === selectedDeliveryAreaId);
 
   return (
     <Paper className={styles.paper}>
@@ -161,7 +161,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             )}
           </Box>
 
-          {selectedPickupPoint?.name === DEFAULT_STATIC_PICKUP_POINT_NAME && (
+          {selectedDeliveryArea?.name === DEFAULT_STATIC_PICKUP_POINT_NAME && (
             <Box mb={2} textAlign="center" py={2}>
               <Typography variant="body1" color="textSecondary">
                 К сожалению, доставка по вашему адресу пока недоступна. 
@@ -170,7 +170,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             </Box>
           )}
 
-          {selectedPickupPointId && (
+          {selectedDeliveryAreaId && (
             <Box mb={3}>
               <Typography variant="h6" gutterBottom>
                 Время доставки

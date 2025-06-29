@@ -10,10 +10,10 @@ import {
   } from "typeorm";
 import { UsersEntity } from "./users.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
-import { PickupPoint } from "./pickup-point.entity";
 import { DeliveryTime } from "./delivery-time.entity";
 import { OrderStatusEnum } from "../enums/order-status-enum";
 import { StoreEntity } from "./store.entity";
+import { DeliveryArea } from "./delivery-area.entity";
   
   @Entity({ name: "order" })
   export class OrderEntity {
@@ -58,8 +58,8 @@ import { StoreEntity } from "./store.entity";
       @Column({ type: 'varchar', length: 50, nullable: true })
       paymentMethod?: string;
   
-      @ManyToOne(() => PickupPoint, { onDelete: 'SET NULL' })
-      pickupPoint: PickupPoint;
+      @ManyToOne(() => DeliveryArea, { onDelete: 'SET NULL' })
+      deliveryArea: DeliveryArea;
   
       @ManyToOne(() => DeliveryTime, { onDelete: 'SET NULL', nullable: true })
       deliveryTime?: DeliveryTime;

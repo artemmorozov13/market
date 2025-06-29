@@ -8,7 +8,7 @@ import { OrderModule } from 'src/order/order.module';
 import { FileUploaderModule } from 'src/file-uploader/file-uploader.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
-import { PickupPointModule } from 'src/pickup-point/pickup-point.module';
+import { DeliveryAreaModule } from '@app/delivery-area/delivery-area.module';
 import { DatabaseConfig } from 'src/config';
 import { DadataModule } from 'src/dadata/dadata.module';
 import { AddressesModule } from 'src/addresses/addresses.module';
@@ -19,6 +19,8 @@ import { StatisticModule } from 'src/statistic/statistic.module';
 import { StoreUserModule } from '@app/store-user/store-user.module';
 import { StoreModule } from '@app/store/store.module';
 import { OfferedProductsModule } from '@app/offered-products/offered-products.module';
+import { DeliveryStrategiesModule } from '@app/delivery-strategies/delivery-strategies.module';
+import { PickupPointsModule } from '@app/pickup-points/pickup-points.module';
 
 @Module({
   imports: [
@@ -41,12 +43,14 @@ import { OfferedProductsModule } from '@app/offered-products/offered-products.mo
     StatisticModule,
     FileUploaderModule,
     AuthModule,
-    PickupPointModule,
+    DeliveryAreaModule,
     DadataModule,
     AddressesModule,
     StoreUserModule,
     StoreModule,
-    OfferedProductsModule
+    OfferedProductsModule,
+    DeliveryStrategiesModule,
+    PickupPointsModule
   ],
   controllers: [AppController],
   providers: [

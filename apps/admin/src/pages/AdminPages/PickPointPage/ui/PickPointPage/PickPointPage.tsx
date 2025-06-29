@@ -14,23 +14,13 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/ico
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import styles from './PickPointPage.module.scss';
 import { EditPickupPointModal } from '../EditPickupPointModal/EditPickupPointModal';
+import { PickupPoint, PickupPointFormData } from '../../types/pickupPointPageType';
+import { WeekdayEnum } from '@core/enums/weekday.enum';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal';
-import { dayOptions } from '../../consts/intervals';
-import { PickupPoint, TimeOption, useCreatePickupPoint, useDeletePickupPoint, usePickupPoints, useUpdatePickupPoint } from '@entities/PickupPoint';
-import { PickupPointFormData } from '../../types/types';
-
-const defaultTimeOptionStart: TimeOption = {
-  value: '09:00',
-  label: '09:00'
-};
-
-const defaultTimeOptionEnd: TimeOption = {
-  value: '12:00',
-  label: '12:00'
-};
+import { useCreatePickupPoint, useDeletePickupPoint, usePickupPoints, useUpdatePickupPoint } from '@entities/PickupPoint';
 
 const PickPointPage: FC = () => {
-  const { data: points, isLoading, error } = usePickupPoints();
+  const { pickupPoints, isLoading, error } = usePickupPoints();
   const createMutation = useCreatePickupPoint();
   const updateMutation = useUpdatePickupPoint();
   const deleteMutation = useDeletePickupPoint();
@@ -43,59 +33,68 @@ const PickPointPage: FC = () => {
 
   useEffect(() => {
     if (editingPoint) {
-      const initialDeliveryTimes = editingPoint.deliveryTimes.length > 0
-        ? [...editingPoint.deliveryTimes]
-        : [{
-            dayOfWeek: dayOptions[0],
-            startTime: defaultTimeOptionStart,
-            endTime: defaultTimeOptionEnd
-          }];
-  
       reset({
         id: editingPoint.id,
         name: editingPoint.name,
-        radius: editingPoint.radius,
-        address: editingPoint.fullAddress,
-        fias_id: editingPoint.fias_id,
-        postal_code: editingPoint.postal_code,
-        geo_lat: editingPoint.geo_lat,
-        geo_lon: editingPoint.geo_lon,
-        deliveryTimes: initialDeliveryTimes
+        fullAddress: editingPoint.fullAddress,
+        postal_code: editingPoint.postal_code || '',
+        fias_id: editingPoint.fias_id || '',
+        geo_lat: editingPoint.geo_lat || '',
+        geo_lon: editingPoint.geo_lon || '',
+        workingHours: editingPoint.workingHours || []
       });
     } else {
       reset({
         name: '',
-        radius: 5000,
-        address: '',
-        fias_id: '',
+        fullAddress: '',
         postal_code: '',
+        fias_id: '',
         geo_lat: '',
         geo_lon: '',
-        deliveryTimes: [{
-          dayOfWeek: dayOptions[0],
-          startTime: defaultTimeOptionStart,
-          endTime: defaultTimeOptionEnd
-        }]
+        workingHours: []
       });
     }
   }, [editingPoint, reset]);
 
+  const getRussianWeekdayName = (day: WeekdayEnum) => {
+    const weekdayTranslations: Record<WeekdayEnum, string> = {
+      [WeekdayEnum.MONDAY]: 'Понедельник',
+      [WeekdayEnum.TUESDAY]: 'Вторник',
+      [WeekdayEnum.WEDNESDAY]: 'Среда',
+      [WeekdayEnum.THURSDAY]: 'Четверг',
+      [WeekdayEnum.FRIDAY]: 'Пятница',
+      [WeekdayEnum.SATURDAY]: 'Суббота',
+      [WeekdayEnum.SUNDAY]: 'Воскресенье'
+    };
+  
+    return weekdayTranslations[day] || day;
+  };
+
+  const getWeekdayName = (day: WeekdayEnum) => {
+    return getRussianWeekdayName(day);
+  };
+
   const onSubmit: SubmitHandler<PickupPointFormData> = async (data) => {
-    if (data.id) {
-      await updateMutation.mutateAsync({
-        id: data.id,
-        ...data
-      });
-    } else {
-      await createMutation.mutateAsync(data);
+    try {
+      if (data.id) {
+        await updateMutation.mutateAsync(data);
+      } else {
+        await createMutation.mutateAsync(data);
+      }
+      setIsDialogOpen(false);
+      setEditingPoint(null);
+    } catch (error) {
+      console.error('Error saving pickup point:', error);
     }
-    setIsDialogOpen(false);
-    setEditingPoint(null);
   };
 
   const handleDelete = async (id: number) => {
-    await deleteMutation.mutateAsync(id);
-    setDeleteConfirmId(null);
+    try {
+      await deleteMutation.mutateAsync(id);
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error('Error deleting pickup point:', error);
+    }
   };
 
   if (error) {
@@ -117,7 +116,7 @@ const PickPointPage: FC = () => {
               setIsDialogOpen(true);
             }}
           >
-            Добавить ПВЗ
+            Добавить пункт выдачи
           </Button>
         </Box>
 
@@ -125,7 +124,7 @@ const PickPointPage: FC = () => {
           <CircularProgress />
         ) : (
           <Grid container spacing={3}>
-            {points?.map((point) => (
+            {pickupPoints?.map((point) => (
               <Grid item xs={12} sm={6} md={4} key={point.id}>
                 <Paper elevation={3} className={styles.card}>
                   <Box display="flex" justifyContent="space-between">
@@ -149,23 +148,15 @@ const PickPointPage: FC = () => {
                     </Box>
                   </Box>
                   <Divider sx={{ my: 1 }} />
+                  <Typography variant="body2">{point.fullAddress}</Typography>
+                  <Divider sx={{ my: 1 }} />
                   <Box>
-                    <Typography variant="subtitle2">Время доставки:</Typography>
-                    {Object.entries(
-                      point.deliveryTimes.reduce((acc, time) => {
-                        const day = time.dayOfWeek.label;
-                        if (!acc[day]) acc[day] = [];
-                        acc[day].push(time);
-                        return acc;
-                      }, {} as Record<string, typeof point.deliveryTimes>)
-                    ).map(([day, times]) => (
-                      <Box key={day} sx={{ mb: 1 }}>
-                        <Typography variant="body2" fontWeight="bold">{day}:</Typography>
-                        {times.map((time, idx) => (
-                          <Typography key={idx} variant="body2" sx={{ ml: 1 }}>
-                            {time.startTime.label} - {time.endTime.label}
-                          </Typography>
-                        ))}
+                    <Typography variant="subtitle2">График работы:</Typography>
+                    {point.workingHours?.map((wh, idx) => (
+                      <Box key={idx} sx={{ mb: 1 }}>
+                        <Typography variant="body2">
+                          {getWeekdayName(wh.dayOfWeek)}: {wh.openingTime} - {wh.closingTime}
+                        </Typography>
                       </Box>
                     ))}
                   </Box>

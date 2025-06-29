@@ -35,7 +35,10 @@ export class StoreController {
     getStoreData(@Param('id') id: string) {
         return this.storeService.getStoreDataById(Number(id))
     }
-
+    
+    @AllowRoles(Roles.SuperAdmin)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @Post('create')
     createStore(@Body() body: CreateStoreDto) {
         return this.storeService.createStore(body)

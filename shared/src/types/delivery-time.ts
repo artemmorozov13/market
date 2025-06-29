@@ -4,7 +4,7 @@ export interface DeliveryTimeIntervalBase {
   startTime: string; // в формате 'HH:MM:SS'
   endTime: string;   // в формате 'HH:MM:SS'
   isActive: boolean;
-  pickupPointId?: number;
+  deliveryAreaId?: number;
 }
 
 // Ответ от API с группировкой по датам

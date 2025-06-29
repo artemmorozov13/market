@@ -8,7 +8,7 @@ export interface OrderedProduct {
     product: ProductType;
 }
   
-export interface PickupPoint {
+export interface DeliveryArea {
     id: number;
     name: string;
     fullAddress: string;
@@ -43,5 +43,5 @@ export interface Order {
         updatedAt: Date
     };
     store?: StoreBaseType
-    pickupPoint: PickupPoint;
+    deliveryArea: DeliveryArea;
 }

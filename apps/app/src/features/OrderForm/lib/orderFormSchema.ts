@@ -10,6 +10,6 @@ export const orderFormSchema = yup.object({
     )
     .required("Укажите телефон для связи"),
   comment: yup.string(),
-  pickupPointId: yup.number().required("Выберите пункт выдачи"),
+  deliveryAreaId: yup.number().required("Выберите пункт выдачи"),
   deliveryTimeId: yup.number().required("Выберите время доставки"),
 });

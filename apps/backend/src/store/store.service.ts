@@ -8,6 +8,7 @@ import { StoreUserService } from '@app/store-user/store-user.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { Roles } from '@core/enums/role-enum';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
+import { DeliveryStrategiesService } from '@app/delivery-strategies/delivery-strategies.service';
 
 @Injectable()
 export class StoreService {
@@ -16,6 +17,8 @@ export class StoreService {
         private readonly storeRepository: Repository<StoreEntity>,
         @Inject(forwardRef(() => StoreUserService))
         private readonly storeUserService: StoreUserService,
+        @Inject(forwardRef(() => DeliveryStrategiesService))
+        private readonly deliveryStrategiesService: DeliveryStrategiesService,
     ) {}
 
     async getStoreUserByToken(userJwt: AuthJwtPayload, page: number, limit: number) {
@@ -47,69 +50,66 @@ export class StoreService {
         const skip = (page - 1) * limit;
 
         const query = this.storeRepository
-        .createQueryBuilder('store')
-        // .innerJoin('store.users', 'user', 'user.id = :userId', { userId: userJwt.id })
-        .leftJoinAndSelect(
-            'store.products', 
-            'product',
-            'product.status IN (:...statuses)',
-            { statuses: [ProductStatusEnum.Accepted, ProductStatusEnum.Active] }
-        )
-        .orderBy('store.name', 'ASC')
-        .addOrderBy('product.name', 'ASC');
+            .createQueryBuilder('store')
+            .leftJoinAndSelect(
+                'store.products', 
+                'product',
+                'product.status IN (:...statuses)',
+                { statuses: [ProductStatusEnum.Accepted, ProductStatusEnum.Active] }
+            )
+            .orderBy('store.name', 'ASC')
+            .addOrderBy('product.name', 'ASC');
 
         const [stores, total] = await query
-        .skip(skip)
-        .take(limit)
-        .getManyAndCount();
+            .skip(skip)
+            .take(limit)
+            .getManyAndCount();
 
         return [stores, total];
     }
 
     async getStoreDataById(storeId: number) {
         const store = await this.storeRepository.findOne({
-            where: {
-                id: storeId
-            }
-        })
+            where: { id: storeId },
+            relations: ['products', 'deliveryAreas'],
+        });
+        
         if (!store) {
-            throw new BadRequestException("Данные магазина не найдены")
+            throw new BadRequestException("Данные магазина не найдены");
         }
-        return store
+
+        // Добавляем стратегии доставки
+        const strategies = await this.deliveryStrategiesService.getStoreStrategies(storeId);
+        return { ...store, deliveryStrategies: strategies };
     }
 
     async createStore(body: CreateStoreDto) {
-        // 1. Создаем пользователя с указанной почтой и стандартным паролем
         const newUser = await this.storeUserService.createUser({
             email: body.userEmail,
         });
 
-        // 2. Создаем магазин и привязываем к нему пользователя
         const store = this.storeRepository.create({
             name: body.name,
             description: body.description,
             logoUrl: body.logoUrl,
             telegramBotToken: body.telegramBotToken,
             isDeliveryFree: true,
-            staff: [newUser], // Важно: staff должен быть массивом!
+            staff: [newUser],
         });
 
         return this.storeRepository.save(store);
     }
 
     async updateStoreData(userJwt: AuthJwtPayload, body: UpdateStoreDto) {
-        // 1. Получаем текущего пользователя (с магазином)
         const user = await this.storeUserService.getStoreUserById(userJwt.id);
 
-        // 2. Проверяем, что пользователь — владелец магазина
         if (user.role !== Roles.Admin) {
             throw new ForbiddenException('Только владелец магазина может изменять данные');
         }
 
-        // 3. Находим магазин, который принадлежит пользователю
         const store = await this.storeRepository.findOne({
-            where: { id: body.id, staff: { id: user.id } }, // Магазин, где user есть в staff
-            relations: ['staff'], // Подгружаем сотрудников
+            where: { id: body.id, staff: { id: user.id } },
+            relations: ['staff'],
         });
 
         if (!store) {
@@ -121,18 +121,31 @@ export class StoreService {
             body.deliveryFreeFromLimit = 0;
         }
 
-        // 4. Обновляем магазин
         await this.storeRepository.update(store.id, body);
 
-        // 5. Возвращаем обновленные данные
         return this.storeRepository.findOne({ 
             where: { id: store.id },
             relations: ['staff'],
         });
     }
 
-    async getStoreTelegramBotToken(storeId: number) {
-        const store = await this.getStoreDataById(storeId);
-        return store.telegramBotToken;
+    async getStoreStrategies(storeId: number) {
+        return this.deliveryStrategiesService.getStoreStrategies(storeId);
+    }
+
+    async addStrategyToStore(storeId: number, strategyId: number) {
+        return this.deliveryStrategiesService.addStrategyToStore(storeId, {
+            strategyId
+        });
+    }
+
+    async removeStrategyFromStore(storeId: number, strategyId: number) {
+        return this.deliveryStrategiesService.removeStrategyFromStore(storeId, strategyId);
+    }
+
+    async updateStoreStrategy(storeId: number, strategyId: number) {
+        return this.deliveryStrategiesService.updateStoreStrategy(storeId, {
+            strategyId
+        });
     }
 }

@@ -8,7 +8,7 @@ import { OrderEntity } from '@core/entities/order.entity';
 import { UsersEntity } from '@core/entities/users.entity';
 import { SelectedProductEntity } from '@core/entities/selected-product.entity';
 import { OrderedProductsEntity } from '@core/entities/ordered-products.entity';
-import { PickupPoint } from '@core/entities/pickup-point.entity';
+import { DeliveryArea } from '@core/entities/delivery-area.entity';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { ProductEntity } from '@core/entities/product.entity';
 import { OrderStoreResolver } from './lib/order-store-resolver';
@@ -23,7 +23,7 @@ import { StoreModule } from '@app/store/store.module';
       UsersEntity,
       SelectedProductEntity,
       OrderedProductsEntity,
-      PickupPoint,
+      DeliveryArea,
       DeliveryTime,
       ProductEntity
     ]),

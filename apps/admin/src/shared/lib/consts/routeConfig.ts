@@ -12,6 +12,7 @@ export const routeConfig = {
     "order-table": "/admin/order-table",
     "telegram-broadcast": "/admin/telegram-broadcast",
     "suppliers": "/admin/suppliers",
+    "delivery-areas": "/admin/delivery-areas",
 
     // role Supplier
     "supplier-orders": "/admin/supplier/orders",

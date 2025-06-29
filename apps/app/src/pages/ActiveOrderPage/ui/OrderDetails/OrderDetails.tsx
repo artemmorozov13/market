@@ -140,10 +140,10 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
             </>
           )}
 
-          {order.pickupPoint && (
+          {order.deliveryArea && (
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="body2" color="text.secondary">Пункт выдачи:</Typography>
-              <Typography variant="body2">{order.pickupPoint.name}</Typography>
+              <Typography variant="body2">{order.deliveryArea.name}</Typography>
             </Stack>
           )}
 

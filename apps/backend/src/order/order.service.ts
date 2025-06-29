@@ -17,7 +17,6 @@ import { UsersEntity } from '@core/entities/users.entity';
 import { SelectedProductEntity } from '@core/entities/selected-product.entity';
 import { ProductEntity } from '@core/entities/product.entity';
 import { OrderedProductsEntity } from '@core/entities/ordered-products.entity';
-import { PickupPoint } from '@core/entities/pickup-point.entity';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { OrderStatusEnum } from '@core/enums/order-status-enum';
 import { OrderStoreResolver } from './lib/order-store-resolver';
@@ -27,6 +26,7 @@ import { UsersService } from '@app/users/users.service';
 import { StoreUserService } from '@app/store-user/store-user.service';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { StoreService } from '@app/store/store.service';
+import { DeliveryArea } from '@core/entities/delivery-area.entity';
 
 @Injectable()
 export class OrderService {
@@ -42,8 +42,8 @@ export class OrderService {
     private readonly productRepository: Repository<ProductEntity>,
     @InjectRepository(OrderedProductsEntity)
     private readonly orderedProductsRepository: Repository<OrderedProductsEntity>,
-    @InjectRepository(PickupPoint)
-    private readonly pickupPointRepository: Repository<PickupPoint>,
+    @InjectRepository(DeliveryArea)
+    private readonly deliveryAreaRepository: Repository<DeliveryArea>,
     @InjectRepository(DeliveryTime)
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
     private readonly orderStoreResolver: OrderStoreResolver,
@@ -53,20 +53,20 @@ export class OrderService {
   ) {}
 
   async getOrdersListData(userJwt: AuthJwtPayload, options: GetOrderQueryDto) {
-    const { limit = 10, skip, pickupPointId } = options;
+    const { limit = 10, skip, deliveryAreaId } = options;
     const whereOptions: FindOptionsWhere<OrderEntity> = {
       store: {
         id: userJwt.storeId
       }
     };
 
-    if (pickupPointId) {
-        const pointIds = Array.isArray(pickupPointId) 
-            ? pickupPointId 
-            : [pickupPointId];
+    if (deliveryAreaId) {
+        const pointIds = Array.isArray(deliveryAreaId) 
+            ? deliveryAreaId 
+            : [deliveryAreaId];
         
         if (pointIds.length > 0) {
-            whereOptions.pickupPoint = In(pointIds);
+            whereOptions.deliveryArea = In(pointIds);
         }
     }
 
@@ -80,7 +80,7 @@ export class OrderService {
         relations: [
             "user",
             "ordered_products.product",
-            "pickupPoint",
+            "deliveryArea",
             "deliveryTime"
         ]
     });
@@ -105,7 +105,7 @@ export class OrderService {
         'ordered_products',
         'ordered_products.product',
         'deliveryTime',
-        'pickupPoint',
+        'deliveryArea',
         'store'
       ],
       order: {
@@ -252,16 +252,16 @@ export class OrderService {
       throw new BadRequestException("Корзина пустая");
     }
 
-    const pickupPoint = await this.pickupPointRepository.findOne({
+    const deliveryArea = await this.deliveryAreaRepository.findOne({
       where: {
-        id: createOrderDto.pickupPointId,
+        id: createOrderDto.deliveryAreaId,
         store: {
           id: store.id
         }
       }
     });
 
-    if (!pickupPoint) {
+    if (!deliveryArea) {
       throw new NotFoundException('Пункт выдачи не найден');
     }
 
@@ -289,7 +289,7 @@ export class OrderService {
       deliveryDate: createOrderDto.deliveryDate,
       status: OrderStatusEnum.WaitForPay,
       totalAmount: totalAmount < store.deliveryFreeFromLimit ? totalAmount + store.deliveryCost : totalAmount,
-      pickupPoint: pickupPoint,
+      deliveryArea: deliveryArea,
       deliveryTime: deliveryTime,
       user: user,
       store: store
@@ -318,7 +318,7 @@ export class OrderService {
     });
 
     if (user.telegram_id) {
-      const userMessage = formatUserOrderMessage(order, orderedProducts, pickupPoint, deliveryTime);
+      const userMessage = formatUserOrderMessage(order, orderedProducts, deliveryArea, deliveryTime);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
@@ -415,14 +415,14 @@ export class OrderService {
       relations: [
         'ordered_products',
         'ordered_products.product',
-        'pickupPoint',
+        'deliveryArea',
         'deliveryTime',
       ],
       loadEagerRelations: false
     });
 
     if (user.telegram_id) {
-      const userMessage = formatUpdatedOrderMessage(updatedOrder, savedProducts, updatedOrder.pickupPoint, updatedOrder.deliveryTime);
+      const userMessage = formatUpdatedOrderMessage(updatedOrder, savedProducts, updatedOrder.deliveryArea, updatedOrder.deliveryTime);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
@@ -432,7 +432,7 @@ export class OrderService {
     return updatedOrder
   }
   
-  async exportExcelWithInnerTable(userJwt: AuthJwtPayload, pickupPointIds?: number[]): Promise<Uint8Array> {
+  async exportExcelWithInnerTable(userJwt: AuthJwtPayload, deliveryAreaIds?: number[]): Promise<Uint8Array> {
     const whereOptions: FindOptionsWhere<OrderEntity> = { 
         status: OrderStatusEnum.WaitForPay,
         store: {
@@ -440,8 +440,8 @@ export class OrderService {
         }
     };
 
-    if (pickupPointIds && pickupPointIds.length > 0) {
-        whereOptions.pickupPoint = In(pickupPointIds);
+    if (deliveryAreaIds && deliveryAreaIds.length > 0) {
+        whereOptions.deliveryArea = In(deliveryAreaIds);
     }
 
     const orders = await this.orderRepository.find({
@@ -450,13 +450,13 @@ export class OrderService {
             'ordered_products',
             'ordered_products.product',
             'deliveryTime',
-            'pickupPoint'
+            'deliveryArea'
         ]
     });
     return exportToExcelWithInnerTable({ orders });
   }
 
-  async exportToWideFormatExcel(userJwt: AuthJwtPayload, pickupPointIds?: number[]): Promise<Uint8Array> {
+  async exportToWideFormatExcel(userJwt: AuthJwtPayload, deliveryAreaIds?: number[]): Promise<Uint8Array> {
       const whereOptions: FindOptionsWhere<OrderEntity> = { 
           status: OrderStatusEnum.WaitForPay,
           store: {
@@ -465,8 +465,8 @@ export class OrderService {
       };
 
       // Добавляем фильтрацию по пунктам выдачи, если они переданы
-      if (pickupPointIds && pickupPointIds.length > 0) {
-          whereOptions.pickupPoint = In(pickupPointIds);
+      if (deliveryAreaIds && deliveryAreaIds.length > 0) {
+          whereOptions.deliveryArea = In(deliveryAreaIds);
       }
 
       const products = await this.productRepository.find({
@@ -487,7 +487,7 @@ export class OrderService {
               'ordered_products',
               'ordered_products.product',
               'deliveryTime',
-              'pickupPoint'
+              'deliveryArea'
           ]
       });
 

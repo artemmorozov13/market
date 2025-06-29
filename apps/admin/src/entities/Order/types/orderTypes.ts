@@ -28,7 +28,7 @@ export interface OrderType {
   totalAmount: string
   user: StoreOwnerUserType;
   ordered_products: OrderedProductType[];
-  pickupPoint?: {
+  deliveryArea?: {
     id: number;
     name: string;
     address?: string;

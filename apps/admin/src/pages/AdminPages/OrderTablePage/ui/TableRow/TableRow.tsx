@@ -74,7 +74,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                 </TableCell>
                 <TableCell>
                     <Typography fontWeight="bold">Пункт выдачи</Typography>
-                    {order.pickupPointName || 'Не указан'}
+                    {order.deliveryAreaName || 'Не указан'}
                 </TableCell>
                 <TableCell>
                     <Typography fontWeight="bold">Приоритет</Typography>

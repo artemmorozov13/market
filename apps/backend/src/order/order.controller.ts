@@ -90,14 +90,14 @@ export class OrderController {
   async exportExcelWithInnerTable(
     @User() user: AuthJwtPayload,
     @Res() res: Response,
-    @Query('pickupPointIds', new ParseArrayPipe({ 
+    @Query('deliveryAreaIds', new ParseArrayPipe({ 
       items: Number, 
       separator: ',', 
       optional: true 
-    })) pickupPointIds?: number[]
+    })) deliveryAreaIds?: number[]
   ) {
     try {
-      const buffer = await this.orderService.exportExcelWithInnerTable(user, pickupPointIds);
+      const buffer = await this.orderService.exportExcelWithInnerTable(user, deliveryAreaIds);
       
       const now = new Date();
       const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
@@ -126,14 +126,14 @@ export class OrderController {
   async exportExcelFullWidthTable(
     @User() user: AuthJwtPayload,
     @Res() res: Response,
-    @Query('pickupPointIds', new ParseArrayPipe({ 
+    @Query('deliveryAreaIds', new ParseArrayPipe({ 
       items: Number, 
       separator: ',', 
       optional: true 
-    })) pickupPointIds?: number[]
+    })) deliveryAreaIds?: number[]
   ) {
     try {
-      const buffer = await this.orderService.exportToWideFormatExcel(user, pickupPointIds);
+      const buffer = await this.orderService.exportToWideFormatExcel(user, deliveryAreaIds);
       
       const now = new Date();
       const safeDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;

@@ -16,7 +16,7 @@ export const createOrder = async (options: CreateOrderOptions) => {
             fullAddress: data.address?.fullAddress,
             address: data.address?.id,
             comment: data.comment,
-            pickupPointId: data.pickupPointId,
+            deliveryAreaId: data.deliveryAreaId,
             deliveryTimeId: data.deliveryTimeId,
             deliveryDate: data.deliveryDate ? formatDateToYYYYMMDD(new Date(data.deliveryDate)) : null,
             storeId: data.storeId

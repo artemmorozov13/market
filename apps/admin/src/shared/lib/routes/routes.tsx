@@ -1,4 +1,3 @@
-import { AddProductPage } from "@pages/AdminPages/AddProductPage";
 import { routeConfig } from "../consts/routeConfig";
 import { ReactNode } from "react";
 import { AuthPage } from "@pages/SharedPages/AuthPage";
@@ -14,6 +13,8 @@ import { ShopSettingsPage } from "@pages/AdminPages/ShopSettingsPage";
 import { SuppliersPage } from "@pages/AdminPages/SuppliersPage";
 import { Roles } from "@core/enums/role-enum";
 import { OfferProductPage, OrderedProductsPage, StatisticSupplierPage } from "@pages/SupplierPages";
+import { AddProductPage } from "@pages/AdminPages/AddProductPage";
+import { DeliveryAreasPage } from "@pages/AdminPages/DeliveryAreasPage";
 
 export interface RouteType {
     roles: Roles[],
@@ -96,6 +97,12 @@ export const routes: RouteType[] = [
         authOnly: true,
         element: <PickPointPage/>,
         path: routeConfig["pickup-points"]
+    },
+    {
+        roles: [Roles.Admin],
+        authOnly: true,
+        element: <DeliveryAreasPage/>,
+        path: routeConfig["delivery-areas"]
     },
 
     // Supplier pages

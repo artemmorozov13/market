@@ -2,9 +2,9 @@
 import { AddressType } from "@core/types/address-type";
 import { calculateDistance } from "./calculateDistance";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "../consts/applicationConsts";
-import { PickupPointBase } from "@core/types/pickup-point";
+import { DeliveryAreaBase } from "@core/types/pickup-point";
 
-export const findNearestPickupPoint = (address: AddressType, points: PickupPointBase[]) => {
+export const findNearestDeliveryArea = (address: AddressType, points: DeliveryAreaBase[]) => {
     if (!address || !points?.length) return null;
 
     const pointsWithCoords = points.filter(point => point.geo_lat && point.geo_lon);
