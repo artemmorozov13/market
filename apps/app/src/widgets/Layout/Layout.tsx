@@ -13,13 +13,10 @@ import {
   Divider,
   Badge,
   Box,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Paper,
-  ListItemButton
+  BottomNavigation,
+  BottomNavigationAction,
+  ListItemIcon
 } from "@mui/material";
 import {
   ShoppingCart,
@@ -50,7 +47,6 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
   const { role } = userStore;
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { clearBasket } = useClearBasket();
   const { summary } = useBasket();
   
@@ -80,23 +76,26 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
   const navigationItems = [
     {
       path: RoutePath.products,
-      icon: <Store className={styles.menuIcon} />,
+      icon: <Store />,
       label: "Продукты"
     },
     {
       path: RoutePath.activeOrders,
-      icon: <ListIcon className={styles.menuIcon} />,
+      icon: <ListIcon />,
       label: "Заказы"
     },
     {
       path: RoutePath.basket,
-      icon: <ShoppingBasket className={styles.menuIcon} />,
-      label: "Корзина",
-      badge: totalProducts > 0 ? totalProducts : undefined
+      icon: (
+        <Badge badgeContent={totalProducts > 0 ? totalProducts : null} color="primary">
+          <ShoppingBasket />
+        </Badge>
+      ),
+      label: "Корзина"
     },
     {
       path: RoutePath.help,
-      icon: <Help className={styles.menuIcon} />,
+      icon: <Help />,
       label: "Поддержка"
     }
   ];
@@ -112,14 +111,6 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
         className={styles.stickyHeader}
       >
         <Toolbar className={styles.toolbar}>
-          <IconButton
-            edge="start"
-            className={styles.menuButton}
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <MenuIcon />
-          </IconButton>
-
           <div className={styles.actions}>
             {totalProducts > 0 && (
               <Typography variant="body1" className={styles.totalPrice}>
@@ -154,52 +145,29 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
         {children}
       </main>
 
-      <Drawer
-        anchor="left"
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        classes={{
-          paper: styles.drawerPaper
-        }}
+      {/* Bottom Navigation */}
+      <Paper 
+        elevation={3} 
+        className={styles.bottomNavigation}
       >
-        <div className={styles.drawerContent}>
-          <List className={styles.navList}>
-            {navigationItems.map((item) => (
-              <ListItem
-                key={item.path}
-                disablePadding
-              >
-                <ListItemButton
-                  component={Link}
-                  to={item.path}
-                  className={clsx(styles.navItem, {
-                    [styles.navItemActive]: location.pathname.startsWith(item.path)
-                  })}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <ListItemIcon className={styles.navIcon}>
-                    {item.badge ? (
-                      <Badge 
-                        badgeContent={item.badge} 
-                        className={styles.navBadge}
-                        color="primary"
-                      >
-                        {item.icon}
-                      </Badge>
-                    ) : (
-                      item.icon
-                    )}
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={item.label} 
-                    classes={{ primary: styles.navText }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </div>
-      </Drawer>
+        <BottomNavigation
+          showLabels
+          value={navigationItems.findIndex(item => location.pathname.startsWith(item.path))}
+        >
+          {navigationItems.map((item) => (
+            <BottomNavigationAction
+              key={item.path}
+              component={Link}
+              to={item.path}
+              label={item.label}
+              icon={item.icon}
+              className={clsx(styles.navItem, {
+                [styles.navItemActive]: location.pathname.startsWith(item.path)
+              })}
+            />
+          ))}
+        </BottomNavigation>
+      </Paper>
 
       <Menu
         anchorEl={anchorEl}
