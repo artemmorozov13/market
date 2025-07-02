@@ -18,7 +18,7 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
-  Divider
+  Divider,
 } from "@mui/material";
 import styles from "./OrderForm.module.scss";
 import { observer } from "mobx-react-lite";
@@ -236,7 +236,11 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
               Способ получения
             </Typography>
 
-            {!isLoadingStore && !isDeliveryAvailable && !isPickupAvailable && (
+            {isLoadingStore ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : !isDeliveryAvailable && !isPickupAvailable ? (
               <Alert severity="error" className={styles.alert}>
                 <Typography variant="body1" gutterBottom>
                   В настоящее время заказы недоступны
@@ -246,7 +250,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   Пожалуйста, попробуйте позже или свяжитесь с нами для уточнения деталей.
                 </Typography>
               </Alert>
-            )}
+            ) : null}
             
             <Controller
               name="deliveryMethod"
