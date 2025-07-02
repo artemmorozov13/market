@@ -19,6 +19,6 @@ export interface StoreBaseType {
     products: ProductType[]
     pickupPoints: PickupPointType[],
     deliveryAreas: DeliveryAreaBase[],
-    deliveryStrategies: StoreDeliveryStrategies[]
+    deliveryStrategies: StoreDeliveryStrategies
     // staff: 
 }
