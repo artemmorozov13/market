@@ -1,5 +1,5 @@
+import { AddressType } from "@core/types/address-type";
 import { makeAutoObservable } from "mobx";
-import { AddressType } from "../types/addressTypes";
 
 export class AddressStore {
   formData: Omit<AddressType, "id" | "createdAt" | "updatedAt"> = {
@@ -7,6 +7,8 @@ export class AddressStore {
     entrance: "",
     floor: "",
     apartment: "",
+    latitude: "",
+    longitude: "",
     intercom: "",
     comment: null,
     postal_code: "",
@@ -35,6 +37,8 @@ export class AddressStore {
       entrance: "",
       floor: "",
       apartment: "",
+      latitude: "",
+      longitude: "",
       intercom: "",
       comment: null,
       postal_code: "",

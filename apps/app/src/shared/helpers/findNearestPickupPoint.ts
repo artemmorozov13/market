@@ -2,7 +2,7 @@
 import { AddressType } from "@core/types/address-type";
 import { calculateDistance } from "./calculateDistance";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "../consts/applicationConsts";
-import { DeliveryAreaBase } from "@core/types/pickup-point";
+import { DeliveryAreaBase } from "@core/types/delivery-area-type";
 
 export const findNearestDeliveryArea = (address: AddressType, points: DeliveryAreaBase[]) => {
     if (!address || !points?.length) return null;

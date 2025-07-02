@@ -1,7 +1,7 @@
-import { DeliveryTime } from "@/features/OrderForm/types/orderFormTypes";
+import { DeliveryTimeBase } from "@core/types/delivery-time";
 
 export const groupDeliveryTimesByDay = (
-    deliveryTimes: DeliveryTime[],
+    deliveryTimes: DeliveryTimeBase[],
     weekDates: Record<string, { date: Date; formattedDate: string }>
   ) => {
     return deliveryTimes
@@ -11,5 +11,5 @@ export const groupDeliveryTimesByDay = (
         if (!acc[day]) acc[day] = [];
         acc[day].push(time);
         return acc;
-      }, {} as Record<string, DeliveryTime[]>);
+      }, {} as Record<string, DeliveryTimeBase[]>);
 };

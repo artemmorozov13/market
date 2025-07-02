@@ -1,6 +1,6 @@
 import { API } from "@/shared/api/API"
+import { AddressType } from "@core/types/address-type"
 import { useQuery } from "@tanstack/react-query"
-import { AddressType } from ".."
 
 interface AddressByIdQueryOptions {
     addressId: string

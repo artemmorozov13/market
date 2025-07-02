@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API } from '@/shared/api/API';
-import { DeliveryAreaBase } from "@core/types/pickup-point";
+import { DeliveryAreaBase } from '@core/types/delivery-area-type';
 
 export const useDeliveryAreas = (storeId?: string | null) => {
   const queryClient = useQueryClient();
