@@ -6,12 +6,12 @@ import {
   TableHead, 
   TableRow, 
   Checkbox,
-  CircularProgress,
   Collapse,
   IconButton,
   Box,
   Typography,
   Button,
+  Chip,
 } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -19,6 +19,7 @@ import { TableOrder } from "../../lib/adaptOrdersToTable";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 import styles from "./TableRow.module.scss";
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 interface RowProps {
     order: TableOrder;
@@ -44,9 +45,58 @@ const statusColors: Record<OrderStatusEnum, "warning" | "success" | "error" | "i
 
 export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
     const [open, setOpen] = useState(false);
+    const isPickup = order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself;
 
     const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         onSelect(order.id, e.target.checked);
+    };
+
+    const renderDeliveryInfo = () => {
+        if (isPickup) {
+            return (
+                <>
+                    <Typography fontWeight="bold">Тип заказа:</Typography>
+                    <Chip 
+                        label="Самовывоз" 
+                        color="primary" 
+                        size="small" 
+                        sx={{ mt: 0.5 }}
+                    />
+                    <Typography fontWeight="bold" mt={1}>Пункт выдачи:</Typography>
+                    <Typography>{order?.pickupPoint?.name || order.fullAddress}</Typography>
+                    <Typography fontWeight="bold" mt={1}>Дата получения:</Typography>
+                    <Typography>
+                        {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана'}
+                    </Typography>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <Typography fontWeight="bold">Тип заказа:</Typography>
+                <Chip 
+                    label="Доставка" 
+                    color="secondary" 
+                    size="small" 
+                    sx={{ mt: 0.5 }}
+                />
+                <Typography fontWeight="bold" mt={1}>Адрес:</Typography>
+                <Typography>{order.fullAddress}</Typography>
+                <Typography fontWeight="bold" mt={1}>Дата доставки:</Typography>
+                <Typography>
+                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана'}
+                </Typography>
+                <Typography fontWeight="bold" mt={1}>Время доставки:</Typography>
+                <Typography>{order.deliveryTimeRange || 'Не указано'}</Typography>
+                {order.deliveryAreaName && (
+                    <>
+                        <Typography fontWeight="bold" mt={1}>Зона доставки:</Typography>
+                        <Typography>{order.deliveryAreaName}</Typography>
+                    </>
+                )}
+            </>
+        );
     };
 
     return (
@@ -69,24 +119,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                     {order.id}
                 </TableCell>
                 <TableCell>
-                    <Typography fontWeight="bold">Адрес</Typography>
-                    {order.fullAddress}
-                </TableCell>
-                <TableCell>
-                    <Typography fontWeight="bold">Пункт выдачи</Typography>
-                    {order.deliveryAreaName || 'Не указан'}
-                </TableCell>
-                <TableCell>
-                    <Typography fontWeight="bold">Приоритет</Typography>
-                    {order.priority}
-                </TableCell>
-                <TableCell>
-                    <Typography fontWeight="bold">Дата доставки</Typography>
-                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("Ru-ru") : 'Не указана'}
-                </TableCell>
-                <TableCell>
-                    <Typography fontWeight="bold">Время доставки</Typography>
-                    {order.deliveryTimeRange || 'Не указано'}
+                    {renderDeliveryInfo()}
                 </TableCell>
                 <TableCell>
                     <Typography fontWeight="bold">Телефон</Typography>
@@ -109,7 +142,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                 </TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={13}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box margin={1}>
                             <Typography variant="h6" gutterBottom component="div">
@@ -133,7 +166,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                                             <TableCell align="right">{product.quantity}</TableCell>
                                             <TableCell align="right">{product.product.discount}%</TableCell>
                                             <TableCell align="right">
-                                                {order.totalAmount}
+                                                {(Number(product.product.price) * product.quantity * (1 - Number(product.product.discount)/100))} ₽
                                             </TableCell>
                                         </TableRow>
                                     ))}

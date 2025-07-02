@@ -9,6 +9,8 @@ import { CreateStoreDto } from './dto/create-store.dto';
 import { Roles } from '@core/enums/role-enum';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { DeliveryStrategiesService } from '@app/delivery-strategies/delivery-strategies.service';
+import { DeliveryTime } from '@core/entities/delivery-time.entity';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class StoreService {
@@ -19,6 +21,8 @@ export class StoreService {
         private readonly storeUserService: StoreUserService,
         @Inject(forwardRef(() => DeliveryStrategiesService))
         private readonly deliveryStrategiesService: DeliveryStrategiesService,
+        @InjectRepository(DeliveryTime)
+        private readonly deliveryTimeRepository: Repository<DeliveryTime>
     ) {}
 
     async getStoreUserByToken(userJwt: AuthJwtPayload, page: number, limit: number) {
@@ -71,7 +75,13 @@ export class StoreService {
     async getStoreDataById(storeId: number) {
         const store = await this.storeRepository.findOne({
             where: { id: storeId },
-            relations: ['products', 'deliveryAreas'],
+            relations: [
+                'products',
+                'deliveryAreas',
+                'pickupPoints',
+                'pickupPoints.workingHours',
+                'deliveryStrategies'
+            ],
         });
         
         if (!store) {
@@ -98,6 +108,70 @@ export class StoreService {
         });
 
         return this.storeRepository.save(store);
+    }
+
+    async isDeliveryDateAvailable(
+        store: StoreEntity,
+        deliveryDate: Date,
+        deliveryTimeId?: number
+    ): Promise<{ available: boolean; reason?: string }> {
+        const storeTimeZone = store.timezone || 'Europe/Moscow';
+        console.log(`[1] Начало проверки. Часовой пояс магазина: ${storeTimeZone}`);
+        
+        const now = DateTime.now().setZone(storeTimeZone);
+        const today = now.startOf('day');
+        console.log(`[2] Текущая дата/время: ${now.toString()}, сегодня: ${today.toString()}`);
+
+        const deliveryDateTime = DateTime.fromJSDate(deliveryDate).setZone(storeTimeZone);
+        const deliveryDay = deliveryDateTime.startOf('day');
+        console.log(`[3] Проверяемая дата доставки: ${deliveryDateTime.toString()}, день: ${deliveryDay.toString()}`);
+
+        // 1. Проверка, что дата не в прошлом
+        if (deliveryDay < today) {
+            console.log(`[4] Ошибка: Дата в прошлом (${deliveryDay.toString()} < ${today.toString()})`);
+            return { available: false, reason: "Нельзя выбрать прошедшую дату" };
+        }
+
+        // 2. Проверка ограничения недели
+        if (store.isWeekLimited) {
+            const currentWeekStart = today.startOf('week');
+            const currentWeekEnd = today.endOf('week');
+            console.log(`[5] Неделя: с ${currentWeekStart.toString()} по ${currentWeekEnd.toString()}`);
+
+            if (deliveryDay < currentWeekStart || deliveryDay > currentWeekEnd) {
+                console.log(`[6] Ошибка: Дата вне текущей недели`);
+                return { available: false, reason: "В закрытом режиме работы нельзя заказывать вне текущей недели" };
+            }
+        }
+
+        // 3. Проверка времени доставки
+        if (deliveryTimeId && store.minOrderBeforeDeliveryHours) {
+            const deliveryTime = await this.deliveryTimeRepository.findOne({ 
+                where: { id: deliveryTimeId } 
+            });
+
+            if (!deliveryTime) {
+                console.log(`[7] Ошибка: Время доставки не найдено`);
+                return { available: false, reason: "Время доставки не найдено" };
+            }
+
+            const [hours, minutes] = deliveryTime.startTime.split(':').map(Number);
+            const deliverySlot = deliveryDateTime.set({ hour: hours, minute: minutes });
+            const hoursDiff = deliverySlot.diff(now, 'hours').hours;
+            
+            console.log(`[8] Время доставки: ${deliverySlot.toString()}, осталось часов: ${hoursDiff}, минимально требуется: ${store.minOrderBeforeDeliveryHours}`);
+
+            if (hoursDiff < store.minOrderBeforeDeliveryHours) {
+                console.log(`[9] Ошибка: Недостаточно времени для заказа`);
+                return { 
+                    available: false, 
+                    reason: `Заказ нужно сделать минимум за ${store.minOrderBeforeDeliveryHours} часов до доставки` 
+                };
+            }
+        }
+
+        console.log(`[10] Дата доступна для заказа`);
+        return { available: true };
     }
 
     async updateStoreData(userJwt: AuthJwtPayload, body: UpdateStoreDto) {

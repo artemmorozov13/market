@@ -4,6 +4,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { AllowRoles } from 'src/auth/decorators/roles.decorator';
 import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
+import { User } from '@app/decorators/user.decorator';
+import { AuthJwtPayload } from '@core/types/user-type';
 
 @Controller('statistic')
 export class StatisticController {
@@ -13,7 +15,7 @@ export class StatisticController {
     @AllowRoles(Roles.Admin)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    getOrderStatistic() {
-        return this.statisticService.getOrderStatistic()
+    getOrderStatistic(@User() user: AuthJwtPayload) {
+        return this.statisticService.getOrderStatistic(user)
     }
 }

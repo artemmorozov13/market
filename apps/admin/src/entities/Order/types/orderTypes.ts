@@ -1,4 +1,6 @@
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
+import { PickupPointType } from "@core/types/pickup-point-type";
 import { ProductType } from "@core/types/product-item";
 import { StoreOwnerUserType } from "@entities/User/types/userTypes";
 
@@ -23,10 +25,12 @@ export interface OrderType {
   address: string;
   fullAddress: string;
   phoneNumber?: string;
+  pickupPoint: PickupPointType
   comment?: string;
   deliveryDate: string
   totalAmount: string
   user: StoreOwnerUserType;
+  orderDeliveryStrategy: DeliveryStrategyEnum
   ordered_products: OrderedProductType[];
   deliveryArea?: {
     id: number;

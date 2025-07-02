@@ -4,6 +4,7 @@ import Cookies from "js-cookie"
 import { api } from "@shared/api/notAuthInstance"
 import { UserLoginResponse, userStore } from "@entities/User"
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@shared/lib/consts/consts"
+import { accessCookiesOptions, refreshCookiesOptions } from "@core/consts/token-settings"
 
 export interface PostNewUserOptions {
     body: RegisterFormSchema
@@ -25,8 +26,8 @@ export const postNewUser = async (options: PostNewUserOptions) => {
         const { setUserData } = userStore
 
         if (response.data) {
-            Cookies.set(ACCESS_TOKEN, response.data.token)
-            Cookies.set(REFRESH_TOKEN, response.data.token)
+            Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions)
+            Cookies.set(REFRESH_TOKEN, response.data.token, refreshCookiesOptions)
             setUserData(response.data.user)
         }
 

@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { DeliveryTime } from './delivery-time.entity';
 import { StoreEntity } from './store.entity';
+import { OrderEntity } from './order.entity';
 
 @Entity()
 export class DeliveryArea {
@@ -55,6 +56,9 @@ export class DeliveryArea {
     cascade: true,
   })
   deliveryTimes: DeliveryTime[];
+
+  @OneToMany(() => OrderEntity, order => order.deliveryArea)
+  orders: OrderEntity[]
 
   @ManyToOne(() => StoreEntity, store => store.deliveryAreas)
   @JoinColumn({ name: 'store_id' })

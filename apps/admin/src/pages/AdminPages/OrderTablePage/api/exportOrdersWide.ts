@@ -1,16 +1,18 @@
 import { API } from "@shared/api/instance";
 
-export const exportOrdersWide = async (selectedDeliveryAreas: number[]) => {
+export const exportOrdersWide = async (selectedDeliveryAreas?: number[]) => {
     try {
+        const params = selectedDeliveryAreas?.length 
+            ? { deliveryAreaIds: selectedDeliveryAreas.join(',') } 
+            : {};
+        
         const response = await API.post(
-          `/order/export-wide-table?selectedDeliveryAreas=${selectedDeliveryAreas}`,
-          {},
-          {
-            responseType: 'blob',
-            params: {
-              deliveryAreaIds: selectedDeliveryAreas?.join(',')
+            '/order/export-wide-table',
+            {},
+            {
+                responseType: 'blob',
+                params: params
             }
-          }
         );
     
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -22,8 +24,8 @@ export const exportOrdersWide = async (selectedDeliveryAreas: number[]) => {
         
         link.parentNode?.removeChild(link);
         window.URL.revokeObjectURL(url);
-      } catch (error) {
+    } catch (error) {
         console.error('Ошибка при экспорте:', error);
         alert('Не удалось экспортировать данные');
-      }
+    }
 }

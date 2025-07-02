@@ -14,31 +14,39 @@ import {
   Button,
   ListSubheader,
   Paper,
-  Alert
+  Alert,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Divider
 } from "@mui/material";
 import styles from "./OrderForm.module.scss";
-import { OrderFormInputs, DeliveryArea } from "../types/orderFormTypes";
-import { orderFormSchema } from "../lib/orderFormSchema";
 import { observer } from "mobx-react-lite";
 import { formatToRussianPhone } from "@/shared/helpers/formatRussianPhone";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CommentIcon from "@mui/icons-material/Comment";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import { API } from "@/shared/api/API";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import StoreIcon from "@mui/icons-material/Store";
 import { useUserAddresses } from "@/entities/Addresses/api/userAddresses";
 import { basketStore } from "@/entities/Basket";
 import { DEFAULT_STATIC_PICKUP_POINT_NAME } from "@/shared/consts/applicationConsts";
-import { userStore, useUpdateUser, useUser } from "@/entities/User";
+import { useUpdateUser, useUser } from "@/entities/User";
 import { useDeliveryTimes } from "@/entities/DeliveryTime";
 import { formatToRussianDate } from "@/shared/helpers/formatToRussianDate";
 import { ProductStatusEnum } from "@core/enums/product-status-enum";
 import { AddNewAddressModal } from "@/features/AddNewAddressModal";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "react-router-dom";
 import { ManageAddressForm } from "@/features/ManageAddressForm";
-import { AddressType } from "@core/types/address-type";
 import { findNearestDeliveryArea } from "@/shared/helpers/findNearestPickupPoint";
 import { useDeliveryAreas } from "@/entities/DeliveryArea";
+import { useStore } from "@/entities/Store";
+import { OrderFormInputs } from "../types/orderFormTypes";
+import { getOrderFormSchema } from "../lib/orderFormSchema";
+import { AddressType } from "@core/types/address-type";
+import { DayOfWeek, PickupPointType } from "@core/types/pickup-point-type";
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -48,7 +56,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [searchParams] = useSearchParams();
   const storeId = searchParams.get('storeId');
 
-  const { deliveryAreas, isLoadingDeliveryArea } = useDeliveryAreas(storeId)
+  const { store } = useStore(storeId);
+  const { deliveryAreas, isLoadingDeliveryArea } = useDeliveryAreas(storeId);
   const { user } = useUser({ 
     onSuccess: () => {
       if (user?.phone_number) {
@@ -60,44 +69,80 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     }
   });
 
-  const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
-  const { selectedStore } = userStore;
-  const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<OrderFormInputs>({
-    resolver: yupResolver(orderFormSchema) as any,
+  const [showAddressModal, setShowAddressModal] = useState<boolean>(false);
+  
+  // Сначала получаем методы формы без схемы валидации
+  const { control, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm<OrderFormInputs>({
     defaultValues: {
-      phone: user?.phone_number,
+      phone: user?.phone_number || '',
       comment: "",
       deliveryAreaId: null,
       deliveryTimeId: null,
       deliveryDate: null,
-      addressId: null
+      addressId: null,
+      deliveryMethod: null,
+      pickupPointId: null,
+      deliveryStrategy: null,
+      storeId: Number(storeId),
     },
   });
 
+  // Затем получаем текущий метод доставки
+  const deliveryMethod = watch("deliveryMethod");
+  
+  // Динамически создаем схему валидации на основе метода доставки
+  const schema = useMemo(() => getOrderFormSchema(deliveryMethod), [deliveryMethod]);
+
+  // Обновляем resolver при изменении схемы
+  useEffect(() => {
+    trigger(); // Перезапускаем валидацию при изменении схемы
+  }, [schema, trigger]);
+
   const selectedDeliveryAreaId = watch("deliveryAreaId");
   const selectedAddressId = watch("addressId");
+  const pickupPointId = watch("pickupPointId");
   const { deliveryTimeData } = useDeliveryTimes(selectedDeliveryAreaId);
   const { updateUser } = useUpdateUser();
   const { addresses } = useUserAddresses();
+
+  // Get available delivery strategies from store
+  const availableDeliveryStrategies = useMemo(() => {
+    // @ts-ignore
+    return store?.deliveryStrategies?.map((s) => s.strategy.type) || [];
+  }, [store?.deliveryStrategies]);
+
+  // Check if delivery is available
+  const isDeliveryAvailable = useMemo(() => {
+    return availableDeliveryStrategies.includes(DeliveryStrategyEnum.DeliveryToEntrance);
+  }, [availableDeliveryStrategies]);
+
+  // Check if pickup is available
+  const isPickupAvailable = useMemo(() => {
+    return availableDeliveryStrategies.includes(DeliveryStrategyEnum.PickupByYourself);
+  }, [availableDeliveryStrategies]);
+
+  // Active pickup points
+  const activePickupPoints = useMemo(() => {
+    return store?.pickupPoints?.filter(point => point.status === "active") || [];
+  }, [store?.pickupPoints]);
 
   const selectedAddress = useMemo(() => {
     return addresses?.find(addr => addr.id === selectedAddressId) || user?.selectedAddress;
   }, [addresses, selectedAddressId, user?.selectedAddress]);
 
-  // Проверяем есть ли доступные интервалы доставки
   const hasAvailableDeliveryTimes = useMemo(() => {
     if (!deliveryTimeData) return false;
     return deliveryTimeData.some(day => day.times.length > 0);
   }, [deliveryTimeData]);
 
   const confirmForm = (data: OrderFormInputs) => {
-    onSubmit({
-      ...data,
-      address: user?.selectedAddress || null,
-      addressId: user?.selectedAddressId as any,
-      deliveryDate: data.deliveryDate,
-      storeId: selectedStore?.id || Number(storeId)
-    });
+    if (selectedAddress?.id) {
+      onSubmit({
+        ...data,
+        address: selectedAddress,
+        addressId: selectedAddress.id 
+      });
+    }
     updateUser({ phone_number: data.phone });
   };
 
@@ -109,10 +154,23 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         setValue("deliveryTimeId", null);
       }
     }
-  }
+  };
+
+  // Set default delivery method on first load
+  useEffect(() => {
+    if (!deliveryMethod) {
+      if (isDeliveryAvailable && isPickupAvailable) {
+        setValue("deliveryMethod", "delivery");
+      } else if (isDeliveryAvailable) {
+        setValue("deliveryMethod", "delivery");
+      } else if (isPickupAvailable) {
+        setValue("deliveryMethod", "pickup");
+      }
+    }
+  }, [isDeliveryAvailable, isPickupAvailable, deliveryMethod, setValue]);
 
   useEffect(() => {
-    if (selectedAddress && deliveryAreas?.length) {
+    if (selectedAddress && deliveryAreas?.length && deliveryMethod === "delivery") {
       const nearestPoint = findNearestDeliveryArea(selectedAddress, deliveryAreas);
       if (nearestPoint) {
         setValue("deliveryAreaId", nearestPoint.id);
@@ -122,11 +180,24 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         setValue("deliveryTimeId", null);
       }
     }
-  }, [selectedAddress, deliveryAreas, setValue]);
+  }, [selectedAddress, deliveryAreas, setValue, deliveryMethod]);
+
+  useEffect(() => {
+    if (deliveryMethod === "pickup" && activePickupPoints.length > 0 && !pickupPointId) {
+      setValue("pickupPointId", activePickupPoints[0].id);
+    }
+  }, [deliveryMethod, activePickupPoints, pickupPointId, setValue]);
 
   const isExpiredProduct = basketStore.basketList.some(
     item => item.product.status === ProductStatusEnum.Expired
   );
+
+  const selectedDeliveryArea = deliveryAreas?.find(p => p.id === selectedDeliveryAreaId);
+  const selectedPickupPoint = activePickupPoints.find(p => p.id === pickupPointId);
+
+  const deliveryCostInfo = store?.isDeliveryFree 
+    ? "Бесплатная доставка" 
+    : `Стоимость доставки: ${store?.deliveryCost} ₽${store?.deliveryFreeFromLimit ? ` (бесплатно от ${store.deliveryFreeFromLimit} ₽)` : ''}`;
 
   if (isLoadingDeliveryArea) {
     return (
@@ -136,113 +207,285 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     );
   }
 
-  const selectedDeliveryArea = deliveryAreas?.find(p => p.id === selectedDeliveryAreaId);
+  // Format working hours for display
+  const formatWorkingHours = (point: PickupPointType) => {
+    if (!point.workingHours || point.workingHours.length === 0) {
+      return "Часы работы не указаны";
+    }
+    
+    const daysMap: Record<DayOfWeek, string> = {
+      monday: "Пн",
+      tuesday: "Вт",
+      wednesday: "Ср",
+      thursday: "Чт",
+      friday: "Пт",
+      saturday: "Сб",
+      sunday: "Вс"
+    };
+
+    return point.workingHours
+      .map(hour => `${daysMap[hour.dayOfWeek]}: ${hour.openingTime.slice(0,5)}-${hour.closingTime.slice(0,5)}`)
+      .join(", ");
+  };
 
   return (
     <Paper className={styles.paper}>
       <Box className={styles.modalContainer}>
         <form onSubmit={handleSubmit(confirmForm)}>
           <Box mb={3}>
-            <Typography variant="h6" gutterBottom>
-              Адрес доставки
+            <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
+              Способ получения
             </Typography>
-            
-            {selectedAddress ? (
-              <ManageAddressForm onAddressChange={handleAddressChange} />
-            ) : (
-              <Button 
-                variant="outlined" 
-                startIcon={<LocationOnIcon />}
-                onClick={() => setShowAddressModal(true)}
-                fullWidth
-              >
-                Добавить адрес доставки
-              </Button>
+
+            {!isDeliveryAvailable && !isPickupAvailable && (
+              <Alert severity="error" className={styles.alert}>
+                <Typography variant="body1" gutterBottom>
+                  В настоящее время заказы недоступны
+                </Typography>
+                <Typography variant="body2">
+                  К сожалению, в данный момент мы не можем принять ваш заказ. 
+                  Пожалуйста, попробуйте позже или свяжитесь с нами для уточнения деталей.
+                </Typography>
+              </Alert>
             )}
+            
+            <Controller
+              name="deliveryMethod"
+              control={control}
+              render={({ field }) => (
+                <RadioGroup {...field} className={styles.deliveryMethodGroup}>
+                  {isDeliveryAvailable && (
+                    <Paper variant="outlined" className={styles.deliveryMethodCard}>
+                      <FormControlLabel
+                        value="delivery"
+                        control={<Radio />}
+                        label={
+                          <Box className={styles.deliveryMethodLabel}>
+                            <LocalShippingIcon className={styles.deliveryMethodIcon} />
+                            <Box>
+                              <Typography variant="body1" fontWeight={500}>
+                                Доставка
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {deliveryCostInfo}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        }
+                        className={styles.deliveryMethodOption}
+                      />
+                    </Paper>
+                  )}
+                  
+                  {isPickupAvailable && (
+                    <Paper variant="outlined" className={styles.deliveryMethodCard}>
+                      <FormControlLabel
+                        value="pickup"
+                        control={<Radio />}
+                        label={
+                          <Box className={styles.deliveryMethodLabel}>
+                            <StoreIcon className={styles.deliveryMethodIcon} />
+                            <Box>
+                              <Typography variant="body1" fontWeight={500}>
+                                Самовывоз
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                Бесплатно из нашего магазина
+                              </Typography>
+                            </Box>
+                          </Box>
+                        }
+                        className={styles.deliveryMethodOption}
+                      />
+                    </Paper>
+                  )}
+                </RadioGroup>
+              )}
+            />
           </Box>
 
-          {selectedDeliveryArea?.name === DEFAULT_STATIC_PICKUP_POINT_NAME && (
-            <Box mb={2} textAlign="center" py={2}>
-              <Typography variant="body1" color="textSecondary">
-                К сожалению, доставка по вашему адресу пока недоступна. 
-                Но вы всё равно можете оформить заказ — мы сделаем всё возможное, чтобы его доставить!
-              </Typography>
-            </Box>
-          )}
+          {deliveryMethod === "delivery" && isDeliveryAvailable ? (
+            <>
+              <Box mb={3}>
+                <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
+                  Адрес доставки
+                </Typography>
+                
+                {selectedAddress ? (
+                  <ManageAddressForm onAddressChange={handleAddressChange} />
+                ) : (
+                  <Button 
+                    variant="outlined" 
+                    startIcon={<LocationOnIcon />}
+                    onClick={() => setShowAddressModal(true)}
+                    fullWidth
+                    className={styles.addAddressBtn}
+                  >
+                    Добавить адрес доставки
+                  </Button>
+                )}
+                {errors.addressId && (
+                  <Typography variant="body2" color="error" className={styles.errorText}>
+                    {errors.addressId.message}
+                  </Typography>
+                )}
+              </Box>
 
-          {selectedDeliveryAreaId && (
+              {selectedDeliveryArea?.name === DEFAULT_STATIC_PICKUP_POINT_NAME && (
+                <Box mb={2} className={styles.deliveryWarning}>
+                  <Typography variant="body1" color="textSecondary">
+                    К сожалению, доставка по вашему адресу пока недоступна. 
+                    Но вы всё равно можете оформить заказ — мы сделаем всё возможное, чтобы его доставить!
+                  </Typography>
+                </Box>
+              )}
+
+              {selectedDeliveryAreaId && (
+                <Box mb={3}>
+                  <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
+                    Время доставки
+                  </Typography>
+                  
+                  {hasAvailableDeliveryTimes ? (
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel id="delivery-time-label">Выберите время</InputLabel>
+                      <Controller
+                        name="deliveryTimeId"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            labelId="delivery-time-label"
+                            label="Выберите время"
+                            error={!!errors.deliveryTimeId}
+                            startAdornment={
+                              <InputAdornment position="start">
+                                <ScheduleIcon />
+                              </InputAdornment>
+                            }
+                            renderValue={(selected) => {
+                              const selectedTime = deliveryTimeData
+                                ?.flatMap(day => day.times)
+                                .find(time => time.id === selected);
+                              if (!selectedTime) return null;
+                              
+                              const dayData = deliveryTimeData?.find(day => 
+                                day.times.some(t => t.id === selected)
+                              );
+                              
+                              return `${formatToRussianDate(dayData?.date || '')}, 
+                                      ${selectedTime.startTime?.substring(0,5)} - 
+                                      ${selectedTime.endTime?.substring(0,5)}`;
+                            }}
+                            className={styles.selectField}
+                          >
+                            {deliveryTimeData?.map((dayData) => [
+                              <ListSubheader key={`header-${dayData.date}`}>
+                                {formatToRussianDate(dayData.date)}
+                              </ListSubheader>,
+                              ...dayData.times.map((time) => (
+                                <MenuItem 
+                                  key={time.id} 
+                                  value={time.id}
+                                  onClick={() => setValue("deliveryDate", dayData.date)}
+                                  className={styles.menuItem}
+                                >
+                                  {time.startTime?.substring(0,5)} - {time.endTime?.substring(0,5)}
+                                </MenuItem>
+                              ))
+                            ])}
+                          </Select>
+                        )}
+                      />
+                      {errors.deliveryTimeId && (
+                        <Typography variant="body2" color="error" className={styles.errorText}>
+                          {errors.deliveryTimeId.message}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  ) : (
+                    <Alert severity="info" className={styles.alert}>
+                      К сожалению, на этой неделе нет доступных интервалов для доставки.
+                      Пожалуйста, попробуйте оформить заказ позже или выберите другой адрес доставки.
+                    </Alert>
+                  )}
+                </Box>
+              )}
+            </>
+          ) : deliveryMethod === "pickup" && isPickupAvailable ? (
             <Box mb={3}>
-              <Typography variant="h6" gutterBottom>
-                Время доставки
+              <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
+                Пункт самовывоза
               </Typography>
               
-              {hasAvailableDeliveryTimes ? (
-                <FormControl fullWidth margin="normal">
-                  <InputLabel id="delivery-time-label">Выберите время</InputLabel>
-                  <Controller
-                    name="deliveryTimeId"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        labelId="delivery-time-label"
-                        label="Выберите время"
-                        error={!!errors.deliveryTimeId}
-                        startAdornment={
-                          <InputAdornment position="start">
-                            <ScheduleIcon color="action" />
-                          </InputAdornment>
-                        }
-                        renderValue={(selected) => {
-                          const selectedTime = deliveryTimeData
-                            ?.flatMap(day => day.times)
-                            .find(time => time.id === selected);
-                          if (!selectedTime) return null;
-                          
-                          const dayData = deliveryTimeData?.find(day => 
-                            day.times.some(t => t.id === selected)
-                          );
-                          
-                          return `${formatToRussianDate(dayData?.date || '')}, 
-                                  ${selectedTime.startTime?.substring(0,5)} - 
-                                  ${selectedTime.endTime?.substring(0,5)}`;
-                        }}
-                      >
-                        {deliveryTimeData?.map((dayData) => [
-                          <ListSubheader key={`header-${dayData.date}`}>
-                            {formatToRussianDate(dayData.date)}
-                          </ListSubheader>,
-                          ...dayData.times.map((time) => (
+              {activePickupPoints.length > 0 ? (
+                <>
+                  <FormControl fullWidth margin="normal" error={!!errors.pickupPointId}>
+                    <InputLabel id="pickup-point-label">Выберите пункт самовывоза</InputLabel>
+                    <Controller
+                      name="pickupPointId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          labelId="pickup-point-label"
+                          label="Выберите пункт самовывоза"
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <StoreIcon />
+                            </InputAdornment>
+                          }
+                          className={styles.selectField}
+                        >
+                          {activePickupPoints.map((point) => (
                             <MenuItem 
-                              key={time.id} 
-                              value={time.id}
-                              onClick={() => setValue("deliveryDate", dayData.date)}
+                              key={point.id} 
+                              value={point.id}
+                              className={styles.menuItem}
                             >
-                              {time.startTime?.substring(0,5)} - {time.endTime?.substring(0,5)}
+                              <Box>
+                                <Typography fontWeight={500}>{point.name}</Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                  {point.fullAddress}
+                                </Typography>
+                              </Box>
                             </MenuItem>
-                          ))
-                        ])}
-                      </Select>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.pickupPointId && (
+                      <Typography variant="body2" color="error" className={styles.errorText}>
+                        {errors.pickupPointId.message}
+                      </Typography>
                     )}
-                  />
-                  {errors.deliveryTimeId && (
-                    <Typography color="error" variant="body2">
-                      {errors.deliveryTimeId.message}
-                    </Typography>
+                  </FormControl>
+                  
+                  {selectedPickupPoint && (
+                    <Paper variant="outlined" className={styles.pickupInfoCard} sx={{ mt: 2 }}>
+                      <Box className={styles.pickupInfoContent}>
+                        <StoreIcon className={styles.pickupIcon} />
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            {formatWorkingHours(selectedPickupPoint)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
                   )}
-                </FormControl>
+                </>
               ) : (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  К сожалению, на этой неделе нет доступных интервалов для доставки.
-                  Пожалуйста, попробуйте оформить заказ позже или выберите другой адрес доставки.
+                <Alert severity="warning" className={styles.alert}>
+                  Нет доступных пунктов самовывоза
                 </Alert>
               )}
             </Box>
-          )}
+          ) : null}
 
-          {/* Остальные поля формы остаются без изменений */}
+          <Divider className={styles.divider} />
+
           <Box mb={3}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
               Контактные данные
             </Typography>
             <Controller
@@ -250,7 +493,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
               control={control}
               render={({ field: { onChange, value } }) => (
                 <TextField
-                  value={formatToRussianPhone(value)}
+                  value={formatToRussianPhone(value || '')}
                   onChange={(e) => onChange(formatToRussianPhone(e.target.value))}
                   label="Номер телефона"
                   fullWidth
@@ -261,17 +504,18 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <PhoneIcon color="action" />
+                        <PhoneIcon />
                       </InputAdornment>
                     ),
                   }}
+                  className={styles.textField}
                 />
               )}
             />
           </Box>
 
           <Box mb={3}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
               Дополнительная информация
             </Typography>
             <Controller
@@ -289,10 +533,11 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <CommentIcon color="action" />
+                        <CommentIcon />
                       </InputAdornment>
                     ),
                   }}
+                  className={styles.textField}
                 />
               )}
             />
@@ -304,7 +549,13 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             color="primary"
             size="large"
             fullWidth
-            disabled={isExpiredProduct || !selectedAddress || !hasAvailableDeliveryTimes}
+            disabled={
+              isExpiredProduct || 
+              !deliveryMethod ||
+              (deliveryMethod === "delivery" && (!selectedAddress || !hasAvailableDeliveryTimes)) ||
+              (deliveryMethod === "pickup" && activePickupPoints.length === 0)
+            }
+            className={styles.submitButton}
           >
             Оформить заказ
           </Button>

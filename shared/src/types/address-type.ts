@@ -6,6 +6,8 @@ export interface AddressType {
     apartment: string
     intercom: string
     comment: string | null
+    latitude: string | null
+    longitude: string | null
     postal_code: string
     fias_id: string
     geo_lat: string

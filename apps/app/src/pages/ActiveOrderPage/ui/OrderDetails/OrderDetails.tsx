@@ -31,25 +31,99 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
     cancelOrder({ orderId: order.id }).then(() => refetch());
   };
 
-  const isDeliveryAvailable = (order: Order): boolean => {
-    if (!order.deliveryTime || !order.deliveryDate) return false;
-    
+  const isPickup = order.orderDeliveryStrategy === "pickup_by_yourself";
+  
+  // Для самовывоза всегда доступно изменение/отмена
+  // Для доставки - только если не прошла дата доставки
+  const isAvailable = isPickup ? true : (() => {
     const now = new Date();
     const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
     
-    if (deliveryDate <= now) return false;
+    if (!order.deliveryTime || deliveryDate <= now) return false;
     
     const dayBeforeDelivery = new Date(deliveryDate);
     dayBeforeDelivery.setDate(deliveryDate.getDate() - 1);
     dayBeforeDelivery.setHours(23, 0, 0, 0);
     
     return now < dayBeforeDelivery;
+  })();
+
+  const renderWorkingHours = (workingHours: any[]) => {
+    if (!workingHours || workingHours.length === 0) return null;
+
+    const daysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const daysMap: Record<string, string> = {
+      monday: 'Пн',
+      tuesday: 'Вт',
+      wednesday: 'Ср',
+      thursday: 'Чт',
+      friday: 'Пт',
+      saturday: 'Сб',
+      sunday: 'Вс'
+    };
+
+    const sortedHours = [...workingHours].sort((a, b) => 
+      daysOrder.indexOf(a.dayOfWeek) - daysOrder.indexOf(b.dayOfWeek)
+    );
+
+    const groupedHours: {days: string[]; time: string}[] = [];
+    let currentGroup: {days: string[]; time: string} | null = null;
+
+    sortedHours.forEach(day => {
+      const timeStr = `${day.openingTime.slice(0, 5)}-${day.closingTime.slice(0, 5)}`;
+      
+      if (currentGroup && currentGroup.time === timeStr) {
+        currentGroup.days.push(daysMap[day.dayOfWeek]);
+      } else {
+        currentGroup = {
+          days: [daysMap[day.dayOfWeek]],
+          time: timeStr
+        };
+        groupedHours.push(currentGroup);
+      }
+    });
+
+    return (
+      <Box mt={2}>
+        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 500 }}>
+          Режим работы:
+        </Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1,
+            background: 'rgba(0, 0, 0, 0.02)',
+            p: 1.5,
+            borderRadius: 1
+          }}
+        >
+          {groupedHours.map((group, index) => (
+            <Box 
+              key={index} 
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {group.days.join(', ')}
+              </Typography>
+              <Typography variant="body2">
+                {group.time}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    );
   };
 
-  const isAvailable = isDeliveryAvailable(order);
   const isCanceledByUser = order.status === OrderStatusEnum.CanceledByUser;
   const isCanceledByAdmin = order.status === OrderStatusEnum.CancelByAdmin;
   const isActive = order.status === OrderStatusEnum.WaitForPay;
+  const isDelivery = order.orderDeliveryStrategy === "delivery_to_entrance";
 
   const renderStatusBanner = () => {
     if (isCanceledByUser) {
@@ -86,6 +160,74 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
     return null;
   };
 
+  const renderDeliveryInfo = () => {
+    if (isPickup) {
+      return (
+        <>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2" color="text.secondary">Тип заказа:</Typography>
+            <Typography variant="body2">Самовывоз</Typography>
+          </Stack>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2" color="text.secondary">Пункт выдачи:</Typography>
+            <Typography variant="body2" fontWeight={500}>{order.pickupPoint?.name}</Typography>
+          </Stack>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2" color="text.secondary">Адрес:</Typography>
+            <Typography variant="body2" textAlign="right">{order.fullAddress}</Typography>
+          </Stack>
+          {order.pickupPoint?.workingHours && renderWorkingHours(order.pickupPoint.workingHours)}
+        </>
+      );
+    }
+
+    if (isDelivery) {
+      return (
+        <>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2" color="text.secondary">Тип заказа:</Typography>
+            <Typography variant="body2">Доставка</Typography>
+          </Stack>
+          {isActive && (
+            <>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">Дата доставки:</Typography>
+                <Typography variant="body2">
+                  {new Date(order.deliveryDate)?.toLocaleDateString("ru-RU", {
+                    day: 'numeric',
+                    month: 'long'
+                  })}
+                </Typography>
+              </Stack>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">Временной интервал:</Typography>
+                <Typography variant="body2">
+                  {order.deliveryTime ? `${order.deliveryTime.startTime.slice(0, 5)}-${order.deliveryTime.endTime.slice(0, 5)}` : 'Не указано'}
+                </Typography>
+              </Stack>
+            </>
+          )}
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2" color="text.secondary">Адрес доставки:</Typography>
+            <Typography variant="body2" textAlign="right">{order.fullAddress}</Typography>
+          </Stack>
+          {order.deliveryArea && (
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" color="text.secondary">Зона доставки:</Typography>
+              <Typography variant="body2">{order.deliveryArea.name}</Typography>
+            </Stack>
+          )}
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2" color="text.secondary">Телефон:</Typography>
+            <Typography variant="body2">{order.phoneNumber}</Typography>
+          </Stack>
+        </>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <>
       <ConfirmCancelOrder
@@ -99,9 +241,17 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
         {renderStatusBanner()}
 
         <Box className={styles.header}>
-          <Typography variant="h6" component="h2">
-            Информация о {isActive ? "доставке" : "заказе"}
-          </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6" component="h2">
+              {isPickup ? "Информация о самовывозе" : "Информация о доставке"}
+            </Typography>
+            <Chip 
+              label={isPickup ? "Самовывоз" : "Доставка"} 
+              color={isPickup ? "primary" : "secondary"} 
+              size="small" 
+              sx={{ fontWeight: 500 }}
+            />
+          </Box>
           {isActive && (
             <Button
               variant="outlined"
@@ -117,52 +267,13 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
         <Divider className={styles.divider} />
 
-        <Stack spacing={1} className={styles.section}>
+        <Stack spacing={2} className={styles.section}>
           <Stack direction="row" justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">Номер заказа:</Typography>
-            <Typography variant="body2">{order.id}</Typography>
+            <Typography variant="body2">#{order.id}</Typography>
           </Stack>
-
-          {isActive && (
-            <>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="body2" color="text.secondary">Дата доставки:</Typography>
-                <Typography variant="body2">
-                  {new Date(order.deliveryDate)?.toLocaleDateString("ru-RU")}
-                </Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="body2" color="text.secondary">Временной интервал:</Typography>
-                <Typography variant="body2">
-                  {`${order?.deliveryTime?.startTime} - ${order?.deliveryTime?.endTime}`}
-                </Typography>
-              </Stack>
-            </>
-          )}
-
-          {order.deliveryArea && (
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" color="text.secondary">Пункт выдачи:</Typography>
-              <Typography variant="body2">{order.deliveryArea.name}</Typography>
-            </Stack>
-          )}
-
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Адрес:</Typography>
-            <Typography variant="body2">{order.fullAddress}</Typography>
-          </Stack>
-
-          {!!address?.entrance && (
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" color="text.secondary">Парадная:</Typography>
-              <Typography variant="body2">{address.entrance}</Typography>
-            </Stack>
-          )}
-
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Телефон:</Typography>
-            <Typography variant="body2">{order.phoneNumber}</Typography>
-          </Stack>
+          
+          {renderDeliveryInfo()}
 
           {order.comment && (
             <Stack direction="row" justifyContent="space-between">
@@ -176,7 +287,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
         <Box className={styles.section}>
           <Typography variant="h6" component="h3" gutterBottom>
-            Список товаров
+            Состав заказа
           </Typography>
           <Stack spacing={2}>
             {order.ordered_products.map((item) => (

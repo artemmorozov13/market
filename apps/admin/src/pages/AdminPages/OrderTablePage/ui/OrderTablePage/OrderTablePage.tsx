@@ -19,6 +19,7 @@ import {
   Chip,
   Box,
   Checkbox,
+  Typography,
 } from "@mui/material";
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import { adaptOrdersToTable } from "../../lib/adaptOrdersToTable";
@@ -29,7 +30,6 @@ import { exportOrdersWide } from "../../api/exportOrdersWide";
 import { useForm, Controller } from "react-hook-form";
 import { useDeliveryAreas } from "@entities/DeliveryArea";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
-
 import styles from "./OrdersPage.module.scss";
 import { ChangeOrderStatusModal } from "@features/ChangeOrderStatus";
 import { ChangeStatusFormValues } from "@features/ChangeOrderStatus/lib/schema";
@@ -47,7 +47,6 @@ const OrderTablePage: FC = observer(() => {
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<typeof OrderStatusEnum | null>(null);
   
   const { control, watch } = useForm<FormValues>({
     defaultValues: {
@@ -99,12 +98,12 @@ const OrderTablePage: FC = observer(() => {
 
   const handleStatusSubmit = async (values: ChangeStatusFormValues) => {
     if (values.status) {
-      updateOrderStatus({
+      await updateOrderStatus({
         orderIds: selectedOrders,
         status: values.status,
         cancelReason: values.cancelReason
-      })
-      setStatusDialogOpen(false)
+      });
+      setStatusDialogOpen(false);
       setSelectedOrders([]);
     }
   };
@@ -129,19 +128,9 @@ const OrderTablePage: FC = observer(() => {
 
   return (
     <ShopOwnerLayout>
-      <div className={styles.root}>
         <div className={styles.header}>
           <h1 className={styles.title}>Список заказов</h1>
           <div className={styles.buttonGroup}>
-            {/* <Button
-              variant="contained" 
-              color="primary"
-              onClick={() => exportOrdersWithInnerTable(selectedDeliveryAreas)}
-              disabled={isLoading || tableOrders.length === 0}
-              className={styles.exportButton}
-            >
-              Экспорт в Excel (обычный)
-            </Button> */}
             <Button 
               variant="contained" 
               color="secondary"
@@ -149,11 +138,11 @@ const OrderTablePage: FC = observer(() => {
               disabled={isLoading || tableOrders.length === 0}
               className={styles.exportButton}
             >
-              Экспорт Excel таблицы
+              Экспорт Excel
             </Button>
             <Button
               variant="contained"
-              color="info"
+              color="primary"
               onClick={handleOpenStatusDialog}
               disabled={selectedOrders.length === 0}
               className={styles.statusButton}
@@ -165,7 +154,7 @@ const OrderTablePage: FC = observer(() => {
 
         <div className={styles.filters}>
           <FormControl fullWidth variant="outlined" className={styles.filterControl}>
-            <InputLabel>Пункты выдачи</InputLabel>
+            <InputLabel>Зоны доставки</InputLabel>
             <Controller
               name="deliveryAreas"
               control={control}
@@ -173,7 +162,7 @@ const OrderTablePage: FC = observer(() => {
                 <Select
                   {...field}
                   multiple
-                  label="Пункты выдачи"
+                  label="Зоны доставки"
                   value={field.value}
                   onChange={(e) => {
                     field.onChange(e.target.value);
@@ -186,14 +175,15 @@ const OrderTablePage: FC = observer(() => {
                         <Chip 
                           key={value} 
                           label={deliveryAreas.find(p => p.id === value)?.name || value}
+                          size="small"
                         />
                       ))}
                     </Box>
                   )}
                 >
-                  {deliveryAreas.map((point) => (
-                    <MenuItem key={point.id} value={point.id}>
-                      {point.name} ({point.fullAddress})
+                  {deliveryAreas.map((area) => (
+                    <MenuItem key={area.id} value={area.id}>
+                      {area.name} ({area.fullAddress})
                     </MenuItem>
                   ))}
                 </Select>
@@ -204,71 +194,92 @@ const OrderTablePage: FC = observer(() => {
         
         {isLoading ? (
           <div className={styles.loading}>
-            <CircularProgress />
+            <CircularProgress size={60} />
           </div>
         ) : error ? (
-          <div className={styles.error}>Не удалось загрузить данные. Попробуйте снова.</div>
+          <div className={styles.error}>
+            <Typography color="error" variant="h6">
+              Ошибка загрузки данных
+            </Typography>
+            <Typography color="textSecondary">
+              {error.message || 'Попробуйте обновить страницу'}
+            </Typography>
+          </div>
         ) : (
           <>
             <TableContainer component={Paper} className={styles.tableContainer}>
-              <Table stickyHeader>
+              <Table stickyHeader aria-label="orders table">
                 <TableHead>
                   <TableRow>
-                    <TableCell padding="checkbox">
+                    <TableCell padding="checkbox" width={50}>
                       <Checkbox
                         indeterminate={numSelected > 0 && numSelected < numSelectableOrders}
                         checked={allSelected}
                         onChange={handleSelectAll}
                         disabled={numSelectableOrders === 0}
+                        color="primary"
                       />
                     </TableCell>
-                    <TableCell />
-                    <TableCell>
+                    <TableCell width={50} />
+                    <TableCell width={80}>
                       <TableSortLabel>№</TableSortLabel>
                     </TableCell>
                     <TableCell>
-                      <TableSortLabel>Адрес</TableSortLabel>
+                      <TableSortLabel>Информация о заказе</TableSortLabel>
                     </TableCell>
-                    <TableCell>Пункт выдачи</TableCell>
-                    <TableCell>
-                      <TableSortLabel>Приор</TableSortLabel>
+                    <TableCell width={150}>
+                      <TableSortLabel>Телефон</TableSortLabel>
                     </TableCell>
-                    <TableCell>
-                      <TableSortLabel>Дата доставки</TableSortLabel>
+                    <TableCell width={200}>
+                      <TableSortLabel>Комментарий</TableSortLabel>
                     </TableCell>
-                    <TableCell>Время доставки</TableCell>
-                    <TableCell>Телефон</TableCell>
-                    <TableCell>Комментарий</TableCell>
-                    <TableCell>Сумма</TableCell>
-                    <TableCell>Статус</TableCell>
+                    <TableCell width={120}>
+                      <TableSortLabel>Сумма</TableSortLabel>
+                    </TableCell>
+                    <TableCell width={200}>
+                      <TableSortLabel>Статус</TableSortLabel>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tableOrders.map((order) => (
-                    <Row
-                      key={order.id} 
-                      order={order}
-                      isSelected={selectedOrders.includes(order.id)}
-                      onSelect={handleSelectOrder}
-                    />
-                  ))}
+                  {tableOrders.length > 0 ? (
+                    tableOrders.map((order) => (
+                      <Row
+                        key={order.id} 
+                        order={order}
+                        isSelected={selectedOrders.includes(order.id)}
+                        onSelect={handleSelectOrder}
+                      />
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        <Typography variant="body1" color="textSecondary">
+                          Нет заказов по выбранным критериям
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
             
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              component="div"
-              count={totalOrders}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              labelRowsPerPage="Строк на странице:"
-              labelDisplayedRows={({ from, to, count }) => 
-                `${from}-${to} из ${count !== -1 ? count : `больше чем ${to}`}`
-              }
-            />
+            {tableOrders.length > 0 && (
+              <TablePagination
+                rowsPerPageOptions={[10, 25, 50]}
+                component="div"
+                count={totalOrders}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Строк на странице:"
+                labelDisplayedRows={({ from, to, count }) => 
+                  `${from}-${to} из ${count !== -1 ? count : `больше чем ${to}`}`
+                }
+                className={styles.pagination}
+              />
+            )}
 
             <ChangeOrderStatusModal
               onClose={() => setStatusDialogOpen(false)}
@@ -278,7 +289,6 @@ const OrderTablePage: FC = observer(() => {
             />
           </>
         )}
-      </div>
     </ShopOwnerLayout>
   );
 });

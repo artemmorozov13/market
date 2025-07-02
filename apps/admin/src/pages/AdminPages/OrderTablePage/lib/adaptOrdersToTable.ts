@@ -1,4 +1,6 @@
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
+import { PickupPointType } from "@core/types/pickup-point-type";
 import { OrderType, OrderedProductType } from "@entities/Order";
 
 export interface TableOrder {
@@ -12,6 +14,8 @@ export interface TableOrder {
   createdAt: Date;
   phone: string;
   customerName: string; // Добавил имя клиента
+  orderDeliveryStrategy: DeliveryStrategyEnum
+  pickupPoint: PickupPointType
   deliveryDate: string,
   status: OrderStatusEnum;
   totalAmount: string; // Добавил общую сумму заказа
@@ -33,12 +37,14 @@ export const adaptOrdersToTable = (orders: OrderType[]): TableOrder[] => {
       createdAt: order.createdAt,
       status: order.status,
       priority: calculatePriority(order),
+      pickupPoint: order.pickupPoint,
       deliveryTimeRange,
       deliveryAreaName,
       phone: order.phoneNumber || 'не указан',
       ordered_products: order.ordered_products,
       customerName: order.user?.name || order.user?.telegram_username || 'не указан',
       deliveryDate: order.deliveryDate,
+      orderDeliveryStrategy: order.orderDeliveryStrategy,
       totalAmount: order.totalAmount,
       comment: order.comment
     };

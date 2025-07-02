@@ -35,10 +35,17 @@ export class DeliveryTimesService {
         
         // Конвертируем текущее время в часовой пояс магазина
         const currentDate = convertToStoreTimezone(new Date(), store.timezone);
+        console.log(`Текущая дата: ${currentDate}, день недели: ${currentDate.getDay()}`);
 
         const allTimes = await this.deliveryTimeRepository.find({
-            where: { deliveryArea: { id: deliveryAreaId }, isActive: true },
-            order: { dayOfWeek: 'ASC', startTime: 'ASC' }
+            where: {
+                deliveryArea: { id: deliveryAreaId },
+                isActive: true
+            },
+            order: {
+                dayOfWeek: 'ASC',
+                startTime: 'ASC'
+            }
         });
 
         if (!allTimes.length) return [];
@@ -53,34 +60,62 @@ export class DeliveryTimesService {
         const result = [];
         const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         
-        const currentDayOfWeek = currentDate.getDay();
-        const daysToCheck = store.isWeekLimited ? 6 : 13; // Проверяем 2 недели если нет ограничения
+        // Определяем границы доступного периода
+        const currentDayOfWeek = currentDate.getDay(); // 0 - воскресенье, 1 - понедельник и т.д.
+        const endDate = new Date(currentDate);
+        
+        if (store.isWeekLimited) {
+            // Если сегодня воскресенье, показываем только сегодня
+            if (currentDayOfWeek === 0) {
+                endDate.setDate(currentDate.getDate());
+            } else {
+                // Иначе показываем до воскресенья текущей недели
+                endDate.setDate(currentDate.getDate() + (7 - currentDayOfWeek));
+            }
+            console.log(`Ограниченная неделя. Конечная дата: ${endDate}`);
+        } else {
+            // Показываем на 2 недели вперед (включая воскресенье)
+            endDate.setDate(currentDate.getDate() + 13);
+            console.log(`Полные 2 недели. Конечная дата: ${endDate}`);
+        }
 
-        for (let i = 0; i <= daysToCheck; i++) {
-            const targetDate = new Date(currentDate);
-            targetDate.setDate(currentDate.getDate() + i);
-            const targetDayOfWeek = daysOfWeek[targetDate.getDay()];
+        console.log(`Начальная дата: ${currentDate}, конечная дата: ${endDate}`);
+
+        const tempDate = new Date(currentDate);
+        while (tempDate <= endDate) {
+            const targetDayOfWeek = daysOfWeek[tempDate.getDay()];
             const dayTimes = timesByDay[targetDayOfWeek] || [];
 
-            const availableTimes = dayTimes.filter(time => {
-                const deliveryStart = this.combineDateAndTime(targetDate, time.startTime);
-                const deliveryEnd = this.combineDateAndTime(targetDate, time.endTime);
+            console.log(`Проверяем дату: ${tempDate}, день недели: ${targetDayOfWeek}`);
 
-                // 1. Проверка для текущего дня (исключаем прошедшее время)
-                if (i === 0 && !includePassedTimes) {
+            const availableTimes = dayTimes.filter(time => {
+                const deliveryStart = this.combineDateAndTime(new Date(tempDate), time.startTime);
+                const deliveryEnd = this.combineDateAndTime(new Date(tempDate), time.endTime);
+
+                // Проверка для текущего дня (исключаем прошедшее время)
+                if (tempDate.getDate() === currentDate.getDate() && 
+                    tempDate.getMonth() === currentDate.getMonth() && 
+                    tempDate.getFullYear() === currentDate.getFullYear() && 
+                    !includePassedTimes) {
                     if (isBefore(deliveryEnd, currentDate)) {
+                        console.log(`Исключаем прошедшее время: ${time.startTime}-${time.endTime}`);
                         return false;
                     }
                 }
 
-                // 2. Проверка дедлайна заказа
+                // Проверка дедлайна заказа
                 const orderDeadline = subHours(deliveryStart, store.minOrderBeforeDeliveryHours);
-                return isAfter(orderDeadline, currentDate);
+                const isAvailable = isAfter(orderDeadline, currentDate);
+                if (!isAvailable) {
+                    console.log(`Время ${time.startTime}-${time.endTime} недоступно: дедлайн ${orderDeadline} уже прошел`);
+                }
+                return isAvailable;
             });
 
             if (availableTimes.length > 0) {
+                console.log(`Добавляем доступные времена для ${tempDate}:`, availableTimes);
                 result.push({
-                    date: format(targetDate, 'yyyy-MM-dd'),
+                    date: format(new Date(tempDate), 'yyyy-MM-dd'),
                     dayOfWeek: targetDayOfWeek,
                     times: availableTimes.map(t => ({
                         id: t.id,
@@ -88,9 +123,15 @@ export class DeliveryTimesService {
                         endTime: t.endTime
                     }))
                 });
+            } else {
+                console.log(`Нет доступных времен для ${tempDate}`);
             }
+
+            // Переходим к следующему дню
+            tempDate.setDate(tempDate.getDate() + 1);
         }
 
+        console.log('Итоговый результат:', result);
         return result;
     }
 

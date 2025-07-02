@@ -6,10 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoreEntity } from '@core/entities/store.entity';
 import { AuthModule } from '@app/auth/auth.module';
 import { DeliveryStrategiesModule } from '@app/delivery-strategies/delivery-strategies.module';
+import { DeliveryTime } from '@core/entities/delivery-time.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([StoreEntity]),
+    TypeOrmModule.forFeature([
+      StoreEntity,
+      DeliveryTime
+    ]),
     forwardRef(() => AuthModule),
     forwardRef(() => StoreUserModule),
     forwardRef(() => DeliveryStrategiesModule),

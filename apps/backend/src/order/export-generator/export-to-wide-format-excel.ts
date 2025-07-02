@@ -1,5 +1,6 @@
 import { OrderEntity } from '@core/entities/order.entity';
 import { ProductEntity } from '@core/entities/product.entity';
+import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum';
 import * as XLSX from 'xlsx';
 
 interface TableExportOptions {
@@ -18,11 +19,12 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
     // Заголовки
     const headers = [
         '№ заказа', 
-        'Адрес', 
+        'Тип получения', // Новое поле
+        'Адрес доставки', // Переименовано для ясности
         'Пункт выдачи', 
         'Приоритет', 
-        'Дата доставки',
-        'Время доставки', 
+        'Дата получения',
+        'Время получения', 
         'Телефон',
         'Комментарий',
         'Сумма',
@@ -34,6 +36,14 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
 
     // Данные заказов
     orders.forEach((order) => {
+        // Определяем тип получения
+        const orderType = order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself ? 'Самовывоз' : 'Доставка';
+        
+        // Получаем информацию о пункте выдачи или зоне доставки
+        const pickupOrDeliveryPoint = order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself 
+            ? (order.pickupPoint?.name || 'Не указан') 
+            : (order.deliveryArea?.name || 'Не указан');
+
         // Создаем маппинг товаров в заказе для быстрого доступа
         const orderedProductsMap = new Map(
             order.ordered_products.map(op => [op.product.id, op.quantity])
@@ -41,8 +51,9 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
 
         const rowData = [
             order.id,
-            order.fullAddress,
-            order.deliveryArea?.name || 'Не указан',
+            orderType, // Тип получения
+            order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself ? '-' : (order.fullAddress || 'Не указан'),
+            pickupOrDeliveryPoint,
             1, // Приоритет
             order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("ru-RU") : 'Не указана',
             order.deliveryTime ? `${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}` : 'Не указано',
@@ -60,7 +71,7 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
 
     // Итоговая строка
     const totalsRow = [
-        'Итого:', '', '', '', '', '', '', '',
+        'Итого:', '', '', '', '', '', '', '', '',
         `${orders.reduce((acc, order) => acc + (Number(order.totalAmount) || 0), 0)} ₽`,
         '',
         // Итоги по товарам
@@ -80,11 +91,12 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
     // Настройка ширины колонок
     worksheet['!cols'] = [
         { wch: 10 },  // № заказа
-        { wch: 30 },  // Адрес
-        { wch: 20 },  // Пункт выдачи
+        { wch: 12 },  // Тип получения
+        { wch: 30 },  // Адрес доставки
+        { wch: 20 },  // Пункт выдачи/зона доставки
         { wch: 10 },  // Приоритет
-        { wch: 15 },  // Дата доставки
-        { wch: 15 },  // Время доставки
+        { wch: 15 },  // Дата получения
+        { wch: 15 },  // Время получения
         { wch: 15 },  // Телефон
         { wch: 30 },  // Комментарий
         { wch: 15 },  // Сумма
@@ -110,7 +122,6 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Заказы");
 
-    // Возвращаем buffer вместо сохранения файла
     return XLSX.write(workbook, { 
         bookType: 'xlsx', 
         type: 'array' 

@@ -38,5 +38,4 @@ export class DeliveryTime {
     onDelete: 'CASCADE'
   })
   deliveryArea: DeliveryArea;
-
 }

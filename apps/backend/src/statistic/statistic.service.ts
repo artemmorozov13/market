@@ -1,4 +1,5 @@
 import { OrderEntity } from '@core/entities/order.entity';
+import { AuthJwtPayload } from '@core/types/user-type';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
@@ -10,7 +11,7 @@ export class StatisticService {
         private readonly orderRepository: Repository<OrderEntity>,
     ) {}
 
-    async getOrderStatistic() {
+    async getOrderStatistic(userJwt: AuthJwtPayload) {
         const now = new Date(); // Текущая дата и время (UTC)
         
         // Получаем начало текущей недели (понедельник, 00:00:00 по MSK)
@@ -34,12 +35,18 @@ export class StatisticService {
         const orders = await this.orderRepository.find({
             where: {
                 createdAt: Between(startOfWeek, now), // Сравнение в UTC
+                store: {
+                    id: userJwt.storeId
+                }
             },
             relations: [
                 'user',
                 'ordered_products.product',
                 'deliveryArea',
                 'deliveryTime',
+                'store',
+                'pickupPoint',
+                'deliveryArea'
             ],
         });
     

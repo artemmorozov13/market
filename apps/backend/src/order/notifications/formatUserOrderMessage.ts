@@ -3,6 +3,7 @@ import { OrderEntity } from "@core/entities/order.entity";
 import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
 import { DeliveryArea } from "@core/entities/delivery-area.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 
 const textByStatus: Record<OrderStatusEnum, string> = {
@@ -25,7 +26,6 @@ export const formatUserOrderMessage = (
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
 
-    // Форматирование даты и времени с московским часовым поясом
     const mskOptions: Intl.DateTimeFormatOptions = {
         timeZone: 'Europe/Moscow',
         day: 'numeric',
@@ -39,50 +39,68 @@ export const formatUserOrderMessage = (
     const address = escape(order.fullAddress || order.address);
     const pickupName = escape(deliveryArea?.name || '');
     
-    // Расчет общей стоимости товаров
-    const productsTotal = orderedProducts.reduce((sum, p) => {
-        return sum + (p.product.price * p.quantity);
-    }, 0);
+    const productsTotal = orderedProducts.reduce((sum, p) => sum + (p.product.price * p.quantity), 0);
     
-    // Бесплатная доставка для заказов от 4000 рублей
-    const deliveryCost = productsTotal >= 4000 ? 0 : 100;
+    // Определяем стоимость доставки в зависимости от типа
+    let deliveryCost = 0;
+    let deliveryDescription = '';
+
+    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.DeliveryToEntrance) {
+        deliveryCost = productsTotal >= 4000 ? 0 : 100;
+        deliveryDescription = 'Доставка до подъезда';
+    } else if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
+        deliveryDescription = 'Самовывоз';
+    }
+
     const totalAmount = productsTotal + deliveryCost;
     
-    // Форматирование стоимости в рублях
     const formatPrice = (price: number) => new Intl.NumberFormat('ru-RU', {
         style: 'currency',
         currency: 'RUB',
         minimumFractionDigits: 0
     }).format(price).replace(',00', '');
 
-    // Форматирование списка товаров
     const productsList = orderedProducts.map(p => 
         `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ${formatPrice(p.product.price)}`
     ).join('\n');
 
-    return `
-<b>🛍️ Заказ #${order.id} подтверждён!</b>
+    // Формируем блок доставки в зависимости от типа
+    const deliveryDetails = order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself
+        ? `
+    <b>📦 Самовывоз</b>
+    ┌──────────────────────
+    │ 📅 <b>Дата:</b> ${deliveryDate}
+    │ ⏰ <b>Время:</b> ${startTime}–${endTime}
+    │ 🏢 <b>Пункт выдачи:</b> ${pickupName}
+    └──────────────────────
+            `
+            : `
+    <b>📦 Доставка</b>
+    ┌──────────────────────
+    │ 📅 <b>Дата:</b> ${deliveryDate}
+    │ ⏰ <b>Время:</b> ${startTime}–${endTime}
+    │ 🏠 <b>Адрес:</b> ${address}
+    │ 🚚 <b>Тип:</b> ${deliveryDescription}
+    └──────────────────────
+            `;
 
-<b>📦 Детали доставки</b>
-┌──────────────────────
-│ 📅 <b>Дата:</b> ${deliveryDate}
-│ ⏰ <b>Время:</b> ${startTime}–${endTime}
-│ 🏪 <b>Пункт выдачи:</b> ${pickupName}
-│ 📍 <b>Адрес:</b> ${address}
-└──────────────────────
+        return `
+    <b>🛍️ Заказ #${order.id} подтверждён!</b>
 
-<b>🛒 Состав заказа</b>
-${productsList}
+    ${deliveryDetails}
 
-<b>💳 Итого к оплате</b>
-┌──────────────────────
-│ <b>Товары:</b> ${formatPrice(productsTotal)}
-│ <b>Доставка:</b> ${deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost)}
-│ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
-└──────────────────────
+    <b>🛒 Состав заказа</b>
+    ${productsList}
 
-<b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
+    <b>💳 Итого к оплате</b>
+    ┌──────────────────────
+    │ <b>Товары:</b> ${formatPrice(productsTotal)}
+    ${deliveryCost > 0 ? `│ <b>Доставка:</b> ${formatPrice(deliveryCost)}` : '│ <b>Доставка:</b> Бесплатно'}
+    │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
+    └──────────────────────
 
-По всем вопросам обращаться @Evamiir1.
-    `.trim();
+    <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
+
+    По всем вопросам обращаться @Evamiir1.
+        `.trim();
 };

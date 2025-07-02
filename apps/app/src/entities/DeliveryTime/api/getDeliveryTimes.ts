@@ -7,7 +7,7 @@ const fetchDeliveryTimes = async (deliveryAreaId: number): Promise<DeliveryTimeB
   return response.data;
 };
 
-export const useDeliveryTimes = (deliveryAreaId: number | null) => {
+export const useDeliveryTimes = (deliveryAreaId?: number | null) => {
   const query = useQuery({
     queryKey: ['delivery-times', deliveryAreaId],
     queryFn: () => {

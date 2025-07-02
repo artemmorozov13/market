@@ -1,51 +1,119 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+  background: #f8fafc;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px;
+
+  .title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #1e293b;
+    letter-spacing: -0.5px;
+  }
+}
+
+.controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filterControl {
+  min-width: 200px;
+}
+
+.tableContainer {
+  width: 100%;
+  max-height: calc(100vh - 180px);
+  overflow: auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.MuiTable-root {
+  min-width: 100%;
+}
+
+.MuiTableCell-root {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.MuiTableHead-root {
+  background-color: #f8fafc;
+
+  .MuiTableCell-root {
+    font-weight: 600;
+    color: #475569;
+  }
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+}
+
+.MuiTableRow-hover:hover {
+  background-color: #f8fafc !important;
+}
+
+.MuiCollapse-root {
+  background-color: #f8fafc;
+}
+
+.MuiButton-containedSuccess {
+  background-color: #10b981;
+
+  &:hover {
+    background-color: #059669;
+  }
+}
+
 .statusButton {
-    min-width: 150px;
+  margin-left: 16px;
+  min-width: 200px;
 }
 
-.progress {
-    color: white;
+.deliveryInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.menuItem {
-    padding: 8px 16px;
+.pickupChip {
+  background-color: #3f51b5;
+  color: white;
 }
 
-.modal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modalContent {
-    background-color: white;
-    padding: 24px;
-    border-radius: 8px;
-    outline: none;
-    width: 500px;
-    max-width: 90%;
-}
-
-.reasonInput {
-    margin: 16px 0;
-}
-
-.modalActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-}
-
-.cancelButton {
-    color: #666;
-    border-color: #666;
-}
-
-.confirmButton {
-    background-color: #f44336;
-    &:hover {
-        background-color: #d32f2f;
-    }
-    &:disabled {
-        background-color: #ffcdd2;
-    }
+.deliveryChip {
+  background-color: #4caf50;
+  color: white;
 }

@@ -25,13 +25,14 @@ export class AuthService {
         private readonly storeService: StoreService
     ) {}
 
-    async generateToken(user: UsersEntity | StoreUserEntity | AuthJwtPayload) {
+    async generateToken(user: AuthJwtPayload) {
       const currentUser: AuthJwtPayload = {
         id: user.id,
         role: user.role,
       }
       if (user.role === Roles.Admin) {
-        currentUser.storeId = (user as StoreUserEntity).store.id;
+
+        currentUser.storeId = user.storeId;
       }
 
       return await this.jwtService.sign(currentUser)

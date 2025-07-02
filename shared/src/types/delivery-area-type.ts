@@ -1,4 +1,5 @@
 import { DeliveryTimeIntervalBase } from "./delivery-time";
+import { PickupPointType } from "./pickup-point-type";
 
 export type DeliveryAreaBase = {
   id: number;
@@ -12,5 +13,5 @@ export type DeliveryAreaBase = {
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
-  deliveryTimes: DeliveryTimeIntervalBase[];
+  deliveryTimes?: DeliveryTimeIntervalBase[];
 };

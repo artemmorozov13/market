@@ -1,39 +1,32 @@
-import { AddressType } from "@/entities/Addresses";
-import { StoreBaseType } from "@core/types/store-type";
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
+import { AddressType } from "@core/types/address-type";
 
-export interface DeliveryArea {
-    id: number;
-    name: string;
-    radius: number
-    fullAddress?: string;
-    fias_id: string;
-    geo_lat: string;
-    status: 'active';
-    geo_lon: string;
-    postal_code: string
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    deliveryTimes: DeliveryTime[];
+interface OrderFormBaseInputs {
+    phone: string;
+    comment: string;
+    deliveryMethod: 'delivery' | 'pickup' | null;
+    storeId: number;
+    deliveryStrategy: DeliveryStrategyEnum | null;
 }
 
-export interface DeliveryTime {
-  id: number;
-  dayOfWeek: string; // Добавлено поле дня недели
-  startTime: string;
-  endTime: string;  
-  deliveryAreaId: number;
+interface DeliveryFormInputs extends OrderFormBaseInputs {
+    deliveryMethod: 'delivery' | null;
+    deliveryAreaId: number | null;
+    deliveryTimeId: string | null;
+    deliveryDate: string | null;
+    addressId: string | null;
+    address: AddressType | null;
+    pickupPointId?: number | null
 }
 
-export interface OrderFormInputs {
-  address: AddressType | null;
-  phone: string;
-  addressId: string | null;
-  storeId: number| null
-  comment: string;
-  deliveryAreaId: number | null;
-  deliveryTimeId: number | null;
-  deliveryDate: string | null;
-  timezone: string;
-  isWeekLimited: boolean;
+interface PickupFormInputs extends OrderFormBaseInputs {
+    deliveryMethod: 'pickup'| null;
+    pickupPointId: number | null;
+    deliveryAreaId?: number | null;
+    deliveryTimeId?: number | null;
+    deliveryDate?: string | null;
+    addressId?: string | null;
+    address?: AddressType| null;
 }
+
+export type OrderFormInputs = DeliveryFormInputs | PickupFormInputs;

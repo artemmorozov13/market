@@ -19,24 +19,25 @@ import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { BasketTools } from '@/shared/ui/BasketTools';
 import { MINIMUM_QUANTITY_TO_BE_IN_BASKET } from '@/shared/consts/applicationConsts';
-import { ConfirmRemoveFromBasketModal, basketStore } from '@/entities/Basket';
+import { ConfirmRemoveFromBasketModal, basketStore, useBasket, usePushBasketItem, useRemoveBasketItem } from '@/entities/Basket';
 import { ProductType } from '@core/types/product-item';
 
 interface ProductModalProps {
-  isInBasket: boolean
   open: boolean;
+  isInBasket?: boolean
   onClose: () => void;
-  onRemoveBasketItem: (product: ProductType) => Promise<void> | void
-  onAddItemBasket: (product: ProductType) => Promise<void>;
   product: ProductType | null;
 }
 
 const ProductModal: React.FC<ProductModalProps> = (props) => {
-  const { isInBasket, product, open, onClose, onRemoveBasketItem, onAddItemBasket } = props
+  const { product, open, isInBasket = false, onClose } = props
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const { basket } = useBasket();
+  const { incrementQuantity, isLoadingIncrement } = usePushBasketItem()
+  const { decrementQuantity, isLoadingDecrement } = useRemoveBasketItem()
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
 
   if (!product) return null;
@@ -48,14 +49,8 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
   const hasDiscount = discount > 0;
   const finalPrice = hasDiscount ? originalPrice * (1 - discount / 100) : originalPrice;
 
-  const { basketList, increaseProductCount, decreaseProductCount } = basketStore;
-
-  const [isLoadingAdd, setIsLoadingAdd] = useState<boolean>(false);
-  const [isLoadingRemove, setIsLoadingRemove] = useState<boolean>(false);
-  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
-
-  const basketItemIndex = basketList.findIndex((item) => item.productId === product.id);
-  const basketItem = basketList[basketItemIndex];
+  const basketItemIndex = basket?.findIndex((item) => item.productId === product.id) || 0;
+  const basketItem =  basket?.at(basketItemIndex);
 
   const discountPercentage = parseFloat(product.discount);
   const discountedPrice = discountPercentage > 0 
@@ -67,43 +62,25 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
     : 0;
 
   const handlePlusProduct = async () => {
-    setIsLoadingAdd(true);
-    await increaseProductCount(product.id);
-    setIsLoadingAdd(false);
+    incrementQuantity(product.id);
   };
 
   const handleMinusProduct = async () => {
-    setIsLoadingRemove(true);
-    if (basketItemIndex < 0) return;
-
-    if (basketItem.quantity === MINIMUM_QUANTITY_TO_BE_IN_BASKET) {
-      setIsRemoveModalOpen(true);
-      setIsLoadingRemove(false);
-      return;
+    if (basketItem?.productId) {
+      decrementQuantity(basketItem.productId);
     }
-    await decreaseProductCount(basketList[basketItemIndex].productId);
-    setIsLoadingRemove(false);
   };
 
   const handleToggleBasketStatus = async () => {
     if (isInBasket) {
-      setIsLoadingRemove(true);
-      await onRemoveBasketItem(product);
-      setIsLoadingRemove(false);
+      decrementQuantity(product.id);
     } else {
-      setIsLoadingAdd(true);
-      await onAddItemBasket(product);
-      setIsLoadingAdd(false);
+      incrementQuantity(product.id);
     }
   };
 
   return (
     <>
-      <ConfirmRemoveFromBasketModal
-        isOpen={isRemoveModalOpen}
-        onClose={() => setIsRemoveModalOpen(false)}
-        basketProduct={basketItem}
-      />
       <Dialog
         open={open}
         onClose={onClose}
@@ -203,17 +180,19 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
             </Box>
           </Box>
           <div className={styles.basketToolsWrapper}>
-            <BasketTools
-              basketItem={basketItem}
-              className={styles.addProduct}
-              totalPrice={totalPrice}
-              isInBasket={isInBasket}
-              isLoadingAdd={isLoadingAdd}
-              isLoadingRemove={isLoadingRemove}
-              handleMinusProduct={handleMinusProduct}
-              handlePlusProduct={handlePlusProduct}
-              handleToggleBasketStatus={handleToggleBasketStatus}
-            />
+            {!!basketItem && (
+              <BasketTools
+                basketItem={basketItem}
+                className={styles.addProduct}
+                totalPrice={totalPrice}
+                isInBasket={isInBasket}
+                isLoadingAdd={isLoadingIncrement}
+                isLoadingRemove={isLoadingDecrement}
+                handleMinusProduct={handleMinusProduct}
+                handlePlusProduct={handlePlusProduct}
+                handleToggleBasketStatus={handleToggleBasketStatus}
+              />
+            )}
           </div>
         </DialogContent>
 

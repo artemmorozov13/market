@@ -35,17 +35,13 @@ const BasketPage: FC = observer(() => {
 
   const totalItems = basket?.reduce((acc, item) => acc + item.quantity, 0) || 0;
   const totalPrice = basket?.reduce((acc, item) => {
-    const price = item.product.offeredPrice 
-      ? Number(item.product.offeredPrice) 
-      : Number(item.product.price);
+    const price = item.product.price
     return acc + (price * item.quantity);
   }, 0) || 0;
 
   const totalDiscount = basket?.reduce((acc, item) => {
     const discount = Number(item.product.discount);
-    const price = item.product.offeredPrice 
-      ? Number(item.product.offeredPrice) 
-      : Number(item.product.price);
+    const price = item.product.price
     return discount > 0
       ? acc + (price * item.quantity * (discount / 100))
       : acc;
@@ -53,9 +49,7 @@ const BasketPage: FC = observer(() => {
 
   const totalDelivery = storeGroups.reduce((acc, storeGroup) => {
     const storeTotal = storeGroup.items.reduce((sum, item) => {
-      const price = item.product.offeredPrice 
-        ? Number(item.product.offeredPrice) 
-        : Number(item.product.price);
+      const price = item.product.price
       return sum + (price * item.quantity);
     }, 0);
     
@@ -210,9 +204,7 @@ const BasketPage: FC = observer(() => {
               <Typography>Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)})</Typography>
               <Typography>
                 {selectedStoreGroup.items.reduce((acc, item) => {
-                  const price = item.product.offeredPrice 
-                    ? Number(item.product.offeredPrice) 
-                    : Number(item.product.price);
+                  const price = item.product.price
                   return acc + (price * item.quantity);
                 }, 0).toFixed(2)} ₽
               </Typography>
@@ -221,9 +213,7 @@ const BasketPage: FC = observer(() => {
               <Typography>Доставка</Typography>
               <Typography>
                 {selectedStoreGroup.items.reduce((acc, item) => {
-                  const price = item.product.offeredPrice 
-                    ? Number(item.product.offeredPrice) 
-                    : Number(item.product.price);
+                  const price = item.product.price
                   return acc + (price * item.quantity);
                 }, 0) >= Number(selectedStoreGroup.store.deliveryFreeFromLimit)
                   ? "Бесплатно"
@@ -231,9 +221,7 @@ const BasketPage: FC = observer(() => {
               </Typography>
             </Box>
             {selectedStoreGroup.items.reduce((acc, item) => {
-              const price = item.product.offeredPrice 
-                ? Number(item.product.offeredPrice) 
-                : Number(item.product.price);
+              const price = item.product.price
               return acc + (price * item.quantity);
             }, 0) < Number(selectedStoreGroup.store.deliveryFreeFromLimit) && (
               <Typography className={styles.storeDeliveryNote}>

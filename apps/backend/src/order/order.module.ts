@@ -15,6 +15,8 @@ import { OrderStoreResolver } from './lib/order-store-resolver';
 import { UsersModule } from '@app/users/users.module';
 import { StoreUserModule } from '@app/store-user/store-user.module';
 import { StoreModule } from '@app/store/store.module';
+import { DeliveryStrategy } from '@core/entities/delivery-strategy.entity';
+import { PickupPointEntity } from '@core/entities/pickup-point.entity';
 
 @Module({
   imports: [
@@ -25,7 +27,9 @@ import { StoreModule } from '@app/store/store.module';
       OrderedProductsEntity,
       DeliveryArea,
       DeliveryTime,
-      ProductEntity
+      ProductEntity,
+      DeliveryStrategy,
+      PickupPointEntity
     ]),
     forwardRef(() => UsersModule),
     forwardRef(() => StoreUserModule),

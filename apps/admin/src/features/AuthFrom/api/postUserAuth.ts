@@ -1,10 +1,10 @@
 import { NavigateFunction } from "react-router-dom"
 import { AuthFormSchema } from "../types/formTypes"
 import Cookies from "js-cookie"
-import { routeConfig } from "@shared/lib/consts/routeConfig"
+import { accessCookiesOptions, refreshCookiesOptions } from "@core/consts/token-settings";
 import { UserLoginResponse, userStore } from "@entities/User"
 import { api } from "@shared/api/notAuthInstance"
-import { ACCESS_TOKEN, ACCESS_TOKEN_EXPIRE, REFRESH_TOKEN, REFRESH_TOKEN_EXPIRE } from "@shared/lib/consts/consts"
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "@shared/lib/consts/consts"
 
 export interface PostUserAuthOptions {
     body: AuthFormSchema
@@ -20,8 +20,8 @@ export const postUserAuth = async (options: PostUserAuthOptions) => {
         const { setUserData } = userStore
 
         if (response.data) {
-            Cookies.set(ACCESS_TOKEN, response.data.token, { expires: ACCESS_TOKEN_EXPIRE })
-            Cookies.set(REFRESH_TOKEN, response.data.refreshToken, { expires: REFRESH_TOKEN_EXPIRE })
+            Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions)
+            Cookies.set(REFRESH_TOKEN, response.data.refreshToken, refreshCookiesOptions)
             setUserData(response.data.user)
         }
 

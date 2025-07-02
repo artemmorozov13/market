@@ -6,7 +6,8 @@ import {
     OneToMany, 
     PrimaryGeneratedColumn, 
     UpdateDateColumn,
-    Index 
+    Index, 
+    JoinColumn
   } from "typeorm";
 import { UsersEntity } from "./users.entity";
 import { OrderedProductsEntity } from "./ordered-products.entity";
@@ -14,6 +15,9 @@ import { DeliveryTime } from "./delivery-time.entity";
 import { OrderStatusEnum } from "../enums/order-status-enum";
 import { StoreEntity } from "./store.entity";
 import { DeliveryArea } from "./delivery-area.entity";
+import { PickupPointEntity } from "./pickup-point.entity";
+import { StoreDeliveryStrategy } from "./store-delivery-strategy.entity";
+import { DeliveryStrategyEnum } from "../enums/delivery-strategy.enum";
   
   @Entity({ name: "order" })
   export class OrderEntity {
@@ -33,9 +37,16 @@ import { DeliveryArea } from "./delivery-area.entity";
       @UpdateDateColumn()
       updatedAt: Date;
   
-      @Column({ type: 'date' })
+      @Column({ type: 'date', nullable: true, default: null })
       @Index()
       deliveryDate: Date;
+
+      @Column({
+        type: 'enum',
+        enum: DeliveryStrategyEnum,
+        default: DeliveryStrategyEnum.DeliveryToEntrance
+      })
+      orderDeliveryStrategy: DeliveryStrategyEnum
   
       @Column({ type: 'varchar', length: 255 })
       address: string;
@@ -58,8 +69,12 @@ import { DeliveryArea } from "./delivery-area.entity";
       @Column({ type: 'varchar', length: 50, nullable: true })
       paymentMethod?: string;
   
-      @ManyToOne(() => DeliveryArea, { onDelete: 'SET NULL' })
+      @ManyToOne(() => DeliveryArea, deliveryArea => deliveryArea.orders, { onDelete: 'SET NULL' })
       deliveryArea: DeliveryArea;
+
+      @ManyToOne(() => PickupPointEntity, pickupPoint => pickupPoint.orders, { onDelete: 'SET NULL' })
+      @JoinColumn({ name: 'pickup_point_id' })
+      pickupPoint: PickupPointEntity;
   
       @ManyToOne(() => DeliveryTime, { onDelete: 'SET NULL', nullable: true })
       deliveryTime?: DeliveryTime;

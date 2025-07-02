@@ -1,7 +1,7 @@
 import { API } from '@/shared/api/API';
 import { useQuery } from '@tanstack/react-query';
-import { AddressType } from '..';
 import { SelectOptionType } from '@/shared/ui/Select/types';
+import { AddressType } from '@core/types/address-type';
 
 
 export const fetchUserAddresses = async () => {

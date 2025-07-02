@@ -60,9 +60,7 @@ export const calculateStoreStats = (groupedBasket: Record<number, GroupedBasketI
 // Расчет общей стоимости товаров
 export const calculateItemsTotalPrice = (items: BasketBaseType[]) => {
   return items.reduce((sum, item) => {
-    const price = item.product.offeredPrice 
-      ? Number(item.product.offeredPrice) 
-      : Number(item.product.price);
+    const price = item.product.price
     return sum + (price * item.quantity);
   }, 0);
 };
@@ -83,9 +81,7 @@ export const calculateTotalDiscount = (basket?: BasketBaseType[]) => {
   
   return basket.reduce((acc, item) => {
     const discount = Number(item.product.discount);
-    const price = item.product.offeredPrice 
-      ? Number(item.product.offeredPrice) 
-      : Number(item.product.price);
+    const price = item.product.price
     return discount > 0
       ? acc + (price * item.quantity * (discount / 100))
       : acc;

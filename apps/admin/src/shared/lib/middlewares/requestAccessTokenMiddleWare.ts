@@ -1,7 +1,7 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
-import { ACCESS_TOKEN, ACCESS_TOKEN_EXPIRE, REFRESH_TOKEN } from "../consts/consts";
-
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "../consts/consts";
+import { accessCookiesOptions } from "@core/consts/token-settings"
 
 let isRefreshing = false;
 const timedoutRequestsQueue: [NodeJS.Timeout, (value: unknown) => void][] = [];
@@ -39,7 +39,7 @@ export const requestTokenMiddleware: any = async (
     );
     const access = response.data.token;
 
-    Cookies.set(ACCESS_TOKEN, access, { expires: ACCESS_TOKEN_EXPIRE })
+    Cookies.set(ACCESS_TOKEN, access, accessCookiesOptions)
 
     if (timedoutRequestsQueue.length > 0) {
       for (let i = 0; i < timedoutRequestsQueue.length; i++) {

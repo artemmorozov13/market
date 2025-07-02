@@ -6,6 +6,7 @@ import { OrderEntity } from "./order.entity";
 import { SelectedProductEntity } from "./selected-product.entity";
 import { StoreDeliveryStrategy } from "./store-delivery-strategy.entity";
 import { DeliveryArea } from "./delivery-area.entity";
+import { PickupPointEntity } from "./pickup-point.entity";
 
 @Entity({ name: "store" })
 export class StoreEntity {
@@ -62,11 +63,14 @@ export class StoreEntity {
     @OneToMany(() => DeliveryArea, deliveryArea => deliveryArea.store)
     deliveryAreas: DeliveryArea[]
 
+    @OneToMany(() => PickupPointEntity, pickupPoint => pickupPoint.store)
+    pickupPoints: PickupPointEntity[]
+
     @OneToMany(() => OrderEntity, order => order)
     orders: OrderEntity[]
 
     @OneToMany(() => StoreDeliveryStrategy, storeStrategy => storeStrategy.store)
-    deliveryStrategies: StoreDeliveryStrategy[]
+    deliveryStrategies?: StoreDeliveryStrategy[]
 
     @OneToMany(() => SelectedProductEntity, selectedProduct => selectedProduct.store)
     selectedProducts: SelectedProductEntity[]

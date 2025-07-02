@@ -1,34 +1,19 @@
-import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes"
-import { API } from "@/shared/api/API"
-import { formatDateToYYYYMMDD } from "@/shared/helpers/formatDateToYYYYMMDD"
-import { toast } from "react-toastify"
+import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes";
+import { API } from "@/shared/api/API";
+import { toast } from "react-toastify";
+import { adaptOrderFormToDto } from "../lib/orderAdapter";
 
-export interface CreateOrderOptions {
-    data: OrderFormInputs
-}
-
-export const createOrder = async (options: CreateOrderOptions) => {
-    const { data } = options
-
+export const createOrder = async (formData: OrderFormInputs) => {
     try {
-        const body = {
-            phoneNumber: data.phone,
-            fullAddress: data.address?.fullAddress,
-            address: data.address?.id,
-            comment: data.comment,
-            deliveryAreaId: data.deliveryAreaId,
-            deliveryTimeId: data.deliveryTimeId,
-            deliveryDate: data.deliveryDate ? formatDateToYYYYMMDD(new Date(data.deliveryDate)) : null,
-            storeId: data.storeId
-        }
+        const dto = adaptOrderFormToDto(formData);
+        const response = await API.post("/order/create", dto);
 
-        const response = await API.post("/order/create", body)
-
-        toast("Заказ успешно создан!", { type: "success" })
-
-        return response.data
+        toast("Заказ успешно создан!", { type: "success" });
+        return response.data;
     } catch(error) {
-        toast((error as any).response.data.message, { type: "error" })
-        throw new Error()
+        toast((error as any).response?.data?.message || "Ошибка при создании заказа", { 
+            type: "error" 
+        });
+        throw error;
     }
-}
+};

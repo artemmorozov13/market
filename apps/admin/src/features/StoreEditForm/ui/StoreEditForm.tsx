@@ -1,48 +1,61 @@
 import { FC, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import clsx from "clsx"
+import clsx from "clsx";
 import {
   TextField,
   Checkbox,
   FormControlLabel,
   Button,
   Box,
-  Paper,
   Typography,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Switch,
+  Chip,
+  Alert,
+  IconButton
 } from '@mui/material';
 import { storeSchema } from '../lib/editStoreSchema';
 import { StoreEditFormType } from '../types/storeEditTypes';
 import { StoreBaseType } from '@core/types/store-type';
 import { useUpdateStore } from '../api/updateStore';
 import { useUser } from '@entities/User';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
+import { useAddStoreStrategy, useRemoveStoreStrategy, useStoreDeliveryStrategies, useStrategies } from '@entities/StoreStrategy';
 
 import styles from './StoreEditForm.module.scss';
-import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
 
 interface StoreEditFormProps {
-    storeData: StoreBaseType
+  storeData: StoreBaseType;
 }
 
 const TIMEZONES = [
-    'Europe/Moscow',
-    'Europe/London',
-    'Europe/Berlin',
-    'America/New_York',
-    'Asia/Tokyo',
-    'Asia/Shanghai'
+  'Europe/Moscow',
+  'Europe/London',
+  'Europe/Berlin',
+  'America/New_York',
+  'Asia/Tokyo',
+  'Asia/Shanghai'
 ];
 
 export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
-  const [isCopiedTelegram, setIsCopiedTelegram] = useState<boolean>(false)
-  const [isCopiedBrowser, setIsCopiedBrowser] = useState<boolean>(false)
-  const { updateStore } = useUpdateStore()
-  const { refetch } = useUser({})
+  const [isCopiedTelegram, setIsCopiedTelegram] = useState(false);
+  const [isCopiedBrowser, setIsCopiedBrowser] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<number | ''>('');
+
+  const { data: strategies } = useStrategies();
+  const { data: storeStrategies } = useStoreDeliveryStrategies(storeData.id);
+  const { mutate: addStrategy } = useAddStoreStrategy(storeData.id);
+  const { mutate: removeStrategy } = useRemoveStoreStrategy(storeData.id);
+  
+  const { mutate: updateStore } = useUpdateStore();
+  const { refetch } = useUser();
+  
   const { control, handleSubmit, watch, formState: { errors } } = useForm<StoreEditFormType>({
     resolver: yupResolver(storeSchema) as any,
     defaultValues: storeData
@@ -54,18 +67,36 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
     navigator.clipboard.writeText(`https://t.me/fricti_test_bot/?startapp=shop_${storeData.id}`);
     setIsCopiedTelegram(true);
     setTimeout(() => setIsCopiedTelegram(false), 2000);
-  }
+  };
 
   const handleCopyBrowserLink = () => {
     navigator.clipboard.writeText(`https://fruvost.ru/app/?store=${storeData.id}`);
     setIsCopiedBrowser(true);
     setTimeout(() => setIsCopiedBrowser(false), 2000);
-  }
+  };
+
+  const handleAddStrategy = () => {
+    if (selectedStrategy) {
+      addStrategy(selectedStrategy, {
+        onSuccess: () => {
+          setSelectedStrategy('');
+        }
+      });
+    }
+  };
+
+  const handleRemoveStrategy = (strategyId: number) => {
+    removeStrategy(strategyId);
+  };
 
   const onSubmit = async (data: StoreEditFormType) => {
-    await updateStore(data)
-    refetch()
+    await updateStore(data);
+    refetch();
   };
+
+  const availableStrategies = strategies?.filter(strategy => 
+    !storeStrategies?.some(storeStrategy => storeStrategy.strategy.id === strategy.id)
+  );
 
   return (
     <Box className={styles.formContainer}>
@@ -109,26 +140,83 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
           />
 
           <Controller
-            name='timezone'
+            name="timezone"
             control={control}
             render={({ field: { value, onChange } }) => (
               <FormControl fullWidth margin="normal">
                 <InputLabel id="timezone-label">Часовой пояс магазина</InputLabel>
                 <Select
-                    value={value}
-                    onChange={onChange}
-                    labelId="timezone-label"
-                    label="Часовой пояс магазина"
+                  value={value}
+                  onChange={onChange}
+                  labelId="timezone-label"
+                  label="Часовой пояс магазина"
                 >
-                    {TIMEZONES.map((tz) => (
-                        <MenuItem key={tz} value={tz}>
-                            {tz}
-                        </MenuItem>
-                    ))}
+                  {TIMEZONES.map((tz) => (
+                    <MenuItem key={tz} value={tz}>
+                      {tz}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             )}
           />
+        </section>
+
+        {/* Стратегии доставки */}
+        <section className={styles.section}>
+          <Typography variant="h6" className={styles.sectionTitle}>
+            Стратегии доставки
+          </Typography>
+          
+          <Box mb={2}>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Определите доступные способы получения заказов для этого магазина
+            </Typography>
+            
+            {storeStrategies?.length === 0 && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                Не выбрано ни одной стратегии доставки. Магазин будет недоступен для заказов.
+              </Alert>
+            )}
+            
+            <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
+              {storeStrategies?.map(storeStrategy => (
+                <Chip
+                  key={storeStrategy.id}
+                  label={storeStrategy.strategy.title}
+                  onDelete={() => handleRemoveStrategy(storeStrategy.id)}
+                  deleteIcon={<DeleteIcon />}
+                />
+              ))}
+            </Box>
+            
+            {availableStrategies && availableStrategies.length > 0 && (
+              <Box display="flex" gap={1} alignItems="center">
+                <FormControl sx={{ flexGrow: 1 }}>
+                  <InputLabel>Добавить стратегию</InputLabel>
+                  <Select
+                    value={selectedStrategy}
+                    onChange={(e) => setSelectedStrategy(Number(e.target.value))}
+                    label="Добавить стратегию"
+                  >
+                    {availableStrategies.map(strategy => (
+                      <MenuItem key={strategy.id} value={strategy.id}>
+                        {strategy.title}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                
+                <IconButton
+                  color="primary"
+                  onClick={handleAddStrategy}
+                  disabled={!selectedStrategy}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
         </section>
 
         {/* Настройки доставки */}
@@ -259,24 +347,24 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
           
           <div className={styles.buttonGroup}>
             <Button
-                onClick={handleCopyMiniAppUrl}
-                className={clsx(styles.copyButton, { [styles.copied]: isCopiedTelegram })}
-                startIcon={isCopiedTelegram ? <CheckCircleOutline /> : <FileCopyOutlined />}
-                variant="contained"
-                color="primary"
-                fullWidth
+              onClick={handleCopyMiniAppUrl}
+              className={clsx(styles.copyButton, { [styles.copied]: isCopiedTelegram })}
+              startIcon={isCopiedTelegram ? <CheckCircleOutline /> : <FileCopyOutlined />}
+              variant="contained"
+              color="primary"
+              fullWidth
             >
-                {isCopiedTelegram ? "Скопировано!" : "Скопировать ссылку для Telegram Mini App"}
+              {isCopiedTelegram ? "Скопировано!" : "Скопировать ссылку для Telegram Mini App"}
             </Button>
             <Button
-                onClick={handleCopyBrowserLink}
-                className={clsx(styles.copyButton, { [styles.copied]: isCopiedBrowser })}
-                startIcon={isCopiedBrowser ? <CheckCircleOutline /> : <FileCopyOutlined />}
-                variant="contained"
-                color="primary"
-                fullWidth
+              onClick={handleCopyBrowserLink}
+              className={clsx(styles.copyButton, { [styles.copied]: isCopiedBrowser })}
+              startIcon={isCopiedBrowser ? <CheckCircleOutline /> : <FileCopyOutlined />}
+              variant="contained"
+              color="primary"
+              fullWidth
             >
-                {isCopiedBrowser ? "Скопировано!" : "Скопировать ссылку для браузера"}
+              {isCopiedBrowser ? "Скопировано!" : "Скопировать ссылку для браузера"}
             </Button>
           </div>
         </section>

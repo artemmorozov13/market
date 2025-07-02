@@ -6,7 +6,7 @@ import { Container } from '@/shared/ui/Container';
 import { OrderForm, orderFormStore } from '@/features/OrderForm';
 import { OrderFormInputs } from '@/features/OrderForm/types/orderFormTypes';
 import { RoutePath } from '@/shared/routes/routeConfig';
-import { CreateOrderOptions, createOrder } from '@/entities/Order/api/createOrder';
+import { createOrder } from '@/entities/Order/api/createOrder';
 import { useNavigate } from 'react-router';
 
 const OrderPage: FC = observer(() => {
@@ -15,14 +15,15 @@ const OrderPage: FC = observer(() => {
   
     const handleCreateOrder = (formData: OrderFormInputs) => {  
       setComplitedForm(formData);
-  
-      const options: CreateOrderOptions = {
-        data: formData,
-      };
-      createOrder(options)
+
+      createOrder(formData)
         .then(() => {
           navigate(RoutePath.products);
         })
+        .catch((error) => {
+          console.error('Order creation failed:', error);
+          // Handle error (show notification, etc.)
+        });
     };
   
     return (

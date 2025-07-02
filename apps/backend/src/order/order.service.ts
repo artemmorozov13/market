@@ -27,6 +27,10 @@ import { StoreUserService } from '@app/store-user/store-user.service';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { StoreService } from '@app/store/store.service';
 import { DeliveryArea } from '@core/entities/delivery-area.entity';
+import { StoreEntity } from '@core/entities/store.entity';
+import { PickupPointEntity } from '@core/entities/pickup-point.entity';
+import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum';
+import { DeliveryStrategy } from '@core/entities/delivery-strategy.entity';
 
 @Injectable()
 export class OrderService {
@@ -46,8 +50,10 @@ export class OrderService {
     private readonly deliveryAreaRepository: Repository<DeliveryArea>,
     @InjectRepository(DeliveryTime)
     private readonly deliveryTimeRepository: Repository<DeliveryTime>,
-    private readonly orderStoreResolver: OrderStoreResolver,
-    private readonly storeUserService: StoreUserService,
+    @InjectRepository(DeliveryStrategy)
+    private readonly deliveryStrategyRepository: Repository<DeliveryStrategy>,
+    @InjectRepository(PickupPointEntity)
+    private readonly pickupPointRepository: Repository<PickupPointEntity>,
     private readonly userService: UsersService,
     private readonly storeService: StoreService
   ) {}
@@ -81,7 +87,8 @@ export class OrderService {
             "user",
             "ordered_products.product",
             "deliveryArea",
-            "deliveryTime"
+            'pickupPoint',
+            "deliveryTime",
         ]
     });
 
@@ -106,7 +113,9 @@ export class OrderService {
         'ordered_products.product',
         'deliveryTime',
         'deliveryArea',
-        'store'
+        'pickupPoint',
+        'pickupPoint.workingHours',
+        'store',
       ],
       order: {
         deliveryDate: "DESC",
@@ -203,129 +212,179 @@ export class OrderService {
   }
   
   async createOrder(createOrderDto: CreateOrderDto, userJwt: AuthJwtPayload) {
-    const store = await this.storeService.getStoreDataById(createOrderDto.storeId);
-    const user = await this.userService.getUserById(userJwt.id)
+      const user = await this.userService.getUserById(userJwt.id);
+      const store = await this.storeService.getStoreDataById(createOrderDto.storeId);
 
-    const activeOrdersCount = await this.orderRepository.count({
-      where: {
-        user: user,
-        store,
-        status: OrderStatusEnum.WaitForPay
-      }
-    });
-
-    if (activeOrdersCount >= 3) {
-      throw new BadRequestException("Нельзя иметь более 3 активных заказов");
-    }
-
-    // Проверяем, есть ли уже заказ на выбранную дату
-    const existingOrderOnSameDate = await this.orderRepository.findOne({
-      where: {
-        user: user,
-        store,
-        deliveryDate: createOrderDto.deliveryDate,
-        address: createOrderDto.address,
-        status: OrderStatusEnum.WaitForPay
-      }
-    });
-
-    if (existingOrderOnSameDate) {
-      throw new BadRequestException("У вас уже есть заказ на выбранную дату по этому адресу");
-    }
-
-    const selectedProducts = await this.selectedProductsRepository.find({
-      where: {
-        user: {
-          id: user.id
-        },
-        store: {
-          id: store.id
-        },
-        product: {
-          status: In([ProductStatusEnum.Accepted, ProductStatusEnum.Active])
-        }
-      },
-      relations: ["product"]
-    });
-
-    if (!selectedProducts.length) {
-      throw new BadRequestException("Корзина пустая");
-    }
-
-    const deliveryArea = await this.deliveryAreaRepository.findOne({
-      where: {
-        id: createOrderDto.deliveryAreaId,
-        store: {
-          id: store.id
-        }
-      }
-    });
-
-    if (!deliveryArea) {
-      throw new NotFoundException('Пункт выдачи не найден');
-    }
-
-    // Получаем объект DeliveryTime по ID
-    const deliveryTime = await this.deliveryTimeRepository.findOne({
-      where: {
-        id: createOrderDto.deliveryTimeId
-      }
-    });
-
-    if (!deliveryTime) {
-      throw new NotFoundException('Время доставки не найдено');
-    }
-
-    const totalAmount = selectedProducts.reduce(
-      (acc, product) => (acc + product.quantity * product.product.price),
-      0
-    )
-
-    const order = this.orderRepository.create({
-      address: createOrderDto.address,
-      fullAddress: createOrderDto.fullAddress,
-      phoneNumber: createOrderDto.phoneNumber,
-      comment: createOrderDto.comment,
-      deliveryDate: createOrderDto.deliveryDate,
-      status: OrderStatusEnum.WaitForPay,
-      totalAmount: totalAmount < store.deliveryFreeFromLimit ? totalAmount + store.deliveryCost : totalAmount,
-      deliveryArea: deliveryArea,
-      deliveryTime: deliveryTime,
-      user: user,
-      store: store
-    });
-
-    const savedOrder = await this.orderRepository.save(order);
-
-    const orderedProducts = selectedProducts.map((selectedProduct) => {
-      return this.orderedProductsRepository.create({
-        product: selectedProduct.product,
-        quantity: selectedProduct.quantity,
-        telegram_id: user.telegram_id,
-        user: user,
-        order: savedOrder,
+      // Получаем стратегию доставки
+      const deliveryStrategy = await this.deliveryStrategyRepository.findOne({
+          where: { type: createOrderDto.deliveryStrategy }
       });
-    });
 
-    await this.orderedProductsRepository.save(orderedProducts);
-    await this.selectedProductsRepository.delete({
-      user: {
-        id: user.id
-      },
-      store: {
-        id: store.id
+      if (!deliveryStrategy) {
+          throw new NotFoundException('Стратегия доставки не найдена');
       }
-    });
 
-    if (user.telegram_id) {
-      const userMessage = formatUserOrderMessage(order, orderedProducts, deliveryArea, deliveryTime);
-      await this.telegramService.sendMessage(
-          user.telegram_id.toString(),
-          userMessage
+      // Проверка режима работы магазина
+      const { available, reason } = await this.storeService.isDeliveryDateAvailable(
+          store,
+          new Date(createOrderDto.deliveryDate),
+          createOrderDto.deliveryTimeId
       );
-    }
 
-    return savedOrder;
+      if (!available) {
+          throw new BadRequestException(reason);
+      }
+
+      // Проверка количества активных заказов
+      const activeOrdersCount = await this.orderRepository.count({
+          where: {
+              user: { id: userJwt.id },
+              store: { id: store.id },
+              status: OrderStatusEnum.WaitForPay
+          }
+      });
+
+      if (activeOrdersCount >= 3) {
+          throw new BadRequestException("Нельзя иметь более 3 активных заказов");
+      }
+
+      // Проверка на существующий заказ на ту же дату
+      const existingOrderOnSameDate = await this.orderRepository.findOne({
+          where: {
+              user: { id: userJwt.id },
+              store: { id: store.id },
+              deliveryDate: new Date(createOrderDto.deliveryDate),
+              status: OrderStatusEnum.WaitForPay
+          }
+      });
+
+      if (existingOrderOnSameDate) {
+          throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+      }
+
+      // Получаем товары из корзины
+      const selectedProducts = await this.selectedProductsRepository.find({
+          where: {
+              user: { id: userJwt.id },
+              store: { id: store.id },
+              product: {
+                  status: In([ProductStatusEnum.Accepted, ProductStatusEnum.Active])
+              }
+          },
+          relations: ["product"]
+      });
+
+      if (!selectedProducts.length) {
+          throw new BadRequestException("Корзина пустая");
+      }
+
+      // Подготовка данных для заказа
+      let deliveryArea: DeliveryArea | null = null;
+      let deliveryTime: DeliveryTime | null = null;
+      let pickupPoint: PickupPointEntity | null = null;
+      let fullAddress = '';
+      let address = '';
+
+      if (deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance) {
+          if (!createOrderDto.address?.fullAddress?.trim()) {
+              throw new BadRequestException("Необходимо указать полный адрес доставки");
+          }
+
+          deliveryArea = await this.deliveryAreaRepository.findOne({
+              where: { id: createOrderDto.deliveryAreaId, store: { id: store.id } }
+          });
+
+          if (!deliveryArea) {
+              throw new NotFoundException('Зона доставки не найдена');
+          }
+
+          deliveryTime = await this.deliveryTimeRepository.findOne({
+              where: { id: createOrderDto.deliveryTimeId }
+          });
+
+          if (!deliveryTime) {
+              throw new NotFoundException('Время доставки не найдено');
+          }
+
+          address = createOrderDto.address.fullAddress;
+          fullAddress = createOrderDto.address.fullAddress;
+      } else if (deliveryStrategy.type === DeliveryStrategyEnum.PickupByYourself) {
+          if (!createOrderDto.pickupPointId) {
+              throw new BadRequestException("Не выбран пункт самовывоза");
+          }
+
+          pickupPoint = await this.pickupPointRepository.findOne({
+              where: { id: createOrderDto.pickupPointId, store: { id: store.id } }
+          });
+
+          if (!pickupPoint) {
+              throw new NotFoundException('Пункт самовывоза не найден');
+          }
+
+          address = `Самовывоз: ${pickupPoint.name}`;
+          fullAddress = pickupPoint.fullAddress;
+      }
+
+      // Расчет общей суммы
+      const subtotal = selectedProducts.reduce(
+          (acc, product) => (acc + product.quantity * product.product.price),
+          0
+      );
+      
+      const deliveryCost = deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance && 
+                          subtotal < store.deliveryFreeFromLimit 
+          ? store.deliveryCost 
+          : 0;
+      
+      const totalAmount = subtotal + deliveryCost;
+
+      // Создание заказа
+      const order = this.orderRepository.create({
+          address,
+          fullAddress,
+          phoneNumber: createOrderDto.phone,
+          comment: createOrderDto.comment,
+          deliveryDate: deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance ? new Date(createOrderDto.deliveryDate) : null,
+          status: OrderStatusEnum.WaitForPay,
+          orderDeliveryStrategy: deliveryStrategy.type,
+          totalAmount,
+          deliveryArea,
+          deliveryTime,
+          pickupPoint,
+          user: { id: userJwt.id },
+          store: { id: createOrderDto.storeId }
+      });
+
+      const savedOrder = await this.orderRepository.save(order);
+
+      // Создание записей о заказанных товарах
+      const orderedProducts = selectedProducts.map((selectedProduct) => {
+          return this.orderedProductsRepository.create({
+              product: selectedProduct.product,
+              quantity: selectedProduct.quantity,
+              telegram_id: user.telegram_id,
+              user: { id: userJwt.id },
+              order: savedOrder,
+          });
+      });
+
+      await this.orderedProductsRepository.save(orderedProducts);
+      
+      // Очистка корзины
+      await this.selectedProductsRepository.delete({
+          user: { id: user.id },
+          store: { id: store.id }
+      });
+
+      if (user.telegram_id) {
+        const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime);
+        await this.telegramService.sendMessage(
+            user.telegram_id.toString(),
+            userMessage
+        );
+      }
+
+      return savedOrder;
   }
 
   async updateOrder(
@@ -422,7 +481,7 @@ export class OrderService {
     });
 
     if (user.telegram_id) {
-      const userMessage = formatUpdatedOrderMessage(updatedOrder, savedProducts, updatedOrder.deliveryArea, updatedOrder.deliveryTime);
+      const userMessage = formatUpdatedOrderMessage(updatedOrder, updatedOrder.ordered_products, updatedOrder.deliveryArea, updatedOrder.deliveryTime);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
@@ -487,7 +546,8 @@ export class OrderService {
               'ordered_products',
               'ordered_products.product',
               'deliveryTime',
-              'deliveryArea'
+              'deliveryArea',
+              'pickupPoint'
           ]
       });
 

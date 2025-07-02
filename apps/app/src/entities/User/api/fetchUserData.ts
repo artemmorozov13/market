@@ -9,6 +9,7 @@ import { UserType } from "@core/types/user-type"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { TelegramAuthData } from "@telegram-auth/react"
 import Cookies from "js-cookie"
+import { accessCookiesOptions, refreshCookiesOptions } from "@core/consts/token-settings"
 
 interface FetchUserDataOptions {
     initData?: TelegramAuthData | null
@@ -33,7 +34,7 @@ const fetchUserData = async (options?: FetchUserDataOptions) => {
       const { setUserData, setUserRole } = userStore;
       const { fetchBasketList } = basketStore;
 
-      Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 1 });
+      Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions);
       setUserData(response.data);
       setUserRole(Roles.User);
 
@@ -51,8 +52,8 @@ const fetchUserData = async (options?: FetchUserDataOptions) => {
       const { setUserData, setUserRole } = userStore;
       const { fetchBasketList } = basketStore;
 
-      Cookies.set(ACCESS_TOKEN, response.data.token, { expires: 1 });
-      Cookies.set(REFRESH_TOKEN, response.data.refreshToken, { expires: 30 });
+      Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions);
+      Cookies.set(REFRESH_TOKEN, response.data.refreshToken, refreshCookiesOptions);
       setUserData(response.data);
       setUserRole(Roles.User);
 

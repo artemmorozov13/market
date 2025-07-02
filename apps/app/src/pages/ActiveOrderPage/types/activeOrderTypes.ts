@@ -1,3 +1,5 @@
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
+import { PickupPointType } from "@core/types/pickup-point-type";
 import { ProductType } from "@core/types/product-item";
 import { StoreBaseType } from "@core/types/store-type";
 
@@ -32,7 +34,9 @@ export interface Order {
     totalAmount: string;
     paymentMethod: string | null;
     cancelReason?: string
+    orderDeliveryStrategy: DeliveryStrategyEnum
     ordered_products: OrderedProduct[];
+    pickupPoint: PickupPointType
     deliveryTime: {
         id: number,
         dayOfWeek: string,

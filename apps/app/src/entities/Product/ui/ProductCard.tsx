@@ -101,8 +101,6 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
       />
       <ProductModal
         isInBasket={isInBasket}
-        onAddItemBasket={onAddItemBasket}
-        onRemoveBasketItem={onRemoveBasketItem}
         open={isOpenProduct}
         onClose={() => setIsOpenProduct(false)}
         product={product}

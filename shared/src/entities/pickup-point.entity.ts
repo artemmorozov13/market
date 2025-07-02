@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { DeliveryTime } from "./delivery-time.entity";
 import { StoreEntity } from "./store.entity";
 import { PickupWorkingHoursEntity } from "./pickup-working-hours.entity";
+import { OrderEntity } from "./order.entity";
 
 @Entity({ name: 'pickup_point' })
 export class PickupPointEntity {
@@ -40,10 +41,8 @@ export class PickupPointEntity {
     @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
     updatedAt: Date;
 
-    @OneToMany(() => DeliveryTime, deliveryTime => deliveryTime.deliveryArea, { 
-        cascade: true,
-    })
-    deliveryTimes: DeliveryTime[];
+    @OneToMany(() => OrderEntity, order => order.pickupPoint)
+    orders: OrderEntity[]
 
     @OneToMany(() => PickupWorkingHoursEntity, time => time.pickupPoint)
     workingHours: PickupWorkingHoursEntity[];
