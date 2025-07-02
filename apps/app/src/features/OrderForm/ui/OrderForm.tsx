@@ -18,8 +18,7 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
-  Divider,
-  Skeleton
+  Divider
 } from "@mui/material";
 import styles from "./OrderForm.module.scss";
 import { observer } from "mobx-react-lite";
@@ -57,7 +56,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const [searchParams] = useSearchParams();
   const storeId = searchParams.get('storeId');
 
-  const { store } = useStore(storeId);
+  const { store, isLoadingStore } = useStore(storeId);
   const { deliveryAreas, isLoadingDeliveryArea } = useDeliveryAreas(storeId);
   const { user } = useUser({ 
     onSuccess: () => {
@@ -72,6 +71,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
 
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false);
   
+  // Сначала получаем методы формы без схемы валидации
   const { control, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm<OrderFormInputs>({
     defaultValues: {
       phone: user?.phone_number || '',
@@ -87,11 +87,15 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     },
   });
 
+  // Затем получаем текущий метод доставки
   const deliveryMethod = watch("deliveryMethod");
+  
+  // Динамически создаем схему валидации на основе метода доставки
   const schema = useMemo(() => getOrderFormSchema(deliveryMethod), [deliveryMethod]);
 
+  // Обновляем resolver при изменении схемы
   useEffect(() => {
-    trigger();
+    trigger(); // Перезапускаем валидацию при изменении схемы
   }, [schema, trigger]);
 
   const selectedDeliveryAreaId = watch("deliveryAreaId");
@@ -101,18 +105,22 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const { updateUser } = useUpdateUser();
   const { addresses } = useUserAddresses();
 
+  // Get available delivery strategies from store
   const availableDeliveryStrategies = useMemo(() => {
     return store?.deliveryStrategies?.map((s) => s.strategy.type) || [];
   }, [store?.deliveryStrategies]);
 
+  // Check if delivery is available
   const isDeliveryAvailable = useMemo(() => {
     return availableDeliveryStrategies.includes(DeliveryStrategyEnum.DeliveryToEntrance);
   }, [availableDeliveryStrategies]);
 
+  // Check if pickup is available
   const isPickupAvailable = useMemo(() => {
     return availableDeliveryStrategies.includes(DeliveryStrategyEnum.PickupByYourself);
   }, [availableDeliveryStrategies]);
 
+  // Active pickup points
   const activePickupPoints = useMemo(() => {
     return store?.pickupPoints?.filter(point => point.status === "active") || [];
   }, [store?.pickupPoints]);
@@ -147,6 +155,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     }
   };
 
+  // Set default delivery method on first load
   useEffect(() => {
     if (!deliveryMethod) {
       if (isDeliveryAvailable && isPickupAvailable) {
@@ -189,6 +198,15 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     ? "Бесплатная доставка" 
     : `Стоимость доставки: ${store?.deliveryCost} ₽${store?.deliveryFreeFromLimit ? ` (бесплатно от ${store.deliveryFreeFromLimit} ₽)` : ''}`;
 
+  if (isLoadingDeliveryArea) {
+    return (
+      <Box display="flex" justifyContent="center" p={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Format working hours for display
   const formatWorkingHours = (point: PickupPointType) => {
     if (!point.workingHours || point.workingHours.length === 0) {
       return "Часы работы не указаны";
@@ -209,39 +227,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       .join(", ");
   };
 
-  if (isLoadingDeliveryArea) {
-    return (
-      <Paper className={styles.paper}>
-        <Box className={styles.modalContainer}>
-          <Box mb={3}>
-            <Skeleton variant="text" width="40%" height={40} />
-            <Box mt={2}>
-              <Skeleton variant="rectangular" height={100} />
-              <Skeleton variant="rectangular" height={100} sx={{ mt: 2 }} />
-            </Box>
-          </Box>
-          
-          <Box mb={3}>
-            <Skeleton variant="text" width="40%" height={40} />
-            <Box mt={2}>
-              <Skeleton variant="rectangular" height={56} />
-              <Skeleton variant="rectangular" height={56} sx={{ mt: 2 }} />
-            </Box>
-          </Box>
-          
-          <Box mb={3}>
-            <Skeleton variant="text" width="40%" height={40} />
-            <Box mt={2}>
-              <Skeleton variant="rectangular" height={56} />
-            </Box>
-          </Box>
-          
-          <Skeleton variant="rectangular" height={56} />
-        </Box>
-      </Paper>
-    );
-  }
-
   return (
     <Paper className={styles.paper}>
       <Box className={styles.modalContainer}>
@@ -251,7 +236,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
               Способ получения
             </Typography>
 
-            {!isDeliveryAvailable && !isPickupAvailable ? (
+            {!isLoadingStore && !isDeliveryAvailable && !isPickupAvailable && (
               <Alert severity="error" className={styles.alert}>
                 <Typography variant="body1" gutterBottom>
                   В настоящее время заказы недоступны
@@ -261,61 +246,61 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   Пожалуйста, попробуйте позже или свяжитесь с нами для уточнения деталей.
                 </Typography>
               </Alert>
-            ) : (
-              <Controller
-                name="deliveryMethod"
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup {...field} className={styles.deliveryMethodGroup}>
-                    {isDeliveryAvailable && (
-                      <Paper variant="outlined" className={styles.deliveryMethodCard}>
-                        <FormControlLabel
-                          value="delivery"
-                          control={<Radio />}
-                          label={
-                            <Box className={styles.deliveryMethodLabel}>
-                              <LocalShippingIcon className={styles.deliveryMethodIcon} />
-                              <Box>
-                                <Typography variant="body1" fontWeight={500}>
-                                  Доставка
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                  {deliveryCostInfo}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          }
-                          className={styles.deliveryMethodOption}
-                        />
-                      </Paper>
-                    )}
-                    
-                    {isPickupAvailable && (
-                      <Paper variant="outlined" className={styles.deliveryMethodCard}>
-                        <FormControlLabel
-                          value="pickup"
-                          control={<Radio />}
-                          label={
-                            <Box className={styles.deliveryMethodLabel}>
-                              <StoreIcon className={styles.deliveryMethodIcon} />
-                              <Box>
-                                <Typography variant="body1" fontWeight={500}>
-                                  Самовывоз
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                  Бесплатно из нашего магазина
-                                </Typography>
-                              </Box>
-                            </Box>
-                          }
-                          className={styles.deliveryMethodOption}
-                        />
-                      </Paper>
-                    )}
-                  </RadioGroup>
-                )}
-              />
             )}
+            
+            <Controller
+              name="deliveryMethod"
+              control={control}
+              render={({ field }) => (
+                <RadioGroup {...field} className={styles.deliveryMethodGroup}>
+                  {isDeliveryAvailable && (
+                    <Paper variant="outlined" className={styles.deliveryMethodCard}>
+                      <FormControlLabel
+                        value="delivery"
+                        control={<Radio />}
+                        label={
+                          <Box className={styles.deliveryMethodLabel}>
+                            <LocalShippingIcon className={styles.deliveryMethodIcon} />
+                            <Box>
+                              <Typography variant="body1" fontWeight={500}>
+                                Доставка
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {deliveryCostInfo}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        }
+                        className={styles.deliveryMethodOption}
+                      />
+                    </Paper>
+                  )}
+                  
+                  {isPickupAvailable && (
+                    <Paper variant="outlined" className={styles.deliveryMethodCard}>
+                      <FormControlLabel
+                        value="pickup"
+                        control={<Radio />}
+                        label={
+                          <Box className={styles.deliveryMethodLabel}>
+                            <StoreIcon className={styles.deliveryMethodIcon} />
+                            <Box>
+                              <Typography variant="body1" fontWeight={500}>
+                                Самовывоз
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                Бесплатно из нашего магазина
+                              </Typography>
+                            </Box>
+                          </Box>
+                        }
+                        className={styles.deliveryMethodOption}
+                      />
+                    </Paper>
+                  )}
+                </RadioGroup>
+              )}
+            />
           </Box>
 
           {deliveryMethod === "delivery" && isDeliveryAvailable ? (
