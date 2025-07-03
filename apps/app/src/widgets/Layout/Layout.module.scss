@@ -58,9 +58,12 @@
   flex: 1;
   padding: 16px;
   padding-top: 4rem;
+  padding-bottom: 3rem;
 }
 
 .bottomNavigation {
+  padding-top: .25rem;
+  padding-bottom: 1rem;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -69,7 +72,7 @@
   border-top: 1px solid rgba(0, 0, 0, 0.12);
   
   .MuiBottomNavigation-root {
-    height: 80px;
+    height: 56px;
     justify-content: space-around;
     background-color: #fff;
   }
@@ -80,12 +83,12 @@
     padding: 6px 0;
     
     .MuiBottomNavigationAction-label {
-      font-size: 1rem;
+      font-size: 0.75rem;
       margin-top: 4px;
       line-height: 1.2;
       
       &.Mui-selected {
-        font-size: 1rem;
+        font-size: 0.75rem;
       }
     }
     

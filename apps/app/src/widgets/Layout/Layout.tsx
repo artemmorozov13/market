@@ -146,10 +146,7 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
       </main>
 
       {/* Bottom Navigation */}
-      <Paper 
-        elevation={3} 
-        className={styles.bottomNavigation}
-      >
+      <Paper className={styles.bottomNavigation}>
         <BottomNavigation
           showLabels
           value={navigationItems.findIndex(item => location.pathname.startsWith(item.path))}
