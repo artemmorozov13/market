@@ -71,7 +71,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
 
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false);
   
-  // Сначала получаем методы формы без схемы валидации
   const { control, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm<OrderFormInputs>({
     defaultValues: {
       phone: user?.phone_number || '',
@@ -155,7 +154,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     }
   };
 
-  // Set default delivery method on first load
   useEffect(() => {
     if (!deliveryMethod) {
       if (isDeliveryAvailable && isPickupAvailable) {
@@ -191,6 +189,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     item => item.product.status === ProductStatusEnum.Expired
   );
 
+
+
   const selectedDeliveryArea = deliveryAreas?.find(p => p.id === selectedDeliveryAreaId);
   const selectedPickupPoint = activePickupPoints.find(p => p.id === pickupPointId);
 
@@ -206,7 +206,6 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     );
   }
 
-  // Format working hours for display
   const formatWorkingHours = (point: PickupPointType) => {
     if (!point.workingHours || point.workingHours.length === 0) {
       return "Часы работы не указаны";

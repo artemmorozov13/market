@@ -104,7 +104,7 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
     <div className={clsx(styles.root, className)}>
       {window?.Telegram?.WebApp?.initData && <InstallButton />}
       
-      <Paper 
+      {/* <Paper 
         component="nav"
         elevation={1}
         square
@@ -139,7 +139,7 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
             </IconButton>
           </div>
         </Toolbar>
-      </Paper>
+      </Paper> */}
 
       <main className={styles.content}>
         {children}

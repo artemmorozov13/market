@@ -11,7 +11,7 @@ import styles from "./ActiveOrderPage.module.scss";
 import { Roles } from "@core/enums/role-enum";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
-export const ActiveOrderPage: FC = () => {
+const ActiveOrderPage: FC = () => {
   const { role } = userStore;
   const { data: orders, isLoading } = useActiveOrder();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -117,19 +117,19 @@ export const ActiveOrderPage: FC = () => {
 
   return (
     <Layout>
-      <Container maxWidth="md">
-        <div className={styles.container}>      
-          {renderContent()}
+      <div className={styles.container}>      
+        {renderContent()}
 
-          {selectedOrder && (
-            <EditOrderModal
-              open={isEditModalOpen}
-              onClose={handleCloseModals}
-              order={selectedOrder}
-            />
-          )}
-        </div>
-      </Container>
+        {selectedOrder && (
+          <EditOrderModal
+            open={isEditModalOpen}
+            onClose={handleCloseModals}
+            order={selectedOrder}
+          />
+        )}
+      </div>
     </Layout>
   );
 };
+
+export default ActiveOrderPage

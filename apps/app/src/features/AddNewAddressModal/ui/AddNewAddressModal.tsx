@@ -170,7 +170,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
               </Button>
             </>
           ) : (
-            <Box component="form" onSubmit={handleSubmit(onSubmitNewAddress)}>
+            <Box component="form">
               <Stack spacing={2} mt={2}>
                 <Controller
                   name="fullAddress"
@@ -277,10 +277,11 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
                 />
 
                 <Button 
-                  type="submit" 
+                  type="button" 
                   variant="contained" 
                   size="large"
                   disabled={isSaving}
+                  onClick={handleSubmit(onSubmitNewAddress)}
                   fullWidth
                 >
                   {isSaving ? <CircularProgress size={24} /> : 'Сохранить адрес'}

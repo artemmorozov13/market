@@ -1,2 +1,1 @@
-import OrderPage from "./ui/OrderPage";
-export default OrderPage
+export { OrderPageLazy as OrderPage } from "./ui/OrderPageLazy";

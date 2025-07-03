@@ -21,6 +21,7 @@ import { useUpdateOrder } from "../../api/useUpdateOrder";
 import styles from "./EditOrderModal.module.scss";
 import { BasketBaseType } from "@core/types/basket-tipe";
 import { StoreBaseType } from "@core/types/store-type";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 
 interface EditOrderModalProps {
@@ -198,7 +199,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
           <Box className={styles.innerList}>
             {adaptedProducts.map((product) => (
               <div className={styles.productItem}>
-                <img
+                <LazyLoadImage
                   src={product.product.image}
                   alt={product.product.name}
                   className={styles.productImage}
@@ -290,7 +291,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
             {editingOrder?.ordered_products.map(ordered_product => {
               return (
                 <Box key={ordered_product.id} className={styles.productItem}>
-                  <img
+                  <LazyLoadImage
                     src={ordered_product.product.image}
                     alt={ordered_product.product.name}
                     className={styles.productImage}

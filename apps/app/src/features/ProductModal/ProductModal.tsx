@@ -18,8 +18,8 @@ import styles from './ProductModal.module.scss';
 import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { BasketTools } from '@/shared/ui/BasketTools';
-import { MINIMUM_QUANTITY_TO_BE_IN_BASKET } from '@/shared/consts/applicationConsts';
-import { ConfirmRemoveFromBasketModal, basketStore, useBasket, usePushBasketItem, useRemoveBasketItem } from '@/entities/Basket';
+import { useBasket, usePushBasketItem, useRemoveBasketItem } from '@/entities/Basket';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { ProductType } from '@core/types/product-item';
 
 interface ProductModalProps {
@@ -117,7 +117,7 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
         <DialogContent dividers className={styles.modalContent}>
           <Box className={styles.productContainer}>
             <Box className={styles.imageContainer}>
-              <img 
+              <LazyLoadImage
                 src={product.image} 
                 alt={product.name} 
                 className={styles.productImage}

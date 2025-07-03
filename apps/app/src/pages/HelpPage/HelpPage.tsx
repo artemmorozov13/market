@@ -38,7 +38,6 @@ const TELEGRAM_CHAT_URL = "https://t.me/Evamiir1";
 const HelpPage: FC = observer(() => {
     return (
       <Layout className={styles.wrapper}>
-        <Container className={styles.container}>
           <div className={styles.header}>
             <Typography variant="h4" className={styles.title}>
                 Помощь с заказом
@@ -101,7 +100,6 @@ const HelpPage: FC = observer(() => {
               ))}
             </div>
           </div>
-        </Container>
       </Layout>
     );
 });

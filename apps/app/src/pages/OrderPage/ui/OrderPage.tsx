@@ -2,7 +2,6 @@ import { FC } from 'react';
 import styles from './OrderPage.module.scss';
 import { Layout } from '@/widgets/Layout';
 import { observer } from 'mobx-react-lite';
-import { Container } from '@/shared/ui/Container';
 import { OrderForm, orderFormStore } from '@/features/OrderForm';
 import { OrderFormInputs } from '@/features/OrderForm/types/orderFormTypes';
 import { RoutePath } from '@/shared/routes/routeConfig';
@@ -28,9 +27,7 @@ const OrderPage: FC = observer(() => {
   
     return (
       <Layout className={styles.wrapper}>
-        <Container className={styles.container}>
-          <OrderForm onSubmit={handleCreateOrder} />
-        </Container>
+        <OrderForm onSubmit={handleCreateOrder} />
       </Layout>
     );
 });

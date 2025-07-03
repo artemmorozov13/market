@@ -11,8 +11,8 @@ import { ProductsPageLazy } from "@/pages/ProductsPage/ui/ProductsPageLazy";
 import { BasketPageLazy } from "@/pages/BasketPage/BasketPageLazy";
 import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
 import { RoutePath } from "@/shared/routes/routeConfig";
-import { ActiveOrderPage } from "@/pages/ActiveOrderPage/ui/ActiveOrderPage/ActiveOrderPage";
 import { HelpPage } from "@/pages/HelpPage";
+import { RouteProvider } from "../providers/RouteProvider";
 
 const queryClient = new QueryClient();
 
@@ -22,14 +22,7 @@ export const App: FC = () => {
       <BrowserRouter basename='/'>
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <Routes>
-                <Route path={RoutePath.home} element={<ProductsPageLazy/>} />
-                <Route path={RoutePath.products} element={<ProductsPageLazy/>} />
-                <Route path={RoutePath.basket} element={<BasketPageLazy/>} />
-                <Route path={RoutePath.order} element={<OrderPageLazy/>} />
-                <Route path={RoutePath.activeOrders} element={<ActiveOrderPage/>} />
-                <Route path={RoutePath.help} element={<HelpPage/>} />
-              </Routes>
+              <RouteProvider/>
             </AuthProvider>
           <CssBaseline />
           <ToastContainer

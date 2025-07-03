@@ -19,6 +19,7 @@ import { RoutePath } from "@/shared/routes/routeConfig";
 import { useNavigate } from "react-router";
 import { groupBasketData } from "./lib/groupBasketData";
 import { userStore } from "@/entities/User";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 const BasketPage: FC = observer(() => {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ const BasketPage: FC = observer(() => {
 
   return (
     <Layout>
-      <Container className={styles.container}>
+      <div className={styles.container}>
         <Box className={styles.header}>
           <Typography variant="h4" className={styles.title}>
             Корзина
@@ -148,7 +149,7 @@ const BasketPage: FC = observer(() => {
               return (
                 <Box key={`${item.productId}-${item.id}`} className={styles.item}>
                   <Box className={styles.itemImage}>
-                    <img 
+                    <LazyLoadImage 
                       src={item.product.image} 
                       alt={item.product.name} 
                       className={styles.image} 
@@ -273,7 +274,7 @@ const BasketPage: FC = observer(() => {
             Оформить заказ
           </Button>
         </Box>
-      </Container>
+      </div>
     </Layout>
   );
 });

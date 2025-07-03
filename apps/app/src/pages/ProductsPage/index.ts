@@ -1,2 +1,1 @@
-import ProductsPage from "./ui/ProductsPage";
-export default ProductsPage
+export { ProductsPageLazy as ProductsPage } from "./ui/ProductsPageLazy";
