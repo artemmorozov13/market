@@ -1,0 +1,6 @@
+import { IsNumber, IsOptional, IsBoolean } from 'class-validator';
+
+export class GetAvailableDeliveryTimesDto {
+  @IsNumber()
+  deliveryAreaId: number;
+}

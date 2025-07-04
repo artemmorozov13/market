@@ -1,0 +1,172 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 56px; // Для bottom navigation
+}
+
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 56px;
+    padding: 0 16px;
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .totalPrice {
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  
+  .badge {
+    .MuiBadge-badge {
+      top: 8px;
+      right: 8px;
+    }
+  }
+  
+  .cartButton {
+    text-transform: none;
+    font-weight: 500;
+    padding: 6px 12px;
+    
+    &:disabled {
+      opacity: 0.7;
+    }
+  }
+  
+  .shareButton {
+    margin-left: 4px;
+    color: inherit;
+  }
+}
+
+.content {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  padding: 16px;
+  padding-top: 4rem;
+  padding-bottom: 3rem;
+}
+
+.bottomNavigation {
+  padding-top: .25rem;
+  padding-bottom: 1rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  
+  .MuiBottomNavigation-root {
+    height: 56px;
+    justify-content: space-around;
+    background-color: #fff;
+  }
+  
+  .navItem {
+    min-width: 60px;
+    max-width: 120px;
+    padding: 6px 0;
+    
+    .MuiBottomNavigationAction-label {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      line-height: 1.2;
+      
+      &.Mui-selected {
+        font-size: 0.75rem;
+      }
+    }
+    
+    &.navItemActive {
+      .MuiBottomNavigationAction-label {
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.menuPaper {
+  min-width: 200px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  
+  .menuList {
+    padding: 8px 0;
+  }
+  
+  .menuItem {
+    padding: 8px 16px;
+    min-height: 40px;
+    
+    &:hover {
+      background-color: rgba(25, 118, 210, 0.08);
+    }
+  }
+  
+  .menuIcon {
+    min-width: 36px;
+    color: inherit;
+    
+    svg {
+      font-size: 20px;
+    }
+  }
+  
+  .menuText {
+    font-size: 0.875rem;
+    font-weight: 400;
+  }
+  
+  .divider {
+    margin: 4px 0;
+    background-color: rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Адаптивные стили
+@media (max-width: 600px) {
+  .stickyHeader {
+    .toolbar {
+      padding: 0 8px;
+    }
+    
+    .totalPrice {
+      font-size: 0.875rem;
+    }
+    
+    .cartButton {
+      font-size: 0.8125rem;
+      padding: 5px 8px;
+      
+      .MuiButton-startIcon {
+        margin-right: 4px;
+        
+        svg {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+  
+  .bottomNavigation {
+    .navItem {
+      min-width: 50px;
+      padding: 4px 0;
+    }
+  }
+}

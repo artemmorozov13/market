@@ -5,18 +5,14 @@ export
         migration-run migration-generate migration-create migration-revert migration-show
 
 prod:
-	@echo "Building production images..."
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
-	@echo "Starting production services..."
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	@echo "Building and starting production environment..."
+	docker-compose -f docker-compose/docker-compose.prod.yml -f docker-compose/docker-compose.prod.yml build --no-cache --pull
+	docker-compose -f docker-compose/docker-compose.prod.yml -f docker-compose/docker-compose.prod.yml up -d --remove-orphans
 	@echo "Production environment is ready!"
-	@echo "Admin:    http://localhost/admin"
-	@echo "App:      http://localhost/app"
-	@echo "API:      http://localhost/api"
 
 dev:
 	@echo "Starting development services..."
-	docker-compose -f docker-compose.dev.yml up --build
+	docker-compose -f docker-compose/docker-compose.dev.yml -p market_place up --build
 
 down:
 	@echo "Stopping services..."

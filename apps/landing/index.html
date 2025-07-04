@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание магазина</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <form id="createStoreForm">
+        <h2 class="title">Создайте свой магазин</h2>
+        
+        <div class="form-group">
+            <label for="userEmail">Ваш Email</label>
+            <input type="email" id="userEmail" class="form-control" placeholder="Введите ваш email" required>
+            <div class="error-message" id="emailError">Пожалуйста, введите корректный email</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="storeName">Название магазина</label>
+            <input type="text" id="storeName" class="form-control" placeholder="Введите название" required>
+            <div class="error-message" id="nameError">Пожалуйста, введите название магазина</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="storeDescription">Описание магазина</label>
+            <textarea id="storeDescription" class="form-control" rows="3" placeholder="Опишите ваш магазин" required></textarea>
+            <div class="error-message" id="descriptionError">Пожалуйста, добавьте описание магазина</div>
+        </div>
+        
+        <button type="submit" class="btn">Создать магазин</button>
+        
+        <div class="success-message" id="successMessage">Магазин успешно создан!</div>
+    </form>
+     <script type="text/javascript" src="js/main.js"></script>
+</body>
+</html>

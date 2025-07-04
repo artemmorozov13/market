@@ -1,0 +1,113 @@
+.container {
+  padding: 24px;
+  background-color: #f8fafc;
+}
+
+.title {
+  margin-bottom: 24px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.metricsContainer {
+  padding: 20px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.metricsTitle {
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.metricCardPrimary, 
+.metricCardSecondary,
+.metricCardSuccess,
+.metricCardInfo {
+  padding: 16px;
+  border-radius: 8px;
+  height: 100%;
+}
+
+.metricCardPrimary {
+  background-color: #e3f2fd;
+}
+
+.metricCardSecondary {
+  background-color: #f3e5f5;
+}
+
+.metricCardSuccess {
+  background-color: #e8f5e9;
+}
+
+.metricCardInfo {
+  background-color: #e0f7fa;
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metricIcon {
+  color: #5c6bc0;
+}
+
+.metricValue {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.deliveryTypes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.deliveryChip, .pickupChip {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.chartsContainer {
+  margin-top: 16px;
+}
+
+.chartPaper {
+  padding: 20px;
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chartTitle {
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #475569;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 16px;
+  }
+
+  .metricsContainer {
+    padding: 16px;
+  }
+
+  .metricHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .metricValue {
+    font-size: 1.5rem;
+  }
+}

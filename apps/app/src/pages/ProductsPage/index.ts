@@ -1,0 +1,1 @@
+export { ProductsPageLazy as ProductsPage } from "./ui/ProductsPageLazy";

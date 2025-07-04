@@ -1,0 +1,75 @@
+.addressesField {
+  margin: 8px 0;
+
+  .icon {
+    color: var(--primary-color);
+  }
+
+  .input {
+    padding: 12px 14px;
+    font-size: 0.875rem;
+  }
+
+  .selectedValue {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+
+    .fullAddress {
+      font-weight: 500;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .details {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+  }
+
+  .menu {
+    max-height: 300px;
+
+    .menuItem {
+      padding: 8px 16px;
+      white-space: normal;
+
+      &-content {
+        display: flex;
+        flex-direction: column;
+      }
+
+      &-address {
+        font-weight: 500;
+        font-size: 0.875rem;
+        line-height: 1.4;
+      }
+
+      &-details {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 2px;
+      }
+    }
+  }
+}
+
+// Адаптивные стили
+@media (max-width: 600px) {
+  .addressesField {
+    .input {
+      padding: 10px 12px;
+    }
+
+    .selectedValue,
+    .menuItem-address {
+      font-size: 0.8125rem;
+    }
+
+    .selectedValue .details,
+    .menuItem-details {
+      font-size: 0.6875rem;
+    }
+  }
+}

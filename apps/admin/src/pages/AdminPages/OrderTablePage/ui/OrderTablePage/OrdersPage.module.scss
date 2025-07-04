@@ -1,0 +1,144 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+  background-color: #f8fafc;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #1e293b;
+    letter-spacing: -0.5px;
+  }
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.exportButton {
+  background-color: #4caf50;
+  color: white;
+  &:hover {
+    background-color: #3d8b40;
+  }
+}
+
+.statusButton {
+  min-width: 180px;
+  font-weight: 500;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterControl {
+  min-width: 300px;
+  background-color: white;
+}
+
+.tableContainer {
+  width: 100%;
+  max-height: calc(100vh - 260px);
+  overflow: auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: white;
+
+  .MuiTable-root {
+    min-width: 100%;
+  }
+
+  .MuiTableCell-root {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+
+    &.MuiTableCell-head {
+      font-weight: 600;
+      color: #475569;
+      background-color: #f8fafc;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  height: 200px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.emptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: white;
+  border-radius: 8px;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .buttonGroup {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .filterControl {
+    min-width: 100%;
+  }
+
+  .tableContainer {
+    max-height: none;
+    overflow-x: auto;
+  }
+}

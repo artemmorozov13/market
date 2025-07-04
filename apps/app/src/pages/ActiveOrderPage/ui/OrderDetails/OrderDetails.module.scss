@@ -1,0 +1,89 @@
+.root {
+  padding: 24px;
+  position: relative;
+  
+  &.canceled {
+    opacity: 0.8;
+  }
+}
+
+.statusBanner {
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: var(--error-light);
+  border-left: 4px solid var(--error-main);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.divider {
+  margin: 20px 0 !important;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.productItem {
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.totalSection {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.workingHours {
+  background: rgba(0, 0, 0, 0.02);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+
+  &Item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  &Days {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  &Time {
+    color: var(--text-secondary);
+  }
+}
+
+.pickupDate {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
