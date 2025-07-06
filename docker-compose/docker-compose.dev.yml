@@ -31,14 +31,13 @@ services:
       dockerfile: docker/backend.Dockerfile.dev
     environment:
       - NODE_ENV=development
+      - PORT=8000
     env_file:
       - ../.env.dev
     volumes:
       - ../apps/backend:/app
       - ../shared:/app/shared   
       - /app/node_modules
-    ports:
-      - "9000:9000"
     depends_on:
       - postgres
 
