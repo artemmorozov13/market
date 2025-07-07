@@ -81,8 +81,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           </Typography>
           <Box className={clsx(styles.authButtonContainer, styles.telegramButtonWrapper)}>
             <LoginButton
-              botUsername={'fricti_test_bot'}
-              authCallbackUrl={'https://fruvost.ru/app'}
+              botUsername={'okacuki_bot'}
+              authCallbackUrl={'https://akacuki.ru/app'}
               buttonSize="large"
               cornerRadius={8}
               showAvatar={true}
