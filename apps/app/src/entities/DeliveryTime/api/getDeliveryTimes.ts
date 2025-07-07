@@ -2,23 +2,35 @@ import { API } from "@/shared/api/API";
 import { useQuery } from "@tanstack/react-query";
 import { DeliveryTimeBase } from "@core/types/delivery-time";
 
-const fetchDeliveryTimes = async (deliveryAreaId: number): Promise<DeliveryTimeBase[]> => {
-  const response = await API.get<DeliveryTimeBase[]>(`/delivery-areas/${deliveryAreaId}/available-times`);
+export interface GetDeliveryTimesBody {
+  storeId: string;
+}
+
+const fetchDeliveryTimes = async (deliveryAreaId: number, body: GetDeliveryTimesBody): Promise<DeliveryTimeBase[]> => {
+  const response = await API.post<DeliveryTimeBase[]>(
+    `/delivery-areas/${deliveryAreaId}/available-times`,
+    body
+  );
   return response.data;
 };
 
-export const useDeliveryTimes = (deliveryAreaId?: number | null) => {
+export const useDeliveryTimes = (deliveryAreaId?: number | null, storeId?: string | null) => {
   const query = useQuery({
-    queryKey: ['delivery-times', deliveryAreaId],
+    queryKey: ['delivery-times', deliveryAreaId, storeId],
     queryFn: () => {
-      if (!deliveryAreaId) return Promise.resolve([]);
-      return fetchDeliveryTimes(deliveryAreaId);
+      if (!deliveryAreaId || !storeId) return Promise.resolve([]);
+      
+      const body: GetDeliveryTimesBody = {
+        storeId: storeId
+      };
+      
+      return fetchDeliveryTimes(deliveryAreaId, body);
     },
-    enabled: !!deliveryAreaId,
+    enabled: !!deliveryAreaId && !!storeId,
   });
 
   return {
     ...query,
-    deliveryTimeData: deliveryAreaId ? query.data : []
+    deliveryTimeData: query.data || [],
   };
 };

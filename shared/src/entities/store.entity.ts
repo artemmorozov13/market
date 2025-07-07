@@ -51,6 +51,9 @@ export class StoreEntity {
     })
     timezone: string;
 
+    @Column({ nullable: true, default: null })
+    imageUrl: string
+
     @OneToMany(() => UsersEntity, user => user.store)
     users: UsersEntity[];
 

@@ -7,6 +7,7 @@ import { StoreEntity } from '@core/entities/store.entity';
 import { AuthModule } from '@app/auth/auth.module';
 import { DeliveryStrategiesModule } from '@app/delivery-strategies/delivery-strategies.module';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
+import { UsersModule } from '@app/users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DeliveryTime } from '@core/entities/delivery-time.entity';
     forwardRef(() => AuthModule),
     forwardRef(() => StoreUserModule),
     forwardRef(() => DeliveryStrategiesModule),
+    forwardRef(() => UsersModule)
   ],
   providers: [StoreService],
   controllers: [StoreController],

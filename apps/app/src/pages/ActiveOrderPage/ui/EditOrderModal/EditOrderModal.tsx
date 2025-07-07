@@ -44,6 +44,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
   const { updateOrder } = useUpdateOrder()
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = usePagedProductsList({
     take: 10,
+    storeId: order?.store?.id,
     enabled: true
   });
 

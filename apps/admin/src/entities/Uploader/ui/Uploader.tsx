@@ -1,12 +1,14 @@
 import { ChangeEvent, FC, useState } from 'react';
+import imageCompression from 'browser-image-compression';
 import { uploadFile } from '../api/uploadFile';
-import { UploaderReturnType } from '../types/uploaderTypes';
-import { Button, Typography, Box, CircularProgress } from '@mui/material';
+import { Button, Typography, Box, CircularProgress, Chip, Stack } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import styles from './Uploader.module.scss';
+import { UploaderReturnType } from '@core/types/uploader-type';
 
 interface UploaderProps {
-    value: string | null
+    value: string | null;
     onChange?: (file: UploaderReturnType) => void;
 }
 
@@ -14,6 +16,28 @@ export const Uploader: FC<UploaderProps> = (props) => {
     const { value, onChange } = props;
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [fileInfo, setFileInfo] = useState<{size: number; type: string} | null>(null);
+
+    const compressImage = async (file: File): Promise<File> => {
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true,
+            fileType: 'image/jpeg',
+        };
+
+        try {
+            return await imageCompression(file, options);
+        } catch (error) {
+            throw new Error('Не удалось сжать изображение');
+        }
+    };
+
+    const formatFileSize = (bytes: number): string => {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1048576).toFixed(1)} MB`;
+    };
 
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -21,14 +45,35 @@ export const Uploader: FC<UploaderProps> = (props) => {
         if (file) {
             setIsLoading(true);
             setError(null);
+            setFileInfo(null);
 
             try {
-                const fileData = await uploadFile(file);
+                // Валидация типа файла
+                if (!file.type.startsWith('image/')) {
+                    throw new Error('Пожалуйста, загрузите файл изображения');
+                }
+
+                // Сжатие изображения
+                const compressedFile = await compressImage(file);
+                setFileInfo({
+                    size: compressedFile.size,
+                    type: compressedFile.type
+                });
+
+                // Загрузка на сервер
+                const fileData = await uploadFile(compressedFile);
+                
+                if (!fileData.success) {
+                    throw new Error(fileData.message || 'Ошибка при загрузке файла');
+                }
+
                 onChange?.(fileData);
             } catch (err) {
-                setError('Ошибка при загрузке файла. Попробуйте снова.');
+                console.error('Upload error:', err);
+                setError(err instanceof Error ? err.message : 'Ошибка при загрузке файла');
             } finally {
                 setIsLoading(false);
+                event.target.value = ''; // Сброс input для возможности повторной загрузки того же файла
             }
         }
     };
@@ -36,12 +81,22 @@ export const Uploader: FC<UploaderProps> = (props) => {
     return (
         <Box className={styles.uploaderContainer}>
             {!!value && (
-                <img
-                    src={value}
-                    alt="uoliaded-image"
-                    className={styles.uploadedImage}
-                />
+                <Box className={styles.imagePreview}>
+                    <img
+                        src={value}
+                        alt="uploaded"
+                        className={styles.uploadedImage}
+                    />
+                    <Chip
+                        icon={<CheckCircleIcon />}
+                        label="Изображение загружено"
+                        color="success"
+                        size="small"
+                        className={styles.uploadedBadge}
+                    />
+                </Box>
             )}
+
             <input
                 accept="image/*"
                 style={{ display: 'none' }}
@@ -50,6 +105,7 @@ export const Uploader: FC<UploaderProps> = (props) => {
                 onChange={handleFileChange}
                 disabled={isLoading}
             />
+            
             <label htmlFor="upload-file-input">
                 <Button
                     variant="contained"
@@ -60,13 +116,23 @@ export const Uploader: FC<UploaderProps> = (props) => {
                     className={styles.button}
                     fullWidth
                 >
-                    {isLoading ? 'Загрузка...' : 'Загрузить файл'}
+                    {isLoading ? 'Загрузка...' : 'Загрузить изображение'}
                 </Button>
             </label>
+
+            {fileInfo && (
+                <Stack direction="row" spacing={1} mt={1}>
+                    <Chip label={fileInfo.type.split('/')[1].toUpperCase()} size="small" />
+                    <Chip label={formatFileSize(fileInfo.size)} size="small" />
+                </Stack>
+            )}
 
             {isLoading && (
                 <Box className={styles.progressContainer}>
                     <CircularProgress size={24} />
+                    <Typography variant="caption" mt={1}>
+                        Сжатие и загрузка изображения...
+                    </Typography>
                 </Box>
             )}
 
@@ -75,6 +141,10 @@ export const Uploader: FC<UploaderProps> = (props) => {
                     {error}
                 </Typography>
             )}
+
+            <Typography variant="caption" display="block" mt={1} color="textSecondary">
+                Максимальный размер: 1MB. Рекомендуемый формат: JPEG
+            </Typography>
         </Box>
     );
 };

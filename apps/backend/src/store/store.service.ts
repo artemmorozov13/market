@@ -11,6 +11,7 @@ import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { DeliveryStrategiesService } from '@app/delivery-strategies/delivery-strategies.service';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { DateTime } from 'luxon';
+import { UsersService } from '@app/users/users.service';
 
 @Injectable()
 export class StoreService {
@@ -22,7 +23,9 @@ export class StoreService {
         @Inject(forwardRef(() => DeliveryStrategiesService))
         private readonly deliveryStrategiesService: DeliveryStrategiesService,
         @InjectRepository(DeliveryTime)
-        private readonly deliveryTimeRepository: Repository<DeliveryTime>
+        private readonly deliveryTimeRepository: Repository<DeliveryTime>,
+        @Inject(forwardRef(() => UsersService))
+        private readonly usersService: UsersService
     ) {}
 
     async getStoreUserByToken(userJwt: AuthJwtPayload, page: number, limit: number) {
@@ -47,20 +50,58 @@ export class StoreService {
     }
 
     async getStoresDataWithPagination(
-        userJwt: AuthJwtPayload, 
-        page: number = 1, 
-        limit: number = 10
+        userJwt: AuthJwtPayload,
+        page: number = 1,
+        limit: number = 10,
+        userAddressId?: number
     ): Promise<[StoreEntity[], number]> {
         const skip = (page - 1) * limit;
+        
+        // Get user with selected address
+        const user = await this.usersService.getUserById(userJwt.id);
 
-        const query = this.storeRepository
-            .createQueryBuilder('store')
-            .leftJoinAndSelect(
-                'store.products', 
-                'product',
-                'product.status IN (:...statuses)',
+        // Create base query
+        const query = this.storeRepository.createQueryBuilder('store')
+            .leftJoinAndSelect('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
+                pickupStatus: 'active'
+            })
+            .leftJoinAndSelect('store.deliveryAreas', 'deliveryAreas')
+            .leftJoinAndSelect('deliveryAreas.deliveryTimes', 'deliveryTimes')
+            .leftJoinAndSelect('store.products', 'product',
+                'product.status IN (:...statuses)', 
                 { statuses: [ProductStatusEnum.Accepted, ProductStatusEnum.Active] }
-            )
+            );
+
+        // Build WHERE conditions
+        const whereConditions: string[] = [];
+        const params: Record<string, any> = { pickupStatus: 'active' };
+
+        // Always include stores with active pickup points
+        whereConditions.push('pickupPoints.id IS NOT NULL');
+
+        // If user has selected address, include stores with delivery areas that cover it
+        if (user.selectedAddress) {
+            const { geo_lat, geo_lon } = user.selectedAddress;
+            params.userLat = parseFloat(geo_lat);
+            params.userLon = parseFloat(geo_lon);
+
+            whereConditions.push(`
+                EXISTS (
+                    SELECT 1 FROM delivery_area da
+                    WHERE da.store_id = store.id
+                    AND (6371 * ACOS(
+                        COS(RADIANS(:userLat)) * 
+                        COS(RADIANS(da.geo_lat::float)) * 
+                        COS(RADIANS(da.geo_lon::float) - RADIANS(:userLon)) + 
+                        SIN(RADIANS(:userLat)) * 
+                        SIN(RADIANS(da.geo_lat::float))
+                    )) <= da.radius / 1000
+                )
+            `);
+        }
+
+        // Apply WHERE with OR conditions
+        query.where(`(${whereConditions.join(' OR ')})`, params)
             .orderBy('store.name', 'ASC')
             .addOrderBy('product.name', 'ASC');
 

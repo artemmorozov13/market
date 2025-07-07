@@ -5,7 +5,11 @@ import { toast } from "react-toastify"
 
 export const updateStore = async (data: StoreEditFormType) => {
     try {
-        const response = await API.patch('/store/update', data)
+        const body = {
+            ...data,
+            imageUrl: data.imageUrl
+        }
+        const response = await API.patch('/store/update', body)
         toast('Данные обновленны', { type: "success" })
         return response.data
     } catch (error) {

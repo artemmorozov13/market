@@ -6,16 +6,17 @@ import { format, isAfter, isBefore, subHours } from 'date-fns';
 import { CreateDeliveryTimeDto } from './dto/create-delivery-times.dto';
 import { UpdateDeliveryTimeDto } from './dto/update-delivery-times.dto';
 import { DeliveryTimeBase } from '@core/types/delivery-time';
-import { DeliveryTimeStoreResolver } from './lib/delivery-time-store-resolver';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { convertToStoreTimezone } from './lib/convert-to-store-timezone';
+import { PostAvailableTimesDto } from '@app/delivery-area/dto/post-available-times.dto';
+import { StoreService } from '@app/store/store.service';
 
 @Injectable()
 export class DeliveryTimesService {
     constructor(
         @InjectRepository(DeliveryTime)
         private deliveryTimeRepository: Repository<DeliveryTime>,
-        private readonly deliveryTimeStoreResolver: DeliveryTimeStoreResolver
+        private readonly storeService: StoreService
     ) {}
 
     async findByDeliveryArea(deliveryAreaId: number): Promise<DeliveryTime[]> {
@@ -28,14 +29,15 @@ export class DeliveryTimesService {
     async getAvailableDeliveryTimes(
         deliveryAreaId: number,
         userJwt: AuthJwtPayload,
+        body: PostAvailableTimesDto,
         options: { includePassedTimes?: boolean } = {}
     ): Promise<DeliveryTimeBase[]> {
         const { includePassedTimes = false } = options;
-        const store = await this.deliveryTimeStoreResolver.resolveStore(userJwt);
+
+        const store = await this.storeService.getStoreDataById(Number(body.storeId))
         
         // Конвертируем текущее время в часовой пояс магазина
         const currentDate = convertToStoreTimezone(new Date(), store.timezone);
-        console.log(`Текущая дата: ${currentDate}, день недели: ${currentDate.getDay()}`);
 
         const allTimes = await this.deliveryTimeRepository.find({
             where: {
@@ -75,7 +77,7 @@ export class DeliveryTimesService {
             console.log(`Ограниченная неделя. Конечная дата: ${endDate}`);
         } else {
             // Показываем на 2 недели вперед (включая воскресенье)
-            endDate.setDate(currentDate.getDate() + 13);
+            endDate.setDate(currentDate.getDate() + 6);
             console.log(`Полные 2 недели. Конечная дата: ${endDate}`);
         }
 

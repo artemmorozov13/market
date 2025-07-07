@@ -21,6 +21,7 @@
     "@types/js-cookie": "^3.0.6",
     "@types/react-lazy-load-image-component": "^1.6.4",
     "axios": "^1.8.4",
+    "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "js-cookie": "^3.0.5",

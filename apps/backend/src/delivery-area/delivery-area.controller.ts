@@ -11,6 +11,7 @@ import { User } from '@app/decorators/user.decorator';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { DeliveryTimesService } from '@app/delivery-times/delivery-times.service';
 import { FindDeliveryAreaDto } from './dto/find-delivery-area-body';
+import { PostAvailableTimesDto } from './dto/post-available-times.dto';
 
 @Controller('delivery-areas')
 export class DeliveryAreaController {
@@ -33,14 +34,16 @@ export class DeliveryAreaController {
   @AllowRoles(Roles.Admin, Roles.User, Roles.SuperAdmin)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
-  @Get(':id/available-times')
+  @Post(':id/available-times')
   async getAvailableTimes(
     @User() user: AuthJwtPayload,
-    @Param('id') id: number
+    @Param('id') id: number,
+    @Body() body: PostAvailableTimesDto
   ) {
     return this.deliveryTimeService.getAvailableDeliveryTimes(
       id,
       user,
+      body,
       { includePassedTimes: false }
     );
   }

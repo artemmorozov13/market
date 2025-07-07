@@ -7,5 +7,5 @@ export class LoginViaInitDataDto {
 
     @IsString()
     @IsOptional()
-    storeId: string
+    storeId?: string
 }

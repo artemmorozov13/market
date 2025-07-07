@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Box, Skeleton, Typography, Chip } from "@mui/material";
+import { Button, Box, Skeleton, Typography, Chip, Paper } from "@mui/material";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import styles from "./ManageAddressForm.module.scss";
 import clsx from "clsx";
@@ -32,7 +32,7 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
 
     if (!user?.addresses?.length) {
         return (
-            <>
+            <Paper>
                 <AddNewAddressModal
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
@@ -47,7 +47,7 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
                         Добавить адрес
                     </Button>
                 </Box>
-            </>
+            </Paper>
         );
     }
 
@@ -57,7 +57,7 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
     ) || user?.addresses?.[0];
 
     return (
-        <>
+        <Paper>
             <Box className={styles.addressSection}>
                 <Box className={styles.wrapper}>
                     <Box className={styles.addressInfo}>
@@ -83,6 +83,6 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
                 onClose={() => setIsOpen(false)}
                 onAddressChange={onAddressChange}
             />
-        </>
+        </Paper>
     );
 };

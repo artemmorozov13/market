@@ -100,7 +100,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const selectedDeliveryAreaId = watch("deliveryAreaId");
   const selectedAddressId = watch("addressId");
   const pickupPointId = watch("pickupPointId");
-  const { deliveryTimeData } = useDeliveryTimes(selectedDeliveryAreaId);
+  const { deliveryTimeData } = useDeliveryTimes(selectedDeliveryAreaId, storeId);
   const { updateUser } = useUpdateUser();
   const { addresses } = useUserAddresses();
 

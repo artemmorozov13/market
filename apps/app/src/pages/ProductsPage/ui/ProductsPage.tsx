@@ -7,37 +7,36 @@ import {
   Paper, 
   Avatar,
   Pagination,
-  CircularProgress
+  CircularProgress,
+  Breadcrumbs,
+  Link
 } from "@mui/material";
 import { useInView } from 'react-intersection-observer';
 import { Layout } from "@/widgets/Layout";
 import { observer } from "mobx-react-lite";
 import { ProductCard } from "@/entities/Product";
 import { userStore } from "@/entities/User";
-import { useStores } from "@/entities/Store";
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { ProductType } from "@core/types/product-item";
+import { useNavigate, useParams } from "react-router-dom";
 
 import styles from "./ProductsPage.module.scss";
 import { useBasket, usePushBasketItem, useRemoveBasketItem } from "@/entities/Basket";
 import { ManageAddressForm } from "@/features/ManageAddressForm";
+import { useStore } from "@/entities/Store";
 
-const STORES_PER_PAGE = 10;
 const PRODUCTS_PER_PAGE = 10;
 
 const ProductsPage: FC = observer(() => {
+  const { storeId } = useParams();
+  
   const { 
-    stores, 
-    pagination,
-    isLoading: isStoresLoading,
-    isFetching: isStoresFetching,
-    currentPage
-  } = useStores({ 
-    page: 1, 
-    limit: STORES_PER_PAGE 
-  });
+    store,
+    isLoading: isStoreLoading,
+    isError: isStoreError
+  } = useStore(storeId);
 
   const {
     basket: basketItems = [],
@@ -45,23 +44,18 @@ const ProductsPage: FC = observer(() => {
     refetch: refetchBasket
   } = useBasket();
 
-  const [productsPages, setProductsPages] = useState<Record<number, number>>({});
+  const [productsPage, setProductsPage] = useState(1);
   const { ref, inView } = useInView({ threshold: 0.1 });
 
   const { incrementQuantity } = usePushBasketItem();
   const { decrementQuantity } = useRemoveBasketItem();
 
   useEffect(() => {
-    if (inView && stores.length > 0) {
-      const lastStore = stores[stores.length - 1];
-      if (lastStore.products && lastStore.products.length >= (productsPages[lastStore.id] || 1) * PRODUCTS_PER_PAGE) {
-        setProductsPages(prev => ({
-          ...prev,
-          [lastStore.id]: (prev[lastStore.id] || 1) + 1
-        }));
-      }
+    if (inView && store?.products && 
+        store.products.length > productsPage * PRODUCTS_PER_PAGE) {
+      setProductsPage(prev => prev + 1);
     }
-  }, [inView, stores, productsPages]);
+  }, [inView, store, productsPage]);
 
   const handleAddProduct = async (product: ProductType) => {
     try {
@@ -82,9 +76,10 @@ const ProductsPage: FC = observer(() => {
   };
 
   const selectedProducts = basketItems.map(item => item.productId);
-  const isLoading = isStoresLoading || isBasketLoading;
+  const isLoading = isStoreLoading || isBasketLoading;
+  const visibleProducts = store?.products?.slice(0, productsPage * PRODUCTS_PER_PAGE) || [];
 
-  if (isLoading && !stores.length) {
+  if (isLoading && !store) {
     return (
       <Layout className={styles.wrapper}>
         <Box className={styles.loadingContainer}>
@@ -94,12 +89,24 @@ const ProductsPage: FC = observer(() => {
     );
   }
 
-  if (!stores.length && !isStoresFetching) {
+  if (!store && !isStoreLoading) {
     return (
       <Layout className={styles.wrapper}>
         <Box className={styles.container}>
           <Typography variant="h6" className={styles.noStoresText}>
-            Нет доступных магазинов
+            Магазин не найден
+          </Typography>
+        </Box>
+      </Layout>
+    );
+  }
+
+  if (isStoreError) {
+    return (
+      <Layout className={styles.wrapper}>
+        <Box className={styles.container}>
+          <Typography variant="h6" className={styles.noStoresText}>
+            Произошла ошибка при загрузке магазина
           </Typography>
         </Box>
       </Layout>
@@ -109,104 +116,88 @@ const ProductsPage: FC = observer(() => {
   return (
     <Layout className={styles.wrapper}>
       <Box className={styles.container}>
-        <Paper className={styles.addressForm}>
-          <ManageAddressForm/>
-        </Paper>
-
-        {stores.map(store => {
-          const currentPage = productsPages[store.id] || 1;
-          const visibleProducts = store.products?.slice(0, currentPage * PRODUCTS_PER_PAGE) || [];
-          
-          return (
-            <Paper key={store.id} elevation={0} className={styles.storeCard}>
-              {/* <Box className={styles.storeHeader}>
-                <Avatar 
-                  src={store.logoUrl || undefined} 
-                  className={styles.storeAvatar}
-                  alt={store.name}
-                >
-                  {store.name.charAt(0)}
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" component="h1" className={styles.storeName}>
-                    {store.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {store.products?.length || 0} товаров
-                  </Typography>
-                </Box>
-              </Box>
-              
-              <Typography variant="body1" className={styles.storeDescription}>
-                {store.description}
-              </Typography>
-              
-              <Divider className={styles.divider} /> */}
-              
-              <Box className={styles.storeDetails}>
-                <Box className={styles.detailItem}>
-                  <LocalShippingIcon color="primary" />
-                  <Typography variant="body2">
-                    {store.isDeliveryFree ? 'Бесплатная доставка' : 
-                     `Доставка: ${store.deliveryCost} ₽`}
-                  </Typography>
-                  {store.deliveryFreeFromLimit && (
-                    <Chip 
-                      label={`Бесплатно от ${store.deliveryFreeFromLimit} ₽`} 
-                      size="small" 
-                      className={styles.freeDeliveryChip}
-                    />
-                  )}
-                </Box>
-                
-                <Box className={styles.detailItem}>
-                  <ScheduleIcon color="primary" />
-                  <Typography variant="body2">
-                    Заказ за {store.minOrderBeforeDeliveryHours} ч до доставки
-                  </Typography>
-                </Box>
-              </Box>
-
+        <ManageAddressForm/>
+        {store && (
+          <Paper elevation={0} className={styles.storeCard}>
+            <Box className={styles.storeHeader}>
+              <Avatar 
+                src={store.imageUrl || undefined} 
+                className={styles.storeAvatar}
+                alt={store.name}
+              >
+                {store.name.charAt(0)}
+              </Avatar>
               <Box>
-                <Typography variant="h6" component="h2" className={styles.sectionTitle}>
-                  {/* Товары магазина */}
+                <Typography variant="h4" component="h1" className={styles.storeName}>
+                  {store.name}
                 </Typography>
-                
-                {!visibleProducts.length ? (
-                  <Box className={styles.emptyState}>
-                    <Typography variant="body1" className={styles.noProductsTitle}>
-                      {store.products?.length ? 
-                        "Товары закончились, скоро обновим ассортимент :)" : 
-                        "В этом магазине пока нет товаров"}
-                    </Typography>
-                  </Box>
-                ) : (
-                  <>
-                    <Box className={styles.grid}>
-                      {visibleProducts.map((product) => {
-                        return (
-                          <ProductCard
-                            key={product.id}
-                            product={product}
-                            isInBasket={selectedProducts.includes(product.id)}
-                            onAddItemBasket={() => handleAddProduct(product)}
-                            onRemoveBasketItem={() => handleRemoveProduct(product)}
-                          />
-                        );
-                      })}
-                    </Box>
-                    
-                    {store.products && visibleProducts.length < store.products.length && (
-                      <Box ref={ref} className={styles.loadMoreContainer}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    )}
-                  </>
+                <Typography variant="body2" color="text.secondary" className={styles.storeDescription}>
+                  {store.description}
+                </Typography>
+              </Box>
+            </Box>
+            
+            <Divider className={styles.divider} />
+            
+            <Box className={styles.storeDetails}>
+              <Box className={styles.detailItem}>
+                <LocalShippingIcon color="primary" />
+                <Typography variant="body2">
+                  {store.isDeliveryFree ? 'Бесплатная доставка' : 
+                   `Доставка: ${store.deliveryCost} ₽`}
+                </Typography>
+                {store.deliveryFreeFromLimit > 0 && (
+                  <Chip 
+                    label={`Бесплатно от ${store.deliveryFreeFromLimit} ₽`} 
+                    size="small" 
+                    className={styles.freeDeliveryChip}
+                  />
                 )}
               </Box>
-            </Paper>
-          );
-        })}
+              
+              <Box className={styles.detailItem}>
+                <ScheduleIcon color="primary" />
+                <Typography variant="body2">
+                  Заказ за {store.minOrderBeforeDeliveryHours} ч до доставки
+                </Typography>
+              </Box>
+            </Box>
+
+            <Typography variant="h5" component="h2" className={styles.sectionTitle}>
+              Товары магазина
+            </Typography>
+            
+            {!visibleProducts.length ? (
+              <Box className={styles.emptyState}>
+                <Typography variant="body1" className={styles.noProductsTitle}>
+                  {store.products?.length ? 
+                    "Товары закончились, скоро обновим ассортимент :)" : 
+                    "В этом магазине пока нет товаров"}
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <Box className={styles.grid}>
+                  {visibleProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      isInBasket={selectedProducts.includes(product.id)}
+                      onAddItemBasket={() => handleAddProduct(product)}
+                      onRemoveBasketItem={() => handleRemoveProduct(product)}
+                    />
+                  ))}
+                </Box>
+                
+                {store.products && visibleProducts.length < store.products.length && (
+                  <Box ref={ref} className={styles.loadMoreContainer}>
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
+              </>
+            )}
+          </Paper>
+        )}
       </Box>
     </Layout>
   );

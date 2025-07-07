@@ -31,8 +31,8 @@ export class PickupPointsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(): Promise<PickupPointEntity[]> {
-    return this.pickupPointService.findAll();
+  async findAll(@User() user: AuthJwtPayload): Promise<PickupPointEntity[]> {
+    return this.pickupPointService.findAll(user);
   }
 
   @UseGuards(JwtAuthGuard)

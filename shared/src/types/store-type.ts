@@ -1,8 +1,8 @@
-import { DeliveryStrategyEnum } from "../enums/delivery-strategy.enum";
 import { DeliveryAreaBase } from "./delivery-area-type";
 import { StoreDeliveryStrategies } from "./delivery-strategies-type";
 import { PickupPointType } from "./pickup-point-type";
 import { ProductType } from "./product-item";
+import { UploaderReturnType } from "./uploader-type";
 
 export interface StoreBaseType {
     id: number
@@ -12,7 +12,7 @@ export interface StoreBaseType {
     deliveryCost: number;
     deliveryFreeFromLimit: number
     telegramBotToken: string;
-    logoUrl: string;
+    imageUrl: string;
     isWeekLimited: boolean,
     timezone: string;
     minOrderBeforeDeliveryHours: number
@@ -20,5 +20,4 @@ export interface StoreBaseType {
     pickupPoints: PickupPointType[],
     deliveryAreas: DeliveryAreaBase[],
     deliveryStrategies: StoreDeliveryStrategies
-    // staff: 
 }

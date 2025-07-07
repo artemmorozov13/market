@@ -1,6 +1,6 @@
 import { FC, useState, ReactNode, MouseEvent } from "react";
 import { observer } from "mobx-react-lite";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { clsx } from "clsx";
 import {
   AppBar,
@@ -42,6 +42,7 @@ interface LayoutProps {
 }
 
 export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
+  const { storeId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { role } = userStore;
@@ -66,18 +67,11 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
     handleMenuClose();
   };
 
-  const handleShare = () => {
-    const shareUrl = new URL("https://t.me/share/url");
-    shareUrl.searchParams.set("url", "https://t.me/fricti_test_bot");
-    shareUrl.searchParams.set("title", "Доставка фруктов и овощей");
-    window.open(shareUrl.toString());
-  };
-
   const navigationItems = [
     {
-      path: RoutePath.products,
+      path: RoutePath.stores,
       icon: <Store />,
-      label: "Продукты"
+      label: "Магазины"
     },
     {
       path: RoutePath.activeOrders,

@@ -9,6 +9,7 @@ import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { InstallButton } from "@/shared/ui/InstallButton";
 import { LOCALSTORAGE_STOREID_KEY } from "@/shared/consts/applicationConsts";
 import { Roles } from "@core/enums/role-enum";
+import { SelectAddressPage } from "@/pages/SelectAddressPage";
 
 interface AuthProviderProps {
   children: ReactNode
@@ -18,7 +19,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [initData, setInitData] = useState<TelegramAuthData | null>(null)
   const { role } = userStore
 
-  const user = useUser({ initData })
+  const { user, isLoading } = useUser({ initData })
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -59,7 +60,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setInitData(authData);
   }
 
-  if (user.isLoading) {
+  if (isLoading) {
     return (
       <div className={styles.wrapper}>
         <CircularProgress/>
@@ -93,6 +94,12 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         </Box>
         {!window?.Telegram?.WebApp?.initData && <InstallButton/>}
       </Box>
+    )
+  }
+
+  if (!user?.selectedAddress) {
+    return (
+      <SelectAddressPage/>
     )
   }
 

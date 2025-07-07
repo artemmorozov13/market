@@ -4,14 +4,9 @@ import { ToastContainer } from "react-toastify";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import "./App.css";
 import "normalize.css";
-import { BrowserRouter, Route, Routes } from "react-router-dom"; // Правильный импорт
+import { BrowserRouter, } from "react-router-dom"; // Правильный импорт
 import AuthProvider from "@/app/providers/AuthProvider/ui/AuthProvider";
 import { yellowOrangeTheme } from "@/shared/themes/yellowTheme";
-import { ProductsPageLazy } from "@/pages/ProductsPage/ui/ProductsPageLazy";
-import { BasketPageLazy } from "@/pages/BasketPage/BasketPageLazy";
-import { OrderPageLazy } from "@/pages/OrderPage/ui/OrderPageLazy";
-import { RoutePath } from "@/shared/routes/routeConfig";
-import { HelpPage } from "@/pages/HelpPage";
 import { RouteProvider } from "../providers/RouteProvider";
 
 const queryClient = new QueryClient();

@@ -332,7 +332,7 @@ export class OrderService {
       );
       
       const deliveryCost = deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance && 
-                          subtotal < store.deliveryFreeFromLimit 
+                          subtotal < store?.deliveryFreeFromLimit 
           ? store.deliveryCost 
           : 0;
       
@@ -462,7 +462,7 @@ export class OrderService {
     const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
   
     // Обновляем заказ
-    order.totalAmount = totalAmount < user.store.deliveryFreeFromLimit ? totalAmount + user.store.deliveryCost : totalAmount;
+    order.totalAmount = totalAmount < order?.store?.deliveryFreeFromLimit ? totalAmount + user.store.deliveryCost : totalAmount;
     order.ordered_products = savedProducts;
   
     const savedOrder = await this.orderRepository.save(order);
@@ -480,8 +480,8 @@ export class OrderService {
       loadEagerRelations: false
     });
 
-    if (user.telegram_id) {
-      const userMessage = formatUpdatedOrderMessage(updatedOrder, updatedOrder.ordered_products, updatedOrder.deliveryArea, updatedOrder.deliveryTime);
+    if (user?.telegram_id) {
+      const userMessage = formatUpdatedOrderMessage(updatedOrder);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage

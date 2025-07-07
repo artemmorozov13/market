@@ -4,6 +4,7 @@ import { AxiosRequestConfig } from "axios";
 
 export interface FetchProductsDataOptions {
   enabled: boolean
+  storeId?: number
   take?: number;
   skip?: number;
 }
@@ -14,6 +15,7 @@ export const fetchProductsData = async (options: FetchProductsDataOptions) => {
         params: {
             skip: options?.skip,
             limit: options?.take,
+            storeId: options?.storeId,
             is_expired: false
         },
     }
@@ -26,15 +28,16 @@ export const fetchProductsData = async (options: FetchProductsDataOptions) => {
 };
 
 export const usePagedProductsList = (options: FetchProductsDataOptions) => {
-    const { enabled = true } = options;
+    const { enabled = true, storeId } = options;
   
     return useInfiniteQuery({
-      queryKey: ['productsList', 'paged', options.take],
+      queryKey: ['productsList', 'paged', options.take, options.storeId],
       queryFn: ({ pageParam = 0 }) =>
         fetchProductsData({
           skip: pageParam,
           take: options.take,
           enabled: options.enabled,
+          storeId: storeId
         }),
       initialPageParam: 0,
       getNextPageParam: (lastPage) => {

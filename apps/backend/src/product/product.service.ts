@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { PaginationDto } from './dto/pagination.dto';
 import { ProductResponseDto } from './dto/response-product.dto';
 import { ProductEntity } from '@core/entities/product.entity';
@@ -25,16 +25,19 @@ export class ProductService {
         userJwt: AuthJwtPayload, 
         options?: PaginationDto
     ): Promise<ProductResponseDto> {
-        const { limit = 10, skip = 0 } = options || {};
-
-        const user = await this.userResolver.resolveUser(userJwt);
+        const { limit = 10, skip = 0, storeId = userJwt.storeId } = options || {};
         
-        const where = {
-            store: user.store,
+        // Создаем базовые условия выборки
+        const where: FindOptionsWhere<ProductEntity> = {
             status: In([
                 ProductStatusEnum.Accepted,
                 ProductStatusEnum.Active,
             ])
+        };
+
+        // Если передан storeId, добавляем условие фильтрации по магазину
+        if (storeId) {
+            where.store = { id: storeId };
         }
 
         const [items, total] = await this.productRepository.findAndCount({

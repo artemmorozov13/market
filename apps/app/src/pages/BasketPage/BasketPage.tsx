@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { 
   Container, 
   Typography, 
@@ -8,7 +8,8 @@ import {
   Divider,
   IconButton,
   Tabs,
-  Tab
+  Tab,
+  Paper
 } from "@mui/material";
 import { Add, Remove, Delete } from "@mui/icons-material";
 import styles from "./BasketPage.module.scss";
@@ -33,6 +34,13 @@ const BasketPage: FC = observer(() => {
   const groupedByStore = groupBasketData(basket);
   const storeGroups = groupedByStore ? Object.values(groupedByStore) : [];
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
+
+  // Сброс индекса при изменении количества магазинов
+  useEffect(() => {
+    if (storeGroups.length > 0 && selectedStoreIndex >= storeGroups.length) {
+      setSelectedStoreIndex(0);
+    }
+  }, [storeGroups.length, selectedStoreIndex]);
 
   const totalItems = basket?.reduce((acc, item) => acc + item.quantity, 0) || 0;
   const totalPrice = basket?.reduce((acc, item) => {
@@ -89,7 +97,7 @@ const BasketPage: FC = observer(() => {
           <Button
             variant="contained"
             className={styles.emptyButton}
-            onClick={() => navigate(RoutePath.products)}
+            onClick={() => navigate(RoutePath.stores)}
           >
             Перейти в каталог
           </Button>
@@ -107,173 +115,181 @@ const BasketPage: FC = observer(() => {
           <Typography variant="h4" className={styles.title}>
             Корзина
           </Typography>
-          <Button
-            variant="contained"
-            className={styles.checkoutButton}
-            onClick={() => navigate(`${RoutePath.order}?storeId=${selectedStoreGroup.store.id}`)}
-          >
-            Оформить заказ
-          </Button>
+          {selectedStoreGroup && (
+            <Button
+              variant="contained"
+              className={styles.checkoutButton}
+              onClick={() => navigate(`${RoutePath.order}?storeId=${selectedStoreGroup.store.id}`)}
+            >
+              Оформить заказ
+            </Button>
+          )}
         </Box>
 
         {storeGroups.length > 1 && (
-          <Tabs
-            value={selectedStoreIndex}
-            onChange={(_, newValue) => {
-              setSelectedStoreIndex(newValue)
-              setSelectedStore(storeGroups[newValue].store)
-            }}
-            variant="scrollable"
-            scrollButtons="auto"
-            className={styles.storeTabs}
-          >
-            {storeGroups.map((storeGroup, index) => (
-              <Tab
-                key={storeGroup.store.id}
-                label={`${storeGroup.store.name} (${storeGroup.items.reduce((acc, item) => acc + item.quantity, 0)})`}
-                className={styles.storeTab}
-              />
-            ))}
-          </Tabs>
+          <Paper>
+            <Tabs
+              value={selectedStoreIndex}
+              onChange={(_, newValue) => {
+                setSelectedStoreIndex(newValue)
+                setSelectedStore(storeGroups[newValue].store)
+              }}
+              variant="scrollable"
+              scrollButtons="auto"
+              className={styles.storeTabs}
+            >
+              {storeGroups.map((storeGroup, index) => (
+                <Tab
+                  key={storeGroup.store.id}
+                  label={`${storeGroup.store.name} (${storeGroup.items.reduce((acc, item) => acc + item.quantity, 0)})`}
+                  className={styles.storeTab}
+                />
+              ))}
+            </Tabs>
+          </Paper>
         )}
 
-        <Box className={styles.storeGroup}>
-          <Typography variant="h6" className={styles.storeTitle}>
-            {selectedStoreGroup.store.name}
-          </Typography>
+        {selectedStoreGroup && (
+          <>
+            <Box className={styles.storeGroup}>
+              <Typography variant="h6" className={styles.storeTitle}>
+                {selectedStoreGroup.store.name}
+              </Typography>
 
-          <Box className={styles.itemsContainer}>
-            {selectedStoreGroup.items.map((item) => {
-              const total = item.product.price * item.quantity;
+              <Box className={styles.itemsContainer}>
+                {selectedStoreGroup.items.map((item) => {
+                  const total = item.product.price * item.quantity;
 
-              return (
-                <Box key={`${item.productId}-${item.id}`} className={styles.item}>
-                  <Box className={styles.itemImage}>
-                    <LazyLoadImage 
-                      src={item.product.image} 
-                      alt={item.product.name} 
-                      className={styles.image} 
-                    />
-                  </Box>
-                  <Box className={styles.itemInfo}>
-                    <Typography className={styles.itemName}>
-                      {item.product.name}
-                    </Typography>
-                    <Typography className={styles.itemDescription}>
-                      {item.product.description}
-                    </Typography>
-                    <Box className={styles.priceContainer}>
-                      <Typography className={styles.price}>
-                        {item.product.price} ₽
+                  return (
+                    <Box key={`${item.productId}-${item.id}`} className={styles.item}>
+                      <Box className={styles.itemImage}>
+                        <LazyLoadImage 
+                          src={item.product.image} 
+                          alt={item.product.name} 
+                          className={styles.image} 
+                        />
+                      </Box>
+                      <Box className={styles.itemInfo}>
+                        <Typography className={styles.itemName}>
+                          {item.product.name}
+                        </Typography>
+                        <Typography className={styles.itemDescription}>
+                          {item.product.description}
+                        </Typography>
+                        <Box className={styles.priceContainer}>
+                          <Typography className={styles.price}>
+                            {item.product.price} ₽
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box className={styles.quantityControls}>
+                        <IconButton 
+                          size="small" 
+                          className={styles.quantityButton}
+                          onClick={() => decrementQuantity(item.productId)}
+                        >
+                          <Remove fontSize="small" />
+                        </IconButton>
+                        <Typography>{item.quantity}</Typography>
+                        <IconButton 
+                          size="small" 
+                          className={styles.quantityButton}
+                          onClick={() => incrementQuantity(item.productId)}
+                        >
+                          <Add fontSize="small" />
+                        </IconButton>
+                      </Box>
+                      <Typography className={styles.itemTotal}>
+                        {total.toFixed(2)} ₽
                       </Typography>
+                      <IconButton 
+                        onClick={() => clearBasketProduct(item.productId)}
+                        color="error"
+                        size="small"
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
                     </Box>
-                  </Box>
-                  <Box className={styles.quantityControls}>
-                    <IconButton 
-                      size="small" 
-                      className={styles.quantityButton}
-                      onClick={() => decrementQuantity(item.productId)}
-                    >
-                      <Remove fontSize="small" />
-                    </IconButton>
-                    <Typography>{item.quantity}</Typography>
-                    <IconButton 
-                      size="small" 
-                      className={styles.quantityButton}
-                      onClick={() => incrementQuantity(item.productId)}
-                    >
-                      <Add fontSize="small" />
-                    </IconButton>
-                  </Box>
-                  <Typography className={styles.itemTotal}>
-                    {total.toFixed(2)} ₽
+                  );
+                })}
+              </Box>
+
+              <Box className={styles.storeSummary}>
+                <Box className={styles.summaryRow}>
+                  <Typography>Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)})</Typography>
+                  <Typography>
+                    {selectedStoreGroup.items.reduce((acc, item) => {
+                      const price = item.product.price
+                      return acc + (price * item.quantity);
+                    }, 0).toFixed(2)} ₽
                   </Typography>
-                  <IconButton 
-                    onClick={() => clearBasketProduct(item.productId)}
-                    color="error"
-                    size="small"
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
                 </Box>
-              );
-            })}
-          </Box>
-
-          <Box className={styles.storeSummary}>
-            <Box className={styles.summaryRow}>
-              <Typography>Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)})</Typography>
-              <Typography>
+                <Box className={styles.summaryRow}>
+                  <Typography>Доставка</Typography>
+                  <Typography>
+                    {selectedStoreGroup.items.reduce((acc, item) => {
+                      const price = item.product.price
+                      return acc + (price * item.quantity);
+                    }, 0) >= Number(selectedStoreGroup.store.deliveryFreeFromLimit)
+                      ? "Бесплатно"
+                      : `${selectedStoreGroup.store.deliveryCost} ₽`}
+                  </Typography>
+                </Box>
                 {selectedStoreGroup.items.reduce((acc, item) => {
                   const price = item.product.price
                   return acc + (price * item.quantity);
-                }, 0).toFixed(2)} ₽
-              </Typography>
+                }, 0) < Number(selectedStoreGroup.store.deliveryFreeFromLimit) && (
+                  <Typography className={styles.storeDeliveryNote}>
+                    Бесплатная доставка от {selectedStoreGroup.store.deliveryFreeFromLimit} ₽
+                  </Typography>
+                )}
+              </Box>
             </Box>
-            <Box className={styles.summaryRow}>
-              <Typography>Доставка</Typography>
-              <Typography>
-                {selectedStoreGroup.items.reduce((acc, item) => {
-                  const price = item.product.price
-                  return acc + (price * item.quantity);
-                }, 0) >= Number(selectedStoreGroup.store.deliveryFreeFromLimit)
-                  ? "Бесплатно"
-                  : `${selectedStoreGroup.store.deliveryCost} ₽`}
+
+            <Box className={styles.summary}>
+              <Typography variant="h6" className={styles.summaryTitle}>
+                Итог заказа
               </Typography>
+
+              <Box className={styles.summaryRow}>
+                <Typography>Товары ({totalItems})</Typography>
+                <Typography>{totalPrice.toFixed(2)} ₽</Typography>
+              </Box>
+
+              {totalDiscount > 0 && (
+                <Box className={styles.summaryRow}>
+                  <Typography>Скидка</Typography>
+                  <Typography className={styles.discount}>
+                    -{totalDiscount.toFixed(2)} ₽
+                  </Typography>
+                </Box>
+              )}
+
+              <Box className={styles.summaryRow}>
+                <Typography>Доставка</Typography>
+                <Typography>{totalDelivery.toFixed(2)} ₽</Typography>
+              </Box>
+
+              <Divider className={styles.divider} />
+
+              <Box className={styles.summaryRow}>
+                <Typography className={styles.grandTotal}>Итого к оплате</Typography>
+                <Typography className={styles.grandTotal}>
+                  {(totalPrice - totalDiscount + totalDelivery).toFixed(2)} ₽
+                </Typography>
+              </Box>
+
+              <Button
+                variant="contained"
+                className={styles.checkoutButtonMobile}
+                onClick={() => navigate(`${RoutePath.order}?storeId=${selectedStoreGroup.store.id}`)}
+                fullWidth
+              >
+                Оформить заказ
+              </Button>
             </Box>
-            {selectedStoreGroup.items.reduce((acc, item) => {
-              const price = item.product.price
-              return acc + (price * item.quantity);
-            }, 0) < Number(selectedStoreGroup.store.deliveryFreeFromLimit) && (
-              <Typography className={styles.storeDeliveryNote}>
-                Бесплатная доставка от {selectedStoreGroup.store.deliveryFreeFromLimit} ₽
-              </Typography>
-            )}
-          </Box>
-        </Box>
-
-        <Box className={styles.summary}>
-          <Typography variant="h6" className={styles.summaryTitle}>
-            Итог заказа
-          </Typography>
-
-          <Box className={styles.summaryRow}>
-            <Typography>Товары ({totalItems})</Typography>
-            <Typography>{totalPrice.toFixed(2)} ₽</Typography>
-          </Box>
-
-          {totalDiscount > 0 && (
-            <Box className={styles.summaryRow}>
-              <Typography>Скидка</Typography>
-              <Typography className={styles.discount}>
-                -{totalDiscount.toFixed(2)} ₽
-              </Typography>
-            </Box>
-          )}
-
-          <Box className={styles.summaryRow}>
-            <Typography>Доставка</Typography>
-            <Typography>{totalDelivery.toFixed(2)} ₽</Typography>
-          </Box>
-
-          <Divider className={styles.divider} />
-
-          <Box className={styles.summaryRow}>
-            <Typography className={styles.grandTotal}>Итого к оплате</Typography>
-            <Typography className={styles.grandTotal}>
-              {(totalPrice - totalDiscount + totalDelivery).toFixed(2)} ₽
-            </Typography>
-          </Box>
-
-          <Button
-            variant="contained"
-            className={styles.checkoutButtonMobile}
-            onClick={() => navigate(`${RoutePath.order}?storeId=${selectedStoreGroup.store.id}`)}
-            fullWidth
-          >
-            Оформить заказ
-          </Button>
-        </Box>
+          </>
+        )}
       </div>
     </Layout>
   );

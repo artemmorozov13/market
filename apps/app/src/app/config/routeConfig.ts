@@ -7,6 +7,7 @@ import { HelpPage } from "@/pages/HelpPage";
 import { OrderPage } from "@/pages/OrderPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ProductsPage } from "@/pages/ProductsPage";
+import { StoreListPage } from "@/pages/StoreListPage";
 
 export interface AppRoutesWithProps {
     roles: Roles[],
@@ -16,6 +17,18 @@ export interface AppRoutesWithProps {
 }
 
 export const routeConfig: Record<AppRoutes, AppRoutesWithProps> = {
+    [AppRoutes.Stores]: {
+        path: RoutePath.stores,
+        element: StoreListPage,
+        authOnly: true,
+        roles: [Roles.User]
+    },
+    [AppRoutes.StoreById]: {
+        path: RoutePath.storeById,
+        element: ProductsPage,
+        authOnly: true,
+        roles: [Roles.User]
+    },
     [AppRoutes.ActiveOrders]: {
         path: RoutePath.activeOrders,
         element: ActiveOrderPage,
@@ -36,19 +49,13 @@ export const routeConfig: Record<AppRoutes, AppRoutesWithProps> = {
     },
     [AppRoutes.Home]: {
         path: RoutePath.home,
-        element: ProductsPage,
+        element: StoreListPage,
         authOnly: true,
         roles: [Roles.User]
     },
     [AppRoutes.Order]: {
         path: RoutePath.order,
         element: OrderPage,
-        authOnly: true,
-        roles: [Roles.User]
-    },
-    [AppRoutes.Products]: {
-        path: RoutePath.products,
-        element: ProductsPage,
         authOnly: true,
         roles: [Roles.User]
     },

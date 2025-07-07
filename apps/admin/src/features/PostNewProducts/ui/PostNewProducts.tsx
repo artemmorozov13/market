@@ -6,7 +6,7 @@ import { productSchema } from '../lib/productValidationSchema';
 import styles from './PostNewProducts.module.scss';
 import { ProductFormType } from '../types/postNewProductTypes';
 import { Uploader } from '@entities/Uploader/ui/Uploader';
-import { UploaderReturnType } from '@entities/Uploader';
+import { UploaderReturnType } from '@core/types/uploader-type';
 
 interface ProductFormProps {
   initialValues?: ProductFormType
@@ -122,7 +122,7 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
         />
         {errors.image && (
           <Typography color="error" variant="body2">
-            {errors.image.message}
+            {errors.image?.message}
           </Typography>
         )}
       </Box>
