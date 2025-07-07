@@ -65,13 +65,13 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   const isDeliveryFree = watch('isDeliveryFree');
 
   const handleCopyMiniAppUrl = () => {
-    navigator.clipboard.writeText(`https://t.me/fricti_test_bot/?startapp=shop_${storeData.id}`);
+    navigator.clipboard.writeText(`https://t.me/okacuki_bot/?startapp=shop_${storeData.id}`);
     setIsCopiedTelegram(true);
     setTimeout(() => setIsCopiedTelegram(false), 2000);
   };
 
   const handleCopyBrowserLink = () => {
-    navigator.clipboard.writeText(`https://fruvost.ru/app/?store=${storeData.id}`);
+    navigator.clipboard.writeText(`https://akacuki.ru/app/?store=${storeData.id}`);
     setIsCopiedBrowser(true);
     setTimeout(() => setIsCopiedBrowser(false), 2000);
   };
