@@ -7,7 +7,7 @@ export const updateStore = async (data: StoreEditFormType) => {
     try {
         const body = {
             ...data,
-            imageUrl: data.imageUrl
+            imageUrl: (data.imageUrl as any)?.url
         }
         const response = await API.patch('/store/update', body)
         toast('Данные обновленны', { type: "success" })
