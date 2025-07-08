@@ -6,8 +6,8 @@ export
 
 prod:
 	@echo "Building and starting production environment..."
-	docker-compose -f docker-compose/docker-compose.prod.yml -f docker-compose/docker-compose.prod.yml build --no-cache --pull
-	docker-compose -f docker-compose/docker-compose.prod.yml -f docker-compose/docker-compose.prod.yml up -d --remove-orphans
+	docker-compose -f docker-compose/docker-compose.prod.yml build --no-cache --pull
+	docker-compose -f docker-compose/docker-compose.prod.yml up -d
 	@echo "Production environment is ready!"
 
 dev:
@@ -28,7 +28,10 @@ logs:
 
 clean:
 	@echo "Cleaning up..."
-	docker-compose down -v --rmi all --remove-orphans
+	docker-compose -f docker-compose/docker-compose.prod.yml down --rmi all --volumes --remove-orphans
+	docker system prune -a --volumes --force
+	sudo rm -rf /var/lib/docker/overlay2/*
+	sudo systemctl restart docker
 
 # Migration commands to run inside container
 migration-run:

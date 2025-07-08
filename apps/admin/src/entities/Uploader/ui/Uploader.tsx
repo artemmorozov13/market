@@ -19,16 +19,55 @@ export const Uploader: FC<UploaderProps> = (props) => {
     const [fileInfo, setFileInfo] = useState<{size: number; type: string} | null>(null);
 
     const compressImage = async (file: File): Promise<File> => {
+        // Поддерживаемые форматы
+        const supportedFormats = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/heic',
+            'image/heif',
+            'image/gif',
+            'image/bmp',
+            'image/tiff'
+        ];
+
+        // Проверка формата
+        if (!supportedFormats.includes(file.type.toLowerCase())) {
+            throw new Error(`Неподдерживаемый формат изображения: ${file.type}`);
+        }
+
         const options = {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1024,
+            maxSizeMB: 10,
+            maxWidthOrHeight: 2048,
             useWebWorker: true,
-            fileType: 'image/jpeg',
+            // Сохраняем исходный тип файла, кроме HEIC/HEIF - конвертируем в JPEG
+            fileType: file.type.match(/heic|heif/i) ? 'image/jpeg' : file.type,
+            initialQuality: 0.8,
+            preserveExif: true, // Сохраняем метаданные
+            onProgress: (progress: number) => {
+                console.log(`Прогресс сжатия: ${progress}%`);
+            }
         };
 
         try {
-            return await imageCompression(file, options);
+            // Для HEIC/HEIF может потребоваться дополнительная обработка
+            if (file.type.match(/heic|heif/i)) {
+                console.log('Конвертация HEIC/HEIF в JPEG...');
+            }
+            
+            const compressedFile = await imageCompression(file, options);
+            
+            // Переименовываем файл, если изменился его тип
+            const newFileName = file.type.match(/heic|heif/i) 
+                ? file.name.replace(/\.[^/.]+$/, '.jpg')
+                : file.name;
+                
+            return new File([compressedFile], newFileName, {
+                type: options.fileType,
+                lastModified: Date.now()
+            });
         } catch (error) {
+            console.error('Ошибка сжатия изображения:', error);
             throw new Error('Не удалось сжать изображение');
         }
     };
