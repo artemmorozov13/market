@@ -7,6 +7,7 @@ import { AddNewAddressModal } from "../../AddNewAddressModal";
 import { SelectOptionType } from "@/shared/ui/Select/types";
 import { useUser } from "@/entities/User";
 import { AddressType } from "@core/types/address-type";
+import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 
 interface ManageAddressFormProps {
     onAddressChange?: (address: AddressType) => void
@@ -32,22 +33,32 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
 
     if (!user?.addresses?.length) {
         return (
-            <Paper>
+            <div className={styles.paper}>
                 <AddNewAddressModal
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
                     onAddressChange={onAddressChange}
                 />
-                <Box className={styles.emptyAddressSection}>
+                <div className={styles.emptyContainer}>
+                    <AddLocationAltIcon className={styles.icon} />
+                    <Typography variant="body1" className={styles.title}>
+                        Адрес не указан
+                    </Typography>
+                    <Typography variant="body2" className={styles.subtitle}>
+                        Работаем по СПб и Ленобласти
+                    </Typography>
                     <Button
                         variant="contained"
+                        color="primary"
                         onClick={() => setIsOpen(true)}
+                        className={styles.button}
+                        startIcon={<AddLocationAltIcon fontSize="small" />}
                         fullWidth
                     >
                         Добавить адрес
                     </Button>
-                </Box>
-            </Paper>
+                </div>
+            </div>
         );
     }
 

@@ -7,7 +7,6 @@ const SelectAddressPage: FC = () => {
     return (
         <Container className={styles.root}>
             <div className={styles.wrapper}>
-                <Typography className={styles.title}>Укажите адрес</Typography>
                 <ManageAddressForm/>
             </div>
         </Container>
