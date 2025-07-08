@@ -7,8 +7,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ../nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ../certificates:/etc/nginx/certificates
+      - /root/market/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /root/market/certificates:/etc/nginx/certificates
     depends_on:
       - backend
       - admin
