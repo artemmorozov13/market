@@ -10,7 +10,7 @@ import { UploaderReturnType } from '@core/types/uploader-type';
 
 interface UploaderProps {
     value: string | null;
-    onChange?: (file: string) => void;
+    onChange?: (file: UploaderReturnType) => void;
     allowedFileTypes?: string[];
     maxFileSizeMB?: number;
 }
@@ -149,7 +149,7 @@ export const Uploader: FC<UploaderProps> = (props) => {
 
             // Обновляем URL после загрузки на сервер
             setFileInfo(prev => prev ? { ...prev, url: uploadResponse.url } : null);
-            onChange?.(uploadResponse.url);
+            onChange?.(uploadResponse);
         } catch (err) {
             console.error('Upload error:', err);
             setError(err instanceof Error ? err.message : 'Ошибка при загрузке файла');
