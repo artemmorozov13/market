@@ -1,7 +1,6 @@
 import { ProductStatusEnum } from "../enums/product-status-enum";
 import { UnitOfMeasuresEnum } from "../enums/units-of-measures";
 import { StoreBaseType } from "./store-type";
-import { UploaderReturnType } from "./uploader-type";
 
 export interface ProductType {
   id: number;

@@ -2,21 +2,18 @@ import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 export const adaptOrderFormToDto = (formData: OrderFormInputs) => {
-    console.log(formData)
   // Базовые поля для всех заказов
   const baseDto = {
     phone: formData.phone,
     comment: formData.comment || '',
     storeId: formData.storeId,
-    deliveryMethod: formData.deliveryMethod as 'delivery' | 'pickup',
-    deliveryStrategy: formData.deliveryMethod === 'delivery' 
-      ? DeliveryStrategyEnum.DeliveryToEntrance 
-      : DeliveryStrategyEnum.PickupByYourself,
+    deliveryMethod: formData.deliveryMethod,
+    deliveryStrategy: formData.deliveryMethod,
     deliveryDate: formData.deliveryDate || new Date().toISOString(),
   };
 
   // Для заказов с доставкой
-  if (formData.deliveryMethod === 'delivery') {
+  if (formData.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance) {
     if (!formData.address || !formData.address.fullAddress) {
       throw new Error('Для доставки необходимо указать полный адрес');
     }

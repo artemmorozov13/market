@@ -26,7 +26,8 @@ import {
   Share,
   Delete,
   Menu as MenuIcon,
-  ShoppingBasket
+  ShoppingBasket,
+  AccountCircle
 } from "@mui/icons-material";
 
 import { RoutePath } from "@/shared/routes/routeConfig";
@@ -42,7 +43,6 @@ interface LayoutProps {
 }
 
 export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
-  const { storeId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { role } = userStore;
@@ -91,49 +91,17 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
       path: RoutePath.help,
       icon: <Help />,
       label: "Поддержка"
+    },
+    {
+      path: RoutePath.profile,  // Предполагается, что RoutePath.profile уже определен
+      icon: <AccountCircle />,  // Импортируйте из MUI: import { AccountCircle } from '@mui/icons-material'
+      label: "Профиль"
     }
   ];
 
   return (
     <div className={clsx(styles.root, className)}>
       {window?.Telegram?.WebApp?.initData && <InstallButton />}
-      
-      {/* <Paper 
-        component="nav"
-        elevation={1}
-        square
-        className={styles.stickyHeader}
-      >
-        <Toolbar className={styles.toolbar}>
-          <div className={styles.actions}>
-            {totalProducts > 0 && (
-              <Typography variant="body1" className={styles.totalPrice}>
-                {totalPrice} ₽
-              </Typography>
-            )}
-            
-            <Badge 
-              badgeContent={totalProducts > 0 ? totalProducts : null} 
-              className={styles.badge}
-              color="primary"
-            >
-              <Button
-                variant="contained"
-                className={styles.cartButton}
-                startIcon={<ShoppingCart />}
-                onClick={() => navigate(RoutePath.basket)}
-                disabled={totalProducts === 0}
-              >
-                Корзина
-              </Button>
-            </Badge>
-
-            <IconButton className={styles.shareButton} onClick={handleShare}>
-              <Share />
-            </IconButton>
-          </div>
-        </Toolbar>
-      </Paper> */}
 
       <main className={styles.content}>
         {children}

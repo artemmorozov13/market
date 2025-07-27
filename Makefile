@@ -33,29 +33,33 @@ clean:
 	sudo rm -rf /var/lib/docker/overlay2/*
 	sudo systemctl restart docker
 
-# Migration commands to run inside container
+# Migration commands
 migration-run:
 	@echo "Running migrations..."
-	docker-compose exec backend npm run migration:run
+	docker-compose exec backend sh -c "cd /app && npm run migration:run"
 
 migration-generate:
 ifndef name
 	$(error Please specify migration name with make migration-generate name=YourMigrationName)
 endif
 	@echo "Generating migration '$(name)'..."
-	docker-compose exec backend npm run migration:generate --name=$(name)
+	docker-compose exec backend sh -c "cd /app && npm run migration:generate --name=$(name)"
 
 migration-create:
 ifndef name
 	$(error Please specify migration name with make migration-create name=YourMigrationName)
 endif
-	@echo "Creating new migration '$(name)'..."
-	docker-compose exec backend npm run migration:create --name=$(name)
+	@echo "Creating empty migration '$(name)'..."
+	docker-compose exec backend sh -c "cd /app && npm run migration:create --name=$(name)"
 
 migration-revert:
 	@echo "Reverting last migration..."
-	docker-compose exec backend npm run migration:revert
+	docker-compose exec backend sh -c "cd /app && npm run migration:revert"
 
 migration-show:
-	@echo "Showing all migrations..."
-	docker-compose exec backend npm run migration:show
+	@echo "Showing migrations status..."
+	docker-compose exec backend sh -c "cd /app && npm run migration:show"
+
+seed:
+	@echo "Running seeders through Docker..."
+	docker-compose -f docker-compose/docker-compose.dev.yml -p market_place exec backend sh -c "cd /app && npm run seed"

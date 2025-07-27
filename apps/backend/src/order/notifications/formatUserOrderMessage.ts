@@ -1,10 +1,6 @@
-import { DeliveryTime } from "@core/entities/delivery-time.entity";
-import { OrderEntity } from "@core/entities/order.entity";
-import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
-import { DeliveryArea } from "@core/entities/delivery-area.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
-import { PickupPointEntity } from "@core/entities/pickup-point.entity";
+import { DeliveryArea, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity } from "@core/entities";
 
 const textByStatus: Record<OrderStatusEnum, string> = {
     waitForPay: "Создан",

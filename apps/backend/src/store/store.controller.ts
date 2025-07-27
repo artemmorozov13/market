@@ -15,9 +15,9 @@ export class StoreController {
         private readonly storeService: StoreService
     ) {}
     
-    @AllowRoles(Roles.User, Roles.SuperAdmin)
-    @UseGuards(RolesGuard)
-    @UseGuards(JwtAuthGuard)
+    // @AllowRoles(Roles.User, Roles.SuperAdmin)
+    // @UseGuards(RolesGuard)
+    // @UseGuards(JwtAuthGuard)
     @Get()
     getStoreDataList(
         @User() user: AuthJwtPayload,
@@ -28,9 +28,9 @@ export class StoreController {
     }
 
 
-    @AllowRoles(Roles.User, Roles.Admin, Roles.SuperAdmin)
-    @UseGuards(RolesGuard)
-    @UseGuards(JwtAuthGuard)
+    // @AllowRoles(Roles.User, Roles.Admin, Roles.SuperAdmin)
+    // @UseGuards(RolesGuard)
+    // @UseGuards(JwtAuthGuard)
     @Get(':id')
     getStoreData(@Param('id') id: string) {
         return this.storeService.getStoreDataById(Number(id))

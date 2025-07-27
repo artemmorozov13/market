@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CreateUserBodyDto } from './dto/create-user.dto';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
 import { TelegramLoginDto } from './dto/telegram-login.dto';
@@ -58,8 +58,9 @@ export class UsersController {
 
     @Post('login')
     loginWithTelegram(
+        @Headers('Authorization') authorization: string,
         @Body() body: TelegramLoginDto
     ) {
-        return this.usersService.loginWithTelegram(body.initData, body.storeId);
+        return this.usersService.loginWithTelegram(body.initData, body.storeId, authorization);
     }
 }

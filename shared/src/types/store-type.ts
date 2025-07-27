@@ -2,7 +2,6 @@ import { DeliveryAreaBase } from "./delivery-area-type";
 import { StoreDeliveryStrategies } from "./delivery-strategies-type";
 import { PickupPointType } from "./pickup-point-type";
 import { ProductType } from "./product-item";
-import { UploaderReturnType } from "./uploader-type";
 
 export interface StoreBaseType {
     id: number

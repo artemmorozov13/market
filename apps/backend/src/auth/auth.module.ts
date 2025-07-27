@@ -11,10 +11,9 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import refreshJwtConfig from './config/refresh-jwt.config';
 import { RefreshJwtStrategy } from './strategies/refresh.strategy';
-import { UsersEntity } from '@core/entities/users.entity';
-import { BasketEntity } from '@core/entities/basket.entity';
 import { StoreUserModule } from '@app/store-user/store-user.module';
 import { StoreModule } from '@app/store/store.module';
+import { BasketEntity, UsersEntity } from '@core/entities';
 
 @Module({
   imports: [

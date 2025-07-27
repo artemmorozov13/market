@@ -4,8 +4,8 @@ import { AddressesController } from './addresses.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersEntity } from '@core/entities/users.entity';
-import { AddressesEntity } from '@core/entities/addresses.entity';
 import { UsersModule } from '@app/users/users.module';
+import { AddressesEntity } from '@core/entities';
 
 @Module({
   imports: [

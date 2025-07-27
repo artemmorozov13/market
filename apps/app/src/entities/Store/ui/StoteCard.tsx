@@ -42,12 +42,12 @@ export const StoreCard: FC<StoreCardProps> = ({ store }) => {
                                     {store.isDeliveryFree ? (
                                         <span className={styles.freeDelivery}>Бесплатно</span>
                                     ) : (
-                                        `${store.deliveryCost}₽`
+                                        `${store.deliveryCost.toFixed()}₽`
                                     )}
                                 </Typography>
                                 {!store.isDeliveryFree && store.deliveryFreeFromLimit > 0 && (
                                     <Typography variant="caption" className={styles.freeFrom}>
-                                        Бесплатно от {store.deliveryFreeFromLimit}&nbsp;₽
+                                        Бесплатно от {store.deliveryFreeFromLimit.toFixed()}&nbsp;₽
                                     </Typography>
                                 )}
                             </Box>

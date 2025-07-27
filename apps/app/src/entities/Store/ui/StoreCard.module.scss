@@ -13,6 +13,9 @@
 
 .link {
     text-decoration: none;
+    display: block;
+    max-width: 400px;
+    width: 100%;
 }
 
 .actionArea {
@@ -28,6 +31,7 @@
 }
 
 .content {
+    width: 100%;
     padding: 16px;
     flex-grow: 1;
     display: flex;

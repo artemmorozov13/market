@@ -38,7 +38,7 @@ services:
       - "8000:8000"
     volumes:
       - ../apps/backend:/app
-      - ../shared:/app/shared   
+      - ../shared/dist:/app/shared
       - /app/node_modules
     depends_on:
       - postgres
@@ -55,6 +55,7 @@ services:
     volumes:
       - ../apps/admin:/app
       - /app/node_modules
+      - ../shared/dist:/app/shared
     ports:
       - "3001:3001"
 
@@ -70,6 +71,7 @@ services:
     volumes:
       - ../apps/app:/app
       - /app/node_modules
+      - ../shared/dist:/app/shared
     ports:
       - "3002:3002"
     

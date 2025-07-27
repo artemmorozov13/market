@@ -17,31 +17,31 @@ export class CreateOrderDto {
   @IsNumber()
   storeId: number;
 
-  @IsEnum(['delivery', 'pickup'])
-  deliveryMethod: 'delivery' | 'pickup';
+  @IsEnum([DeliveryStrategyEnum.DeliveryToEntrance, DeliveryStrategyEnum.PickupByYourself])
+  deliveryMethod: DeliveryStrategyEnum.DeliveryToEntrance | DeliveryStrategyEnum.PickupByYourself;
 
   @IsEnum(DeliveryStrategyEnum)
   deliveryStrategy: DeliveryStrategyEnum;
 
   // Поля для доставки
-  @ValidateIf(o => o.deliveryMethod === 'delivery')
+  @ValidateIf(o => o.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance)
   @IsNumber()
   @IsOptional() // Сделаем необязательным для адаптации null из формы
   deliveryAreaId?: number;
 
-  @ValidateIf(o => o.deliveryMethod === 'delivery')
+  @ValidateIf(o => o.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance)
   @IsNumber()
   @IsOptional()
   deliveryTimeId?: number;
 
-  @ValidateIf(o => o.deliveryMethod === 'delivery')
+  @ValidateIf(o => o.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance)
   @IsObject()
   @IsNotEmptyObject(null, {
     message: 'Адрес доставки должен быть заполнен'
   })
   address: AddressType;
 
-  @ValidateIf(o => o.deliveryMethod === 'delivery')
+  @ValidateIf(o => o.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance)
   @IsString()
   @IsNotEmpty({
     message: 'ID адреса должен быть указан'
@@ -49,7 +49,7 @@ export class CreateOrderDto {
   addressId: string;
 
   // Поля для самовывоза
-  @ValidateIf(o => o.deliveryMethod === 'pickup')
+  @ValidateIf(o => o.deliveryMethod === DeliveryStrategyEnum.PickupByYourself)
   @IsNumber()
   @IsOptional()
   pickupPointId?: number;

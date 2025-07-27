@@ -1,11 +1,9 @@
 import { CreateWorkingHoursDto } from '@app/pickup-working-hours/dto/create-working-hours.dto';
-import { PickupPointEntity } from '@core/entities/pickup-point.entity';
-import { PickupWorkingHoursEntity } from '@core/entities/pickup-working-hours.entity';
-import { WeekdayEnum } from '@core/enums/weekday.enum';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateWorkingHoursDto } from './dto/update-working-hours.dto';
+import { PickupWorkingHoursEntity } from '@core/entities';
 
 @Injectable()
 export class PickupWorkingHoursService {

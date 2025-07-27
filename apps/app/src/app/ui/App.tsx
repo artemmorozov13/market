@@ -4,16 +4,16 @@ import { ToastContainer } from "react-toastify";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import "./App.css";
 import "normalize.css";
-import { BrowserRouter, } from "react-router-dom"; // Правильный импорт
+import { BrowserRouter, } from "react-router-dom";
 import AuthProvider from "@/app/providers/AuthProvider/ui/AuthProvider";
-import { yellowOrangeTheme } from "@/shared/themes/yellowTheme";
 import { RouteProvider } from "../providers/RouteProvider";
+import { marketplaceTheme } from "@/shared/themes/yellowTheme";
 
 const queryClient = new QueryClient();
 
 export const App: FC = () => {
   return (
-    <ThemeProvider theme={yellowOrangeTheme}>
+    <ThemeProvider theme={marketplaceTheme}>
       <BrowserRouter basename='/'>
         <QueryClientProvider client={queryClient}>
             <AuthProvider>

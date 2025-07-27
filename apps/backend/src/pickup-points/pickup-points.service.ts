@@ -1,6 +1,5 @@
 import { PickupWorkingHoursService } from '@app/pickup-working-hours/pickup-working-hours.service';
 import { StoreService } from '@app/store/store.service';
-import { PickupPointEntity } from '@core/entities/pickup-point.entity';
 import {
   Injectable,
   NotFoundException,
@@ -12,7 +11,7 @@ import { Repository } from 'typeorm';
 import { CreatePickupPointDto } from './dto/create-pickup-point.dto';
 import { UpdatePickupPointDto } from './dto/update-pickup-point.dto';
 import { AuthJwtPayload } from '@core/types/user-type';
-import { PickupWorkingHoursEntity } from '@core/entities/pickup-working-hours.entity';
+import { PickupPointEntity, PickupWorkingHoursEntity } from '@core/entities';
 
 @Injectable()
 export class PickupPointService {

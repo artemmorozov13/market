@@ -17,7 +17,7 @@ export class StoreEntity {
     name: string;
 
     @Column({ nullable: true })
-    description: string;
+    description: string | null;
 
     @Column({ type: "boolean" })
     isDeliveryFree: boolean
@@ -29,10 +29,10 @@ export class StoreEntity {
     deliveryFreeFromLimit: number
 
     @Column({ nullable: true })
-    telegramBotToken: string;
+    telegramBotToken: string | null;
 
     @Column({ nullable: true })
-    logoUrl: string;
+    logoUrl: string | null;
 
     @Column({ default: true })
     isWeekLimited: boolean
@@ -52,7 +52,7 @@ export class StoreEntity {
     timezone: string;
 
     @Column({ nullable: true, default: null })
-    imageUrl: string
+    imageUrl: string | null
 
     @OneToMany(() => UsersEntity, user => user.store)
     users: UsersEntity[];

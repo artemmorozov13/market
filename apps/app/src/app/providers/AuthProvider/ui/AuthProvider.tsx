@@ -1,15 +1,10 @@
 import { FC, ReactNode, useState, useEffect } from "react"
-import { CircularProgress, Box, Typography } from "@mui/material"
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { CircularProgress } from "@mui/material"
 import styles from "./AuthProvider.module.scss"
 import 'react-toastify/dist/ReactToastify.css'
-import clsx from "clsx"
 import { userStore, useUser } from "@/entities/User"
-import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
-import { InstallButton } from "@/shared/ui/InstallButton";
+import { TelegramAuthData } from '@telegram-auth/react';
 import { LOCALSTORAGE_STOREID_KEY } from "@/shared/consts/applicationConsts";
-import { Roles } from "@core/enums/role-enum";
-import { SelectAddressPage } from "@/pages/SelectAddressPage";
 
 interface AuthProviderProps {
   children: ReactNode
@@ -17,7 +12,6 @@ interface AuthProviderProps {
 
 const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [initData, setInitData] = useState<TelegramAuthData | null>(null)
-  const { role } = userStore
 
   const { user, isLoading } = useUser({ initData })
 
@@ -68,40 +62,40 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     )
   }
 
-  if (role === Roles.NotAuthed) {
-    return (
-      <Box className={styles.authContainer}>
-        <Box className={styles.authCard}>
-          <LockOutlinedIcon className={styles.authIcon} color="primary" />
-          <Typography variant="h5" className={styles.authTitle}>
-            Требуется авторизация
-          </Typography>
-          <Typography variant="body2" className={styles.authDescription}>
-            Для доступа к оформлению заказа войдите через Telegram
-          </Typography>
-          <Box className={clsx(styles.authButtonContainer, styles.telegramButtonWrapper)}>
-            <LoginButton
-              botUsername={'okacuki_bot'}
-              authCallbackUrl={'https://akacuki.ru/app'}
-              buttonSize="large"
-              cornerRadius={8}
-              showAvatar={true}
-              lang="ru"
-              onAuthCallback={handleTelegramAuth}
-              requestAccess={'write'}
-            />
-          </Box>
-        </Box>
-        {!window?.Telegram?.WebApp?.initData && <InstallButton/>}
-      </Box>
-    )
-  }
+  // if (role === Roles.NotAuthed) {
+  //   return (
+  //     <Box className={styles.authContainer}>
+  //       <Box className={styles.authCard}>
+  //         <LockOutlinedIcon className={styles.authIcon} color="primary" />
+  //         <Typography variant="h5" className={styles.authTitle}>
+  //           Требуется авторизация
+  //         </Typography>
+  //         <Typography variant="body2" className={styles.authDescription}>
+  //           Для доступа к оформлению заказа войдите через Telegram
+  //         </Typography>
+  //         <Box className={clsx(styles.authButtonContainer, styles.telegramButtonWrapper)}>
+            // <LoginButton
+            //   botUsername={'okacuki_bot'}
+            //   authCallbackUrl={'https://akacuki.ru/app'}
+            //   buttonSize="large"
+            //   cornerRadius={8}
+            //   showAvatar={true}
+            //   lang="ru"
+            //   onAuthCallback={handleTelegramAuth}
+            //   requestAccess={'write'}
+            // />
+  //         </Box>
+  //       </Box>
+  //       {!window?.Telegram?.WebApp?.initData && <InstallButton/>}
+  //     </Box>
+  //   )
+  // }
 
-  if (!user?.selectedAddress) {
-    return (
-      <SelectAddressPage/>
-    )
-  }
+  // if (!user?.selectedAddress) {
+  //   return (
+  //     <SelectAddressPage/>
+  //   )
+  // }
 
   return children
 }

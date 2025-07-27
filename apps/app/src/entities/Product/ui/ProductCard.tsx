@@ -125,7 +125,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
           <div className={styles.infoSection} onClick={() => setIsOpenProduct(true)}>
             <Box className={styles.priceRow}>
               <Typography variant='body1' className={clsx(styles.price, styles.text)}>
-                {`${discountedPrice}₽`}
+                {`${discountedPrice.toFixed()}₽`}
               </Typography>
               {discountPercentage > 0 && (
                 <Typography className={clsx(styles.originalPrice, styles.text)}>

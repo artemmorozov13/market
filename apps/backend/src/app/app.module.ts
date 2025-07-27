@@ -6,10 +6,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductModule } from 'src/product/product.module';
 import { OrderModule } from 'src/order/order.module';
 import { FileUploaderModule } from 'src/file-uploader/file-uploader.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { DeliveryAreaModule } from '@app/delivery-area/delivery-area.module';
-import { DatabaseConfig } from 'src/config';
 import { DadataModule } from 'src/dadata/dadata.module';
 import { AddressesModule } from 'src/addresses/addresses.module';
 import { TelegramModule } from 'src/telegram/telegram.module';
@@ -21,21 +20,15 @@ import { StoreModule } from '@app/store/store.module';
 import { OfferedProductsModule } from '@app/offered-products/offered-products.module';
 import { DeliveryStrategiesModule } from '@app/delivery-strategies/delivery-strategies.module';
 import { PickupPointsModule } from '@app/pickup-points/pickup-points.module';
+import { typeOrmConfig } from '@app/config/data-source';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       expandVariables: true,
-      load: [DatabaseConfig]
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ...configService.get('database'),
-      }),
-      inject: [ConfigService]
-    }),
+    TypeOrmModule.forRoot(typeOrmConfig),
     UsersModule,
     ProductModule,
     TelegramModule,

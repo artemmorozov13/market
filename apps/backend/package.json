@@ -19,17 +19,16 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node ./src/seeding/seed.ts",
+    "seed": "ts-node -r dotenv/config -r tsconfig-paths/register ./src/config/seeder.ts",
     "typeorm": "ts-node --require tsconfig-paths/register ./node_modules/typeorm/cli",
-    "migration:run": "npm run typeorm migration:run -- -d ./db/typeorm.config.ts",
-    "migration:generate": "npm run typeorm -- -d ./db/typeorm.config.ts migration:generate ./db/migrations/$npm_config_name",
-    "migration:create": "npm run typeorm -- migration:create ./db/migrations/$npm_config_name",
-    "migration:revert": "npm run typeorm -- -d ./db/typeorm.config.ts migration:revert",
-    "migration:show": "npm run typeorm -- migration:show -d ./db/typeorm.config.ts"
+    "migration:run": "npm run typeorm migration:run -- -d ./src/config/data-source.ts",
+    "migration:generate": "npm run typeorm -- -d ./src/config/data-source.ts migration:generate ./src/migrations/migrations/$npm_config_name",
+    "migration:create": "npm run typeorm -- migration:create ./src/migrations/$npm_config_name",
+    "migration:revert": "npm run typeorm -- -d ./src/config/data-source.ts migration:revert",
+    "migration:show": "npm run typeorm -- migration:show -d ./src/config/data-source.ts"
   },
   "dependencies": {
     "@aws-sdk/s3-request-presigner": "^3.774.0",
-    "@faker-js/faker": "^9.6.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^10.0.0",
@@ -71,7 +70,6 @@
     "telegram-escape": "^1.1.1",
     "telegram-login": "^0.0.0",
     "typeorm": "^0.3.20",
-    "typeorm-extension": "^3.7.0",
     "vite": "^6.2.4",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"

@@ -56,11 +56,19 @@ export class StoreService {
         userAddressId?: number
     ): Promise<[StoreEntity[], number]> {
         const skip = (page - 1) * limit;
-        
-        // Get user with selected address
-        const user = await this.usersService.getUserById(userJwt.id);
+        console.log('=== START DEBUG ===');
+        console.log('Input params:', { userJwt, page, limit, userAddressId });
 
-        // Create base query
+        // 1. Подзапрос для магазинов с самовывозом
+        const pickupStoresQuery = this.storeRepository.createQueryBuilder('store')
+            .innerJoin('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
+                pickupStatus: 'active'
+            })
+            .select('store.id');
+
+        console.log('Pickup stores subquery:', pickupStoresQuery.getQueryAndParameters());
+
+        // 2. Базовый запрос
         const query = this.storeRepository.createQueryBuilder('store')
             .leftJoinAndSelect('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
                 pickupStatus: 'active'
@@ -72,45 +80,69 @@ export class StoreService {
                 { statuses: [ProductStatusEnum.Accepted, ProductStatusEnum.Active] }
             );
 
-        // Build WHERE conditions
-        const whereConditions: string[] = [];
-        const params: Record<string, any> = { pickupStatus: 'active' };
+        let userHasAddress = false;
+        let userLat: number | null = null;
+        let userLon: number | null = null;
 
-        // Always include stores with active pickup points
-        whereConditions.push('pickupPoints.id IS NOT NULL');
+        // 3. Обработка пользователя с адресом
+        if (userJwt?.id) {
+            console.log('User has ID, checking address...');
+            const user = await this.usersService.getUserById(userJwt.id);
+            console.log('User found:', { id: user.id, hasAddress: !!user.selectedAddress });
 
-        // If user has selected address, include stores with delivery areas that cover it
-        if (user.selectedAddress) {
-            const { geo_lat, geo_lon } = user.selectedAddress;
-            params.userLat = parseFloat(geo_lat);
-            params.userLon = parseFloat(geo_lon);
+            if (user.selectedAddress) {
+                userHasAddress = true;
+                userLat = parseFloat(user.selectedAddress.geo_lat);
+                userLon = parseFloat(user.selectedAddress.geo_lon);
+                console.log('User address coordinates:', { userLat, userLon });
 
-            whereConditions.push(`
-                EXISTS (
-                    SELECT 1 FROM delivery_area da
-                    WHERE da.store_id = store.id
-                    AND (6371 * ACOS(
-                        COS(RADIANS(:userLat)) * 
-                        COS(RADIANS(da.geo_lat::float)) * 
-                        COS(RADIANS(da.geo_lon::float) - RADIANS(:userLon)) + 
-                        SIN(RADIANS(:userLat)) * 
-                        SIN(RADIANS(da.geo_lat::float))
-                    )) <= da.radius / 1000
-                )
-            `);
+                const deliveryStoresQuery = this.storeRepository.createQueryBuilder('store')
+                    .innerJoin('store.deliveryAreas', 'deliveryArea')
+                    .where(`
+                        6371 * ACOS(
+                            COS(RADIANS(:userLat)) * 
+                            COS(RADIANS(deliveryArea.geo_lat::float)) * 
+                            COS(RADIANS(deliveryArea.geo_lon::float) - RADIANS(:userLon)) + 
+                            SIN(RADIANS(:userLat)) * 
+                            SIN(RADIANS(deliveryArea.geo_lat::float))
+                        ) <= deliveryArea.radius / 1000
+                    `, { userLat, userLon })
+                    .select('store.id');
+
+                console.log('Delivery stores subquery:', deliveryStoresQuery.getQueryAndParameters());
+
+                query.where(`
+                    store.id IN (${pickupStoresQuery.getQuery()})
+                    OR store.id IN (${deliveryStoresQuery.getQuery()})
+                `)
+                .setParameters({
+                    ...pickupStoresQuery.getParameters(),
+                    ...deliveryStoresQuery.getParameters(),
+                    pickupStatus: 'active'
+                });
+            } else {
+                query.where(`store.id IN (${pickupStoresQuery.getQuery()})`)
+                    .setParameters(pickupStoresQuery.getParameters());
+            }
+        } else {
+            console.log('No user ID provided');
+            query.where(`store.id IN (${pickupStoresQuery.getQuery()})`)
+                .setParameters(pickupStoresQuery.getParameters());
         }
 
-        // Apply WHERE with OR conditions
-        query.where(`(${whereConditions.join(' OR ')})`, params)
-            .orderBy('store.name', 'ASC')
-            .addOrderBy('product.name', 'ASC');
+        try {
+            const [stores, total] = await query
+                .skip(skip)
+                .take(limit)
+                .getManyAndCount();
 
-        const [stores, total] = await query
-            .skip(skip)
-            .take(limit)
-            .getManyAndCount();
-
-        return [stores, total];
+            return [stores, total];
+        } catch (error) {
+            console.error('Query error:', error);
+            throw error;
+        } finally {
+            console.log('=== END DEBUG ===');
+        }
     }
 
     async getStoreDataById(storeId: number) {
@@ -157,19 +189,15 @@ export class StoreService {
         deliveryTimeId?: number
     ): Promise<{ available: boolean; reason?: string }> {
         const storeTimeZone = store.timezone || 'Europe/Moscow';
-        console.log(`[1] Начало проверки. Часовой пояс магазина: ${storeTimeZone}`);
         
         const now = DateTime.now().setZone(storeTimeZone);
         const today = now.startOf('day');
-        console.log(`[2] Текущая дата/время: ${now.toString()}, сегодня: ${today.toString()}`);
 
         const deliveryDateTime = DateTime.fromJSDate(deliveryDate).setZone(storeTimeZone);
         const deliveryDay = deliveryDateTime.startOf('day');
-        console.log(`[3] Проверяемая дата доставки: ${deliveryDateTime.toString()}, день: ${deliveryDay.toString()}`);
 
         // 1. Проверка, что дата не в прошлом
         if (deliveryDay < today) {
-            console.log(`[4] Ошибка: Дата в прошлом (${deliveryDay.toString()} < ${today.toString()})`);
             return { available: false, reason: "Нельзя выбрать прошедшую дату" };
         }
 
@@ -177,10 +205,8 @@ export class StoreService {
         if (store.isWeekLimited) {
             const currentWeekStart = today.startOf('week');
             const currentWeekEnd = today.endOf('week');
-            console.log(`[5] Неделя: с ${currentWeekStart.toString()} по ${currentWeekEnd.toString()}`);
 
             if (deliveryDay < currentWeekStart || deliveryDay > currentWeekEnd) {
-                console.log(`[6] Ошибка: Дата вне текущей недели`);
                 return { available: false, reason: "В закрытом режиме работы нельзя заказывать вне текущей недели" };
             }
         }
@@ -192,18 +218,14 @@ export class StoreService {
             });
 
             if (!deliveryTime) {
-                console.log(`[7] Ошибка: Время доставки не найдено`);
                 return { available: false, reason: "Время доставки не найдено" };
             }
 
             const [hours, minutes] = deliveryTime.startTime.split(':').map(Number);
             const deliverySlot = deliveryDateTime.set({ hour: hours, minute: minutes });
             const hoursDiff = deliverySlot.diff(now, 'hours').hours;
-            
-            console.log(`[8] Время доставки: ${deliverySlot.toString()}, осталось часов: ${hoursDiff}, минимально требуется: ${store.minOrderBeforeDeliveryHours}`);
 
             if (hoursDiff < store.minOrderBeforeDeliveryHours) {
-                console.log(`[9] Ошибка: Недостаточно времени для заказа`);
                 return { 
                     available: false, 
                     reason: `Заказ нужно сделать минимум за ${store.minOrderBeforeDeliveryHours} часов до доставки` 
@@ -211,7 +233,6 @@ export class StoreService {
             }
         }
 
-        console.log(`[10] Дата доступна для заказа`);
         return { available: true };
     }
 

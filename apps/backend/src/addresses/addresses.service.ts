@@ -4,9 +4,8 @@ import { Repository } from 'typeorm';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { AuthJwtPayload } from '@core/types/user-type';
-import { AddressesEntity } from '@core/entities/addresses.entity';
-import { UsersEntity } from '@core/entities/users.entity';
 import { UsersService } from '@app/users/users.service';
+import { AddressesEntity } from '@core/entities';
 
 @Injectable()
 export class AddressesService {

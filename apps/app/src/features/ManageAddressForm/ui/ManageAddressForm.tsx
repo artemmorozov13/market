@@ -40,13 +40,6 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
                     onAddressChange={onAddressChange}
                 />
                 <div className={styles.emptyContainer}>
-                    <AddLocationAltIcon className={styles.icon} />
-                    <Typography variant="body1" className={styles.title}>
-                        Адрес не указан
-                    </Typography>
-                    <Typography variant="body2" className={styles.subtitle}>
-                        Работаем по СПб и Ленобласти
-                    </Typography>
                     <Button
                         variant="contained"
                         color="primary"
