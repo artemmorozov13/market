@@ -16,7 +16,10 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  IconButton
+  IconButton,
+  Checkbox,
+  FormControlLabel,
+  FormGroup
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import styles from "./AddNewAddressModal.module.css";
@@ -43,6 +46,13 @@ interface AddNewAddressModalProps {
 const validationSchema = yup.object().shape({
   fullAddress: yup.string().required("Адрес обязателен"),
   entrance: yup.string().matches(/^[0-9]*$/, "Можно вводить только цифры"),
+  floor: yup.string().matches(/^[0-9]*$/, "Можно вводить только цифры"),
+  apartment: yup.string().matches(/^[0-9]*$/, "Можно вводить только цифры"),
+  intercom: yup.string(),
+  // Новые правила валидации
+  deliveryInstructions: yup.string().max(200, "Максимум 200 символов"),
+  buildingName: yup.string(),
+  doorCode: yup.string(),
 });
 
 const defaultValues: AddressFormValues = {
@@ -64,7 +74,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
   const [lastSelectedValue, setLastSelectedValue] = useState<AddressSuggestion | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   
-  const { control, handleSubmit, formState, reset, setValue } = useForm<AddressFormValues>({
+  const { control, handleSubmit, formState, reset, setValue, watch } = useForm<AddressFormValues>({
     resolver: yupResolver(validationSchema) as any,
     defaultValues,
     mode: 'onSubmit'
@@ -271,6 +281,48 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
                       label="Парадная"
                       error={!!errors.entrance}
                       helperText={errors.entrance?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="floor"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Этаж"
+                      error={!!errors.floor}
+                      helperText={errors.floor?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="apartment"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Квартира/Офис"
+                      error={!!errors.apartment}
+                      helperText={errors.apartment?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="intercom"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Домофон"
+                      error={!!errors.intercom}
+                      helperText={errors.intercom?.message}
                       fullWidth
                     />
                   )}

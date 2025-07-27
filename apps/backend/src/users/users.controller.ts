@@ -38,9 +38,6 @@ export class UsersController {
     }
 
     @Post("create")
-    @AllowRoles(Roles.Admin)
-    @UseGuards(RolesGuard)
-    @UseGuards(JwtAuthGuard)
     createNewUser(@Body() body: CreateUserBodyDto) {
         return this.usersService.createUser(body)
     }
@@ -55,12 +52,10 @@ export class UsersController {
     ) {
         return this.usersService.updateUser(user, body)
     }
-
+    
+    @UseGuards(JwtAuthGuard)
     @Post('login')
-    loginWithTelegram(
-        @Headers('Authorization') authorization: string,
-        @Body() body: TelegramLoginDto
-    ) {
-        return this.usersService.loginWithTelegram(body.initData, body.storeId, authorization);
+    loginWithTelegram(@User() user: AuthJwtPayload) {
+        return this.usersService.login(user)
     }
 }

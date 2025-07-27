@@ -19,7 +19,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value.replace(/[^\d+]/g, ''))
+  @Transform(({ value }) => value?.replace(/[^\d+]/g, ''))
   @MaxLength(16)
   phone_number?: string;
 }
