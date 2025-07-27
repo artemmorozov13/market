@@ -109,33 +109,33 @@ export class AuthService {
     }
 
     async loginWithTelegramWidget(initData: TelegramAuthData, storeId?: string) {
-      let user = await this.userService.getUserByTelegramId(initData.id);
+      // let user = await this.userService.getUserByTelegramId(initData.id);
 
-      if (!user) {
-        const userData: Partial<UsersEntity> = {
-          telegram_id: initData.id,
-          name: initData.first_name,
-          telegram_username: initData.username,
-          role: Roles.User,
-        };
+      // if (!user) {
+      //   const userData: Partial<UsersEntity> = {
+      //     telegram_id: initData.id,
+      //     name: initData.first_name,
+      //     telegram_username: initData.username,
+      //     role: Roles.User,
+      //   };
 
-        if (storeId) {
-          const store = await this.storeService.getStoreDataById(Number(storeId));
-          if (store) {
-            userData.store = store;
-          }
-        }
+      //   if (storeId) {
+      //     const store = await this.storeService.getStoreDataById(Number(storeId));
+      //     if (store) {
+      //       userData.store = store;
+      //     }
+      //   }
 
-        user = await this.userService.createUser(userData);
-      }
+      //   user = await this.userService.createUser(userData);
+      // }
 
-      const accessToken = await this.generateToken(user);
-      const refreshToken = await this.generateRefreshToken(user);
+      // const accessToken = await this.generateToken(user);
+      // const refreshToken = await this.generateRefreshToken(user);
 
-      return {
-        user,
-        accessToken,
-        refreshToken,
-      };
+      // return {
+      //   user,
+      //   accessToken,
+      //   refreshToken,
+      // };
     }
 }
