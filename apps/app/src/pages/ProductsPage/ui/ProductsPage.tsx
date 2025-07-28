@@ -144,11 +144,11 @@ const ProductsPage: FC = observer(() => {
                 <LocalShippingIcon color="primary" />
                 <Typography variant="body2">
                   {store.isDeliveryFree ? 'Бесплатная доставка' : 
-                   `Доставка: ${store.deliveryCost} ₽`}
+                   `Доставка: ${store.deliveryCost.toFixed()} ₽`}
                 </Typography>
                 {store.deliveryFreeFromLimit > 0 && (
                   <Chip 
-                    label={`Бесплатно от ${store.deliveryFreeFromLimit} ₽`} 
+                    label={`Бесплатно от ${store.deliveryFreeFromLimit.toFixed()} ₽`} 
                     size="small" 
                     className={styles.freeDeliveryChip}
                   />

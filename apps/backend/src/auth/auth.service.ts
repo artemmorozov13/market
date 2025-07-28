@@ -10,7 +10,6 @@ import { AuthStoreUserDto } from './dto/auth-store-user.dto';
 import { StoreUserService } from '@app/store-user/store-user.service';
 import { StoreUserEntity } from '@core/entities/store-user.entity';
 import { UsersService } from '@app/users/users.service';
-import { StoreService } from '@app/store/store.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -22,7 +21,6 @@ export class AuthService {
         private storeUserService: StoreUserService,
         @Inject(refreshJwtConfig.KEY)
         private refreshTokenConfig:ConfigType<typeof refreshJwtConfig>,
-        private readonly storeService: StoreService
     ) {}
 
     async generateToken(user: AuthJwtPayload | UsersEntity | StoreUserEntity ) {
@@ -106,36 +104,5 @@ export class AuthService {
         token,
         refreshToken
       }
-    }
-
-    async loginWithTelegramWidget(initData: TelegramAuthData, storeId?: string) {
-      // let user = await this.userService.getUserByTelegramId(initData.id);
-
-      // if (!user) {
-      //   const userData: Partial<UsersEntity> = {
-      //     telegram_id: initData.id,
-      //     name: initData.first_name,
-      //     telegram_username: initData.username,
-      //     role: Roles.User,
-      //   };
-
-      //   if (storeId) {
-      //     const store = await this.storeService.getStoreDataById(Number(storeId));
-      //     if (store) {
-      //       userData.store = store;
-      //     }
-      //   }
-
-      //   user = await this.userService.createUser(userData);
-      // }
-
-      // const accessToken = await this.generateToken(user);
-      // const refreshToken = await this.generateRefreshToken(user);
-
-      // return {
-      //   user,
-      //   accessToken,
-      //   refreshToken,
-      // };
     }
 }

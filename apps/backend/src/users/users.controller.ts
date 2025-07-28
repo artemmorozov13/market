@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Headers, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CreateUserBodyDto } from './dto/create-user.dto';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
-import { TelegramLoginDto } from './dto/telegram-login.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { AuthJwtPayload } from '@core/types/user-type';
