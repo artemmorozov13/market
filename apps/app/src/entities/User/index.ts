@@ -4,3 +4,4 @@ export { useUpdateUser } from "./api/updateUser";
 export { useUser } from "./api/fetchUserData";
 export { useTelegramAuth } from "./api/useTelegramAuth";
 export { useTelegramIntegrate } from "./api/useTelegramIntegrate";
+export { useTelegramAuthData } from "./lib/useTelegramAuth";

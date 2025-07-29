@@ -1,5 +1,4 @@
-import { FC } from 'react';
-import styles from './StartupScreen.module.scss';
+import { FC, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -11,13 +10,16 @@ import {
 } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
-import { userStore, useTelegramAuth } from '@/entities/User';
+import { userStore, useTelegramAuth, useTelegramAuthData } from '@/entities/User';
 import { Roles } from '@core/enums/role-enum';
+import styles from './StartupScreen.module.scss';
 
 const StartupScreen: FC = () => {
+  const { initData } = useTelegramAuthData()
   const { authViaTelegram } = useTelegramAuth()
 
   const handleTelegramAuth = (user: TelegramAuthData) => {
+    console.log(user)
     authViaTelegram(user)
   }
 
@@ -26,6 +28,12 @@ const StartupScreen: FC = () => {
     setUserRole(Roles.User)
   }
 
+  useEffect(() => {
+    if (initData) {
+      authViaTelegram(initData)
+    }
+  }, [initData])
+ 
   return (
     <Box className={styles.container}>
       <Paper elevation={3} className={styles.paper}>
@@ -60,7 +68,7 @@ const StartupScreen: FC = () => {
             <LoginButton
               botUsername={'okacuki_bot'}
               authCallbackUrl={'https://akacuki.ru/app'}
-              buttonSize="small"
+              buttonSize="large"
               cornerRadius={8}
               showAvatar={true}
               lang="ru"

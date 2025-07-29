@@ -27,7 +27,8 @@ const postAuthViaTelegram = async (body: TelegramAuthData) => {
 
 export const useTelegramAuth = () => {
     const mutatetion = useMutation({
-        mutationFn: postAuthViaTelegram
+        mutationFn: postAuthViaTelegram,
+        
     })
     return {
         ...mutatetion,

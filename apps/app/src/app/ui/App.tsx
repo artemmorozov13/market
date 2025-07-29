@@ -7,7 +7,7 @@ import "normalize.css";
 import { BrowserRouter, } from "react-router-dom";
 import AuthProvider from "@/app/providers/AuthProvider/ui/AuthProvider";
 import { RouteProvider } from "../providers/RouteProvider";
-import { marketplaceTheme } from "@/shared/themes/yellowTheme";
+import { marketplaceTheme } from "@/shared/themes/marketplaceTheme";
 
 const queryClient = new QueryClient();
 
