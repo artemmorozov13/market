@@ -79,7 +79,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
       deliveryTimeId: null,
       deliveryDate: null,
       addressId: null,
-      deliveryMethod: null,
+      deliveryMethod: DeliveryStrategyEnum.PickupByYourself,
       pickupPointId: null,
       deliveryStrategy: null,
       storeId: Number(storeId),
@@ -100,7 +100,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const selectedDeliveryAreaId = watch("deliveryAreaId");
   const selectedAddressId = watch("addressId");
   const pickupPointId = watch("pickupPointId");
-  const { deliveryTimeData } = useDeliveryTimes(selectedDeliveryAreaId);
+  const { deliveryTimeData } = useDeliveryTimes(selectedDeliveryAreaId, storeId);
   const { updateUser } = useUpdateUser();
   const { addresses } = useUserAddresses();
 
@@ -134,13 +134,11 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   }, [deliveryTimeData]);
 
   const confirmForm = (data: OrderFormInputs) => {
-    if (selectedAddress?.id) {
-      onSubmit({
-        ...data,
-        address: selectedAddress,
-        addressId: selectedAddress.id 
-      });
+    if (data.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance) {
+      data.address = selectedAddress || null,
+      data.addressId = selectedAddress?.id || null
     }
+    onSubmit(data)
     updateUser({ phone_number: data.phone });
   };
 
@@ -157,17 +155,17 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   useEffect(() => {
     if (!deliveryMethod) {
       if (isDeliveryAvailable && isPickupAvailable) {
-        setValue("deliveryMethod", "delivery");
+        setValue("deliveryMethod", DeliveryStrategyEnum.DeliveryToEntrance);
       } else if (isDeliveryAvailable) {
-        setValue("deliveryMethod", "delivery");
+        setValue("deliveryMethod", DeliveryStrategyEnum.DeliveryToEntrance);
       } else if (isPickupAvailable) {
-        setValue("deliveryMethod", "pickup");
+        setValue("deliveryMethod", DeliveryStrategyEnum.PickupByYourself);
       }
     }
   }, [isDeliveryAvailable, isPickupAvailable, deliveryMethod, setValue]);
 
   useEffect(() => {
-    if (selectedAddress && deliveryAreas?.length && deliveryMethod === "delivery") {
+    if (selectedAddress && deliveryAreas?.length && deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance) {
       const nearestPoint = findNearestDeliveryArea(selectedAddress, deliveryAreas);
       if (nearestPoint) {
         setValue("deliveryAreaId", nearestPoint.id);
@@ -180,7 +178,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   }, [selectedAddress, deliveryAreas, setValue, deliveryMethod]);
 
   useEffect(() => {
-    if (deliveryMethod === "pickup" && activePickupPoints.length > 0 && !pickupPointId) {
+    if (deliveryMethod === DeliveryStrategyEnum.PickupByYourself && activePickupPoints.length > 0 && !pickupPointId) {
       setValue("pickupPointId", activePickupPoints[0].id);
     }
   }, [deliveryMethod, activePickupPoints, pickupPointId, setValue]);
@@ -189,14 +187,12 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
     item => item.product.status === ProductStatusEnum.Expired
   );
 
-
-
   const selectedDeliveryArea = deliveryAreas?.find(p => p.id === selectedDeliveryAreaId);
   const selectedPickupPoint = activePickupPoints.find(p => p.id === pickupPointId);
 
   const deliveryCostInfo = store?.isDeliveryFree 
     ? "Бесплатная доставка" 
-    : `Стоимость доставки: ${store?.deliveryCost} ₽${store?.deliveryFreeFromLimit ? ` (бесплатно от ${store.deliveryFreeFromLimit} ₽)` : ''}`;
+    : `Стоимость доставки: ${store?.deliveryCost.toFixed()} ₽${store?.deliveryFreeFromLimit.toFixed() ? ` (бесплатно от ${store.deliveryFreeFromLimit.toFixed()} ₽)` : ''}`;
 
   if (isLoadingDeliveryArea) {
     return (
@@ -259,7 +255,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   {isDeliveryAvailable && (
                     <Paper variant="outlined" className={styles.deliveryMethodCard}>
                       <FormControlLabel
-                        value="delivery"
+                        value={DeliveryStrategyEnum.DeliveryToEntrance}
                         control={<Radio />}
                         label={
                           <Box className={styles.deliveryMethodLabel}>
@@ -282,7 +278,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                   {isPickupAvailable && (
                     <Paper variant="outlined" className={styles.deliveryMethodCard}>
                       <FormControlLabel
-                        value="pickup"
+                        value={DeliveryStrategyEnum.PickupByYourself}
                         control={<Radio />}
                         label={
                           <Box className={styles.deliveryMethodLabel}>
@@ -306,7 +302,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             />
           </Box>
 
-          {deliveryMethod === "delivery" && isDeliveryAvailable ? (
+          {deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance && isDeliveryAvailable ? (
             <>
               <Box mb={3}>
                 <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
@@ -414,7 +410,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                 </Box>
               )}
             </>
-          ) : deliveryMethod === "pickup" && isPickupAvailable ? (
+          ) : deliveryMethod === DeliveryStrategyEnum.PickupByYourself && isPickupAvailable ? (
             <Box mb={3}>
               <Typography variant="h6" gutterBottom className={styles.sectionTitle}>
                 Пункт самовывоза
@@ -554,8 +550,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
             disabled={
               isExpiredProduct || 
               !deliveryMethod ||
-              (deliveryMethod === "delivery" && (!selectedAddress || !hasAvailableDeliveryTimes)) ||
-              (deliveryMethod === "pickup" && activePickupPoints.length === 0)
+              (deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance && (!selectedAddress || !hasAvailableDeliveryTimes)) ||
+              (deliveryMethod === DeliveryStrategyEnum.PickupByYourself && activePickupPoints.length === 0)
             }
             className={styles.submitButton}
           >

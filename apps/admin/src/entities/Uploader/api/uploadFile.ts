@@ -1,5 +1,5 @@
+import { UploaderReturnType } from "@core/types/uploader-type";
 import { API } from "@shared/api/instance";
-import { UploaderReturnType } from "../types/uploaderTypes";
 
 export const uploadFile = async (file: File): Promise<UploaderReturnType> => {
     try {

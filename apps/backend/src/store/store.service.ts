@@ -11,6 +11,7 @@ import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { DeliveryStrategiesService } from '@app/delivery-strategies/delivery-strategies.service';
 import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { DateTime } from 'luxon';
+import { UsersService } from '@app/users/users.service';
 
 @Injectable()
 export class StoreService {
@@ -22,7 +23,9 @@ export class StoreService {
         @Inject(forwardRef(() => DeliveryStrategiesService))
         private readonly deliveryStrategiesService: DeliveryStrategiesService,
         @InjectRepository(DeliveryTime)
-        private readonly deliveryTimeRepository: Repository<DeliveryTime>
+        private readonly deliveryTimeRepository: Repository<DeliveryTime>,
+        @Inject(forwardRef(() => UsersService))
+        private readonly usersService: UsersService
     ) {}
 
     async getStoreUserByToken(userJwt: AuthJwtPayload, page: number, limit: number) {
@@ -47,29 +50,99 @@ export class StoreService {
     }
 
     async getStoresDataWithPagination(
-        userJwt: AuthJwtPayload, 
-        page: number = 1, 
-        limit: number = 10
+        userJwt: AuthJwtPayload,
+        page: number = 1,
+        limit: number = 10,
+        userAddressId?: number
     ): Promise<[StoreEntity[], number]> {
         const skip = (page - 1) * limit;
+        console.log('=== START DEBUG ===');
+        console.log('Input params:', { userJwt, page, limit, userAddressId });
 
-        const query = this.storeRepository
-            .createQueryBuilder('store')
-            .leftJoinAndSelect(
-                'store.products', 
-                'product',
-                'product.status IN (:...statuses)',
+        // 1. Подзапрос для магазинов с самовывозом
+        const pickupStoresQuery = this.storeRepository.createQueryBuilder('store')
+            .innerJoin('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
+                pickupStatus: 'active'
+            })
+            .select('store.id');
+
+        console.log('Pickup stores subquery:', pickupStoresQuery.getQueryAndParameters());
+
+        // 2. Базовый запрос
+        const query = this.storeRepository.createQueryBuilder('store')
+            .leftJoinAndSelect('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
+                pickupStatus: 'active'
+            })
+            .leftJoinAndSelect('store.deliveryAreas', 'deliveryAreas')
+            .leftJoinAndSelect('deliveryAreas.deliveryTimes', 'deliveryTimes')
+            .leftJoinAndSelect('store.products', 'product',
+                'product.status IN (:...statuses)', 
                 { statuses: [ProductStatusEnum.Accepted, ProductStatusEnum.Active] }
-            )
-            .orderBy('store.name', 'ASC')
-            .addOrderBy('product.name', 'ASC');
+            );
 
-        const [stores, total] = await query
-            .skip(skip)
-            .take(limit)
-            .getManyAndCount();
+        let userHasAddress = false;
+        let userLat: number | null = null;
+        let userLon: number | null = null;
 
-        return [stores, total];
+        // 3. Обработка пользователя с адресом
+        if (userJwt?.id) {
+            console.log('User has ID, checking address...');
+            const user = await this.usersService.getUserById(userJwt.id);
+            console.log('User found:', { id: user.id, hasAddress: !!user.selectedAddress });
+
+            if (user.selectedAddress) {
+                userHasAddress = true;
+                userLat = parseFloat(user.selectedAddress.geo_lat);
+                userLon = parseFloat(user.selectedAddress.geo_lon);
+                console.log('User address coordinates:', { userLat, userLon });
+
+                const deliveryStoresQuery = this.storeRepository.createQueryBuilder('store')
+                    .innerJoin('store.deliveryAreas', 'deliveryArea')
+                    .where(`
+                        6371 * ACOS(
+                            COS(RADIANS(:userLat)) * 
+                            COS(RADIANS(deliveryArea.geo_lat::float)) * 
+                            COS(RADIANS(deliveryArea.geo_lon::float) - RADIANS(:userLon)) + 
+                            SIN(RADIANS(:userLat)) * 
+                            SIN(RADIANS(deliveryArea.geo_lat::float))
+                        ) <= deliveryArea.radius / 1000
+                    `, { userLat, userLon })
+                    .select('store.id');
+
+                console.log('Delivery stores subquery:', deliveryStoresQuery.getQueryAndParameters());
+
+                query.where(`
+                    store.id IN (${pickupStoresQuery.getQuery()})
+                    OR store.id IN (${deliveryStoresQuery.getQuery()})
+                `)
+                .setParameters({
+                    ...pickupStoresQuery.getParameters(),
+                    ...deliveryStoresQuery.getParameters(),
+                    pickupStatus: 'active'
+                });
+            } else {
+                query.where(`store.id IN (${pickupStoresQuery.getQuery()})`)
+                    .setParameters(pickupStoresQuery.getParameters());
+            }
+        } else {
+            console.log('No user ID provided');
+            query.where(`store.id IN (${pickupStoresQuery.getQuery()})`)
+                .setParameters(pickupStoresQuery.getParameters());
+        }
+
+        try {
+            const [stores, total] = await query
+                .skip(skip)
+                .take(limit)
+                .getManyAndCount();
+
+            return [stores, total];
+        } catch (error) {
+            console.error('Query error:', error);
+            throw error;
+        } finally {
+            console.log('=== END DEBUG ===');
+        }
     }
 
     async getStoreDataById(storeId: number) {
@@ -116,19 +189,15 @@ export class StoreService {
         deliveryTimeId?: number
     ): Promise<{ available: boolean; reason?: string }> {
         const storeTimeZone = store.timezone || 'Europe/Moscow';
-        console.log(`[1] Начало проверки. Часовой пояс магазина: ${storeTimeZone}`);
         
         const now = DateTime.now().setZone(storeTimeZone);
         const today = now.startOf('day');
-        console.log(`[2] Текущая дата/время: ${now.toString()}, сегодня: ${today.toString()}`);
 
         const deliveryDateTime = DateTime.fromJSDate(deliveryDate).setZone(storeTimeZone);
         const deliveryDay = deliveryDateTime.startOf('day');
-        console.log(`[3] Проверяемая дата доставки: ${deliveryDateTime.toString()}, день: ${deliveryDay.toString()}`);
 
         // 1. Проверка, что дата не в прошлом
         if (deliveryDay < today) {
-            console.log(`[4] Ошибка: Дата в прошлом (${deliveryDay.toString()} < ${today.toString()})`);
             return { available: false, reason: "Нельзя выбрать прошедшую дату" };
         }
 
@@ -136,10 +205,8 @@ export class StoreService {
         if (store.isWeekLimited) {
             const currentWeekStart = today.startOf('week');
             const currentWeekEnd = today.endOf('week');
-            console.log(`[5] Неделя: с ${currentWeekStart.toString()} по ${currentWeekEnd.toString()}`);
 
             if (deliveryDay < currentWeekStart || deliveryDay > currentWeekEnd) {
-                console.log(`[6] Ошибка: Дата вне текущей недели`);
                 return { available: false, reason: "В закрытом режиме работы нельзя заказывать вне текущей недели" };
             }
         }
@@ -151,18 +218,14 @@ export class StoreService {
             });
 
             if (!deliveryTime) {
-                console.log(`[7] Ошибка: Время доставки не найдено`);
                 return { available: false, reason: "Время доставки не найдено" };
             }
 
             const [hours, minutes] = deliveryTime.startTime.split(':').map(Number);
             const deliverySlot = deliveryDateTime.set({ hour: hours, minute: minutes });
             const hoursDiff = deliverySlot.diff(now, 'hours').hours;
-            
-            console.log(`[8] Время доставки: ${deliverySlot.toString()}, осталось часов: ${hoursDiff}, минимально требуется: ${store.minOrderBeforeDeliveryHours}`);
 
             if (hoursDiff < store.minOrderBeforeDeliveryHours) {
-                console.log(`[9] Ошибка: Недостаточно времени для заказа`);
                 return { 
                     available: false, 
                     reason: `Заказ нужно сделать минимум за ${store.minOrderBeforeDeliveryHours} часов до доставки` 
@@ -170,7 +233,6 @@ export class StoreService {
             }
         }
 
-        console.log(`[10] Дата доступна для заказа`);
         return { available: true };
     }
 

@@ -3,7 +3,11 @@ import { API } from "@shared/api/instance";
 import { ProductType } from "@core/types/product-item";
 
 const createProduct = async (data: ProductType) => {
-  const response = await API.post("/product", data);
+  const body: ProductType = {
+    ...data,
+    image: (data.image as any).url
+  }
+  const response = await API.post("/product", body);
   return response.data;
 };
 

@@ -1,5 +1,4 @@
 import { DeliveryTimeIntervalBase } from "./delivery-time";
-import { PickupPointType } from "./pickup-point-type";
 
 export type DeliveryAreaBase = {
   id: number;

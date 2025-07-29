@@ -1,6 +1,6 @@
 import { FC, useState, ReactNode, MouseEvent } from "react";
 import { observer } from "mobx-react-lite";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { clsx } from "clsx";
 import {
   AppBar,
@@ -26,7 +26,8 @@ import {
   Share,
   Delete,
   Menu as MenuIcon,
-  ShoppingBasket
+  ShoppingBasket,
+  AccountCircle
 } from "@mui/icons-material";
 
 import { RoutePath } from "@/shared/routes/routeConfig";
@@ -66,18 +67,11 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
     handleMenuClose();
   };
 
-  const handleShare = () => {
-    const shareUrl = new URL("https://t.me/share/url");
-    shareUrl.searchParams.set("url", "https://t.me/fricti_test_bot");
-    shareUrl.searchParams.set("title", "Доставка фруктов и овощей");
-    window.open(shareUrl.toString());
-  };
-
   const navigationItems = [
     {
-      path: RoutePath.products,
+      path: RoutePath.stores,
       icon: <Store />,
-      label: "Продукты"
+      label: "Магазины"
     },
     {
       path: RoutePath.activeOrders,
@@ -97,49 +91,17 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
       path: RoutePath.help,
       icon: <Help />,
       label: "Поддержка"
+    },
+    {
+      path: RoutePath.profile,  // Предполагается, что RoutePath.profile уже определен
+      icon: <AccountCircle />,  // Импортируйте из MUI: import { AccountCircle } from '@mui/icons-material'
+      label: "Профиль"
     }
   ];
 
   return (
     <div className={clsx(styles.root, className)}>
       {window?.Telegram?.WebApp?.initData && <InstallButton />}
-      
-      {/* <Paper 
-        component="nav"
-        elevation={1}
-        square
-        className={styles.stickyHeader}
-      >
-        <Toolbar className={styles.toolbar}>
-          <div className={styles.actions}>
-            {totalProducts > 0 && (
-              <Typography variant="body1" className={styles.totalPrice}>
-                {totalPrice} ₽
-              </Typography>
-            )}
-            
-            <Badge 
-              badgeContent={totalProducts > 0 ? totalProducts : null} 
-              className={styles.badge}
-              color="primary"
-            >
-              <Button
-                variant="contained"
-                className={styles.cartButton}
-                startIcon={<ShoppingCart />}
-                onClick={() => navigate(RoutePath.basket)}
-                disabled={totalProducts === 0}
-              >
-                Корзина
-              </Button>
-            </Badge>
-
-            <IconButton className={styles.shareButton} onClick={handleShare}>
-              <Share />
-            </IconButton>
-          </div>
-        </Toolbar>
-      </Paper> */}
 
       <main className={styles.content}>
         {children}

@@ -24,29 +24,32 @@ export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: 'bigint' })
-    telegram_id: number;
+    @Column({ type: 'bigint', nullable: true })
+    telegram_id?: number;
 
-    @Column({ default: "" })
-    telegram_username: string
+    @Column({ nullable: true, default: null })
+    telegram_username: string | null
 
-    @Column()
-    name: string
+    @Column({ nullable: true, default: null })
+    name: string | null
 
-    @Column({ default: "" })
-    phone_number: string
+    @Column({ nullable: true, default: null })
+    phone_number: string | null
 
     @Column({ default: false })
     is_phone_confirmed: boolean
 
-    @Column({ nullable: true })
-    email: string
+    @Column({ nullable: true, default: null })
+    email: string | null
 
-    @Column({ default: 0 })
-    age: number
+    @Column({ default: null, nullable: true })
+    login: string | null
 
-    @Column({ default: "123456" })
-    password: string
+    @Column({ nullable: true, default: null})
+    age: number | null
+
+    @Column({ nullable: true, default: null })
+    password: string | null
 
     @Column({
         default: Roles.User,
@@ -88,6 +91,13 @@ export class UsersEntity {
     async hashPasword() {
         if (this.password) {
             this.password = await bcrypt.hash(this.password, 10)
+        }
+    }
+
+    @BeforeInsert()
+    generateDefaultLogin() {
+        if (!this.login) {
+            this.login = `user-${this.id}`
         }
     }
 }

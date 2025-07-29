@@ -1,6 +1,5 @@
 import { PickupWorkingHoursService } from '@app/pickup-working-hours/pickup-working-hours.service';
 import { StoreService } from '@app/store/store.service';
-import { PickupPointEntity } from '@core/entities/pickup-point.entity';
 import {
   Injectable,
   NotFoundException,
@@ -12,7 +11,7 @@ import { Repository } from 'typeorm';
 import { CreatePickupPointDto } from './dto/create-pickup-point.dto';
 import { UpdatePickupPointDto } from './dto/update-pickup-point.dto';
 import { AuthJwtPayload } from '@core/types/user-type';
-import { PickupWorkingHoursEntity } from '@core/entities/pickup-working-hours.entity';
+import { PickupPointEntity, PickupWorkingHoursEntity } from '@core/entities';
 
 @Injectable()
 export class PickupPointService {
@@ -24,65 +23,70 @@ export class PickupPointService {
   ) {}
 
   async create(userJwt: AuthJwtPayload, createDto: CreatePickupPointDto): Promise<PickupPointEntity> {
-  await this.storeService.getStoreDataById(userJwt.storeId);
+    await this.storeService.getStoreDataById(userJwt.storeId);
 
-  // Валидация рабочих часов
-  if (createDto.workingHours?.some(wh => 
-    !wh.dayOfWeek || !wh.openingTime || !wh.closingTime
-  )) {
-    throw new BadRequestException('All working hours fields are required');
+    // Валидация рабочих часов
+    if (createDto.workingHours?.some(wh => 
+      !wh.dayOfWeek || !wh.openingTime || !wh.closingTime
+    )) {
+      throw new BadRequestException('All working hours fields are required');
+    }
+
+    return this.pickupPointRepository.manager.transaction(async (transactionalEntityManager) => {
+      try {
+        // 1. Создаем пункт выдачи
+        const pickupPoint = this.pickupPointRepository.create({
+          name: createDto.name,
+          fullAddress: createDto.fullAddress,
+          postal_code: createDto.postal_code,
+          fias_id: createDto.fias_id,
+          geo_lat: createDto.geo_lat,
+          geo_lon: createDto.geo_lon,
+          store: { id: userJwt.storeId },
+        });
+
+        const savedPoint = await transactionalEntityManager.save(pickupPoint);
+
+        // 2. Создаем рабочие часы, если они переданы
+        if (createDto.workingHours?.length > 0) {
+          const workingHoursToCreate = createDto.workingHours.map(wh => ({
+            dayOfWeek: wh.dayOfWeek,
+            openingTime: wh.openingTime,
+            closingTime: wh.closingTime,
+            pickupPoint: { id: savedPoint.id },
+          }));
+
+          await transactionalEntityManager.save(
+            PickupWorkingHoursEntity,
+            workingHoursToCreate
+          );
+        }
+
+        // 3. Возвращаем полные данные с рабочими часами
+        return transactionalEntityManager.findOne(PickupPointEntity, {
+          where: { id: savedPoint.id },
+          relations: ['workingHours', 'store'],
+        });
+
+      } catch (error) {
+        if (error.code === '23505') {
+          throw new ConflictException('Pickup point with this name already exists');
+        }
+        throw error;
+      }
+    });
   }
 
-  return this.pickupPointRepository.manager.transaction(async (transactionalEntityManager) => {
-    try {
-      // 1. Создаем пункт выдачи
-      const pickupPoint = this.pickupPointRepository.create({
-        name: createDto.name,
-        fullAddress: createDto.fullAddress,
-        postal_code: createDto.postal_code,
-        fias_id: createDto.fias_id,
-        geo_lat: createDto.geo_lat,
-        geo_lon: createDto.geo_lon,
-        store: { id: userJwt.storeId },
-      });
-
-      const savedPoint = await transactionalEntityManager.save(pickupPoint);
-
-      // 2. Создаем рабочие часы, если они переданы
-      if (createDto.workingHours?.length > 0) {
-        const workingHoursToCreate = createDto.workingHours.map(wh => ({
-          dayOfWeek: wh.dayOfWeek,
-          openingTime: wh.openingTime,
-          closingTime: wh.closingTime,
-          pickupPoint: { id: savedPoint.id },
-        }));
-
-        await transactionalEntityManager.save(
-          PickupWorkingHoursEntity,
-          workingHoursToCreate
-        );
-      }
-
-      // 3. Возвращаем полные данные с рабочими часами
-      return transactionalEntityManager.findOne(PickupPointEntity, {
-        where: { id: savedPoint.id },
-        relations: ['workingHours', 'store'],
-      });
-
-    } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException('Pickup point with this name already exists');
-      }
-      throw error;
-    }
-  });
-}
-
   // Остальные методы остаются без изменений
-  async findAll(): Promise<PickupPointEntity[]> {
+  async findAll(userJwt: AuthJwtPayload): Promise<PickupPointEntity[]> {
     return this.pickupPointRepository.find({
       relations: ['store', 'workingHours'],
-      where: { status: 'active' },
+      where: {
+        status: 'active',
+        store: {
+          id: userJwt.storeId
+        }
+      },
     });
   }
 

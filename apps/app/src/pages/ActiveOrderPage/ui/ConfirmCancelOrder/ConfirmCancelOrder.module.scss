@@ -19,35 +19,8 @@
     }
   
     .actions {
-      padding: 16px 24px;
       border-top: 1px solid #e2e8f0;
-      justify-content: flex-end;
+      justify-content: space-between;
       gap: 12px;
-    }
-  
-    .cancelButton {
-      border-radius: 8px;
-      padding: 8px 16px;
-      text-transform: none;
-      font-weight: 500;
-      color: #4a5568;
-      border-color: #e2e8f0;
-  
-      &:hover {
-        border-color: #cbd5e0;
-        background-color: #f7fafc;
-      }
-    }
-  
-    .confirmButton {
-      border-radius: 8px;
-      padding: 8px 16px;
-      text-transform: none;
-      font-weight: 500;
-      background-color: #e53e3e;
-  
-      &:hover {
-        background-color: #c53030;
-      }
     }
   }

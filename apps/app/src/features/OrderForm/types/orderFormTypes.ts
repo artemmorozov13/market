@@ -4,13 +4,13 @@ import { AddressType } from "@core/types/address-type";
 interface OrderFormBaseInputs {
     phone: string;
     comment: string;
-    deliveryMethod: 'delivery' | 'pickup' | null;
+    deliveryMethod: DeliveryStrategyEnum.DeliveryToEntrance | DeliveryStrategyEnum.PickupByYourself | null;
     storeId: number;
     deliveryStrategy: DeliveryStrategyEnum | null;
 }
 
 interface DeliveryFormInputs extends OrderFormBaseInputs {
-    deliveryMethod: 'delivery' | null;
+    deliveryMethod: DeliveryStrategyEnum.DeliveryToEntrance | null;
     deliveryAreaId: number | null;
     deliveryTimeId: string | null;
     deliveryDate: string | null;
@@ -20,7 +20,7 @@ interface DeliveryFormInputs extends OrderFormBaseInputs {
 }
 
 interface PickupFormInputs extends OrderFormBaseInputs {
-    deliveryMethod: 'pickup'| null;
+    deliveryMethod: DeliveryStrategyEnum.PickupByYourself| null;
     pickupPointId: number | null;
     deliveryAreaId?: number | null;
     deliveryTimeId?: number | null;

@@ -14,7 +14,7 @@ export const updateUser = async (updateData: Partial<UserType>) => {
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   
-  const query = useMutation({
+  const query = useMutation<UserType, Error, Partial<UserType>>({
     mutationFn: updateUser,
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(['user', updatedUser.id], updatedUser);

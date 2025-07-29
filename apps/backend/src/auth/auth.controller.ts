@@ -15,16 +15,10 @@ export class AuthController {
   async authWithPassword(@Body() body: AuthStoreUserDto) {
     return this.authService.authAdminUser(body)
   }
-  
-  @Post('login-telegram')
-  async loginWebViaTelegram(@Body() body: LoginViaInitDataDto) {
-    return this.authService.loginWithTelegramWidget(body.initData, body.storeId)
-  }
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refreshAccessToken(@Req() req) {
-    console.log(req.user)
     return {
       token: await this.authService.generateToken(req.user)
     }

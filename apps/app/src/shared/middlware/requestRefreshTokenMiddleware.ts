@@ -18,7 +18,11 @@ export const requestTokenMidleware = async (config: InternalAxiosRequestConfig) 
     })
 
     const accessToken = Cookies.get(ACCESS_TOKEN)
-    config.headers.Authorization = `Bearer ${accessToken}`
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+
     return config
   }
 
@@ -47,7 +51,10 @@ export const requestTokenMidleware = async (config: InternalAxiosRequestConfig) 
   }
 
   const accessKey = Cookies.get(ACCESS_TOKEN)
-  config.headers.Authorization = `Bearer ${accessKey}`
+  
+  if (accessKey) {
+    config.headers.Authorization = `Bearer ${accessKey}`
+  }
 
   return config
 }

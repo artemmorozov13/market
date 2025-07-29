@@ -16,6 +16,10 @@ export class UpdateStoreDto {
     @IsNumber()
     deliveryCost: number
 
+    @IsString()
+    @IsOptional()
+    imageUrl?: string
+
     @IsNumber()
     deliveryFreeFromLimit: number
 

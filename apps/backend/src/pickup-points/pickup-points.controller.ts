@@ -6,24 +6,18 @@ import {
   Delete,
   Param,
   Body,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UsePipes,
-  ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
 import { CreatePickupPointDto } from './dto/create-pickup-point.dto';
 import { UpdatePickupPointDto } from './dto/update-pickup-point.dto';
 import { PickupPointService } from './pickup-points.service';
-import { PickupPointEntity } from '@core/entities/pickup-point.entity';
-import { PickupWorkingHoursEntity } from '@core/entities/pickup-working-hours.entity';
 import { JwtAuthGuard } from '@app/auth/guards/jwt-auth/jwt-auth.guard';
 import { RolesGuard } from '@app/auth/guards/roles/roles.guard';
 import { AllowRoles } from '@app/auth/decorators/roles.decorator';
 import { Roles } from '@core/enums/role-enum';
 import { User } from '@app/decorators/user.decorator';
 import { AuthJwtPayload } from '@core/types/user-type';
+import { PickupPointEntity } from '@core/entities';
 
 @Controller('pickup-points')
 export class PickupPointsController {
@@ -31,8 +25,8 @@ export class PickupPointsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(): Promise<PickupPointEntity[]> {
-    return this.pickupPointService.findAll();
+  async findAll(@User() user: AuthJwtPayload): Promise<PickupPointEntity[]> {
+    return this.pickupPointService.findAll(user);
   }
 
   @UseGuards(JwtAuthGuard)

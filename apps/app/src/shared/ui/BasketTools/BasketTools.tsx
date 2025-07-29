@@ -51,7 +51,7 @@ export const BasketTools: FC<BasketToolsProps> = observer((props) => {
                     </Tooltip>
                 </Box>
                 <Typography className={styles.totalPrice}>
-                    {`${totalPrice}₽`}
+                    {`${totalPrice.toFixed()}₽`}
                 </Typography>
                 </Box>
             ) : (

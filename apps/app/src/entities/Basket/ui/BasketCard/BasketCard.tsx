@@ -103,11 +103,11 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
           <Box className={styles.priceSection}>
             <Box className={styles.priceContainer}>
               <Typography className={styles.currentPrice}>
-                {totalPrice.toFixed(2)} ₽
+                {totalPrice.toFixed()} ₽
               </Typography>
               {hasDiscount && (
                 <Typography className={styles.originalPrice}>
-                  {totalOriginalPrice.toFixed(2)} ₽
+                  {totalOriginalPrice.toFixed()} ₽
                 </Typography>
               )}
             </Box>

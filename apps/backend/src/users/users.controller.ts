@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CreateUserBodyDto } from './dto/create-user.dto';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
-import { TelegramLoginDto } from './dto/telegram-login.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { AuthJwtPayload } from '@core/types/user-type';
@@ -10,6 +9,8 @@ import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { TelegramLoginDto } from './dto/telegram-connect.dto';
+import { TelegramAuthData } from '@app/telegram/types/telegram-user-types';
 
 @Controller('users')
 export class UsersController {
@@ -38,9 +39,6 @@ export class UsersController {
     }
 
     @Post("create")
-    @AllowRoles(Roles.Admin)
-    @UseGuards(RolesGuard)
-    @UseGuards(JwtAuthGuard)
     createNewUser(@Body() body: CreateUserBodyDto) {
         return this.usersService.createUser(body)
     }
@@ -55,11 +53,21 @@ export class UsersController {
     ) {
         return this.usersService.updateUser(user, body)
     }
-
+    
+    @UseGuards(JwtAuthGuard)
     @Post('login')
-    loginWithTelegram(
-        @Body() body: TelegramLoginDto
-    ) {
-        return this.usersService.loginWithTelegram(body.initData, body.storeId);
+    loginWithtoken(@User() user: AuthJwtPayload) {
+        return this.usersService.login(user)
+    }
+
+    @Post('login-telegram')
+    loginWithTelegram(@Body() body: TelegramAuthData) {
+        return this.usersService.loginViaTelegram(body);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('telegram-connect')
+    connectTelegram(@User() user: AuthJwtPayload, @Body() body: TelegramLoginDto) {
+        return this.usersService.connectTelegram(user, body)
     }
 }

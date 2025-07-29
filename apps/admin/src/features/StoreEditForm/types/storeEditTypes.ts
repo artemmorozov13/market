@@ -1,3 +1,5 @@
+import { UploaderReturnType } from "@core/types/uploader-type";
+
 export interface StoreEditFormType {
     id: number,
     name: string,
@@ -6,6 +8,7 @@ export interface StoreEditFormType {
     minOrderBeforeDeliveryHours: number;
     deliveryCost: number,
     deliveryFreeFromLimit: number,
+    imageUrl: string | null
     telegramBotToken: string,
     logoUrl: string
     timezone: string

@@ -22,7 +22,6 @@ interface OrderDetailsProps {
 }
 
 export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
-  const { address } = useAddressById({ addressId: order.address });
   const { refetch } = useActiveOrder();
   const { cancelOrder } = useCancelOrder();
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -303,8 +302,8 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                     {item.product.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {item.quantity} × {item.product.price} ₽ ={' '}
-                    {(item.quantity * Number(item.product.price)).toFixed(2)} ₽
+                    {item.quantity} × {Number(item.product.price).toFixed()} ₽ ={' '}
+                    {(item.quantity * Number(item.product.price)).toFixed()} ₽
                   </Typography>
                 </Box>
               </Stack>
@@ -316,7 +315,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
         <Box className={styles.totalSection}>
           <Typography variant="h6" fontWeight={700}>
-            Итого: {order.totalAmount}₽
+            Итого: {Number(order.totalAmount).toFixed()}₽
           </Typography>
         </Box>
       </Paper>

@@ -52,14 +52,12 @@ export const ConfirmCancelOrder: FC<ConfirmCancelOrderProps> = ({
       <DialogActions className={styles.actions}>
         <Button 
           onClick={onClose} 
-          className={styles.cancelButton}
           variant="outlined"
         >
           Вернуться
         </Button>
         <Button 
           onClick={handleConfirm} 
-          className={styles.confirmButton}
           variant="contained"
           autoFocus
         >

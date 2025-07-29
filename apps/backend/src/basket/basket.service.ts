@@ -2,10 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthJwtPayload } from '@core/types/user-type';
-import { BasketEntity } from '@core/entities/basket.entity';
-import { ProductEntity } from '@core/entities/product.entity';
-import { SelectedProductEntity } from '@core/entities/selected-product.entity';
-import { UsersEntity } from '@core/entities/users.entity';
+import { BasketEntity, ProductEntity, SelectedProductEntity, UsersEntity } from '@core/entities';
 
 @Injectable()
 export class BasketService {

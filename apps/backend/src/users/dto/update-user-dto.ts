@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsOptional, IsString, IsEmail, IsInt, Min, Max, IsPhoneNumber, MaxLength } from 'class-validator';
 
 export class UpdateUserDto {
@@ -17,6 +18,8 @@ export class UpdateUserDto {
   age?: number;
 
   @IsOptional()
-  @IsPhoneNumber() // или кастомный декоратор для формата телефона
+  @IsString()
+  @Transform(({ value }) => value?.replace(/[^\d+]/g, ''))
+  @MaxLength(16)
   phone_number?: string;
 }

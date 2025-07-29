@@ -1,3 +1,4 @@
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 import * as yup from "yup";
 
 export const getOrderFormSchema = (deliveryMethod: string | null) => {
@@ -12,7 +13,7 @@ export const getOrderFormSchema = (deliveryMethod: string | null) => {
     comment: yup.string(),
   };
 
-  if (deliveryMethod === "delivery") {
+  if (deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance) {
     return yup.object({
       ...baseSchema,
       addressId: yup.number().required("Укажите адрес доставки"),
@@ -21,7 +22,7 @@ export const getOrderFormSchema = (deliveryMethod: string | null) => {
     });
   }
 
-  if (deliveryMethod === "pickup") {
+  if (deliveryMethod === DeliveryStrategyEnum.PickupByYourself) {
     return yup.object({
       ...baseSchema,
       pickupPointId: yup.number().required("Выберите пункт самовывоза"),

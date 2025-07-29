@@ -29,6 +29,7 @@ import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
 import { useAddStoreStrategy, useRemoveStoreStrategy, useStoreDeliveryStrategies, useStrategies } from '@entities/StoreStrategy';
 
 import styles from './StoreEditForm.module.scss';
+import { Uploader } from '@entities/Uploader/ui/Uploader';
 
 interface StoreEditFormProps {
   storeData: StoreBaseType;
@@ -64,13 +65,13 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   const isDeliveryFree = watch('isDeliveryFree');
 
   const handleCopyMiniAppUrl = () => {
-    navigator.clipboard.writeText(`https://t.me/fricti_test_bot/?startapp=shop_${storeData.id}`);
+    navigator.clipboard.writeText(`https://t.me/okacuki_bot/?startapp=shop_${storeData.id}`);
     setIsCopiedTelegram(true);
     setTimeout(() => setIsCopiedTelegram(false), 2000);
   };
 
   const handleCopyBrowserLink = () => {
-    navigator.clipboard.writeText(`https://fruvost.ru/app/?store=${storeData.id}`);
+    navigator.clipboard.writeText(`https://akacuki.ru/app/?store=${storeData.id}`);
     setIsCopiedBrowser(true);
     setTimeout(() => setIsCopiedBrowser(false), 2000);
   };
@@ -107,6 +108,22 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
             Основная информация
           </Typography>
           
+          <Box mb={2}>
+            <Typography variant="subtitle1" gutterBottom>
+              Изображение магазина
+            </Typography>
+            <Controller
+              name='imageUrl'
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <Uploader
+                  value={value} 
+                  onChange={onChange} 
+                />
+              )}
+            />
+          </Box>
+
           <Controller
             name="name"
             control={control}
@@ -321,27 +338,8 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
         </section>
 
         {/* Интеграции */}
-        <section className={styles.section}>
+        <section className={styles.section}>          
           <Typography variant="h6" className={styles.sectionTitle}>
-            Интеграции
-          </Typography>
-          
-          <Controller
-            name="telegramBotToken"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Telegram Bot Token"
-                fullWidth
-                margin="normal"
-                error={!!errors.telegramBotToken}
-                helperText={errors.telegramBotToken?.message}
-              />
-            )}
-          />
-          
-          <Typography variant="subtitle1" className={styles.subsectionTitle}>
             Ссылки для клиентов
           </Typography>
           

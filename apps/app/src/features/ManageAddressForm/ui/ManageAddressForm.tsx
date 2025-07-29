@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Box, Skeleton, Typography, Chip } from "@mui/material";
+import { Button, Box, Skeleton, Typography, Chip, Paper } from "@mui/material";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import styles from "./ManageAddressForm.module.scss";
 import clsx from "clsx";
@@ -7,6 +7,7 @@ import { AddNewAddressModal } from "../../AddNewAddressModal";
 import { SelectOptionType } from "@/shared/ui/Select/types";
 import { useUser } from "@/entities/User";
 import { AddressType } from "@core/types/address-type";
+import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 
 interface ManageAddressFormProps {
     onAddressChange?: (address: AddressType) => void
@@ -32,22 +33,25 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
 
     if (!user?.addresses?.length) {
         return (
-            <>
+            <div className={styles.paper}>
                 <AddNewAddressModal
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
                     onAddressChange={onAddressChange}
                 />
-                <Box className={styles.emptyAddressSection}>
+                <div className={styles.emptyContainer}>
                     <Button
                         variant="contained"
+                        color="primary"
                         onClick={() => setIsOpen(true)}
+                        className={styles.button}
+                        startIcon={<AddLocationAltIcon fontSize="small" />}
                         fullWidth
                     >
                         Добавить адрес
                     </Button>
-                </Box>
-            </>
+                </div>
+            </div>
         );
     }
 
@@ -57,7 +61,7 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
     ) || user?.addresses?.[0];
 
     return (
-        <>
+        <Paper>
             <Box className={styles.addressSection}>
                 <Box className={styles.wrapper}>
                     <Box className={styles.addressInfo}>
@@ -83,6 +87,6 @@ export const ManageAddressForm: FC<ManageAddressFormProps> = ({ onAddressChange 
                 onClose={() => setIsOpen(false)}
                 onAddressChange={onAddressChange}
             />
-        </>
+        </Paper>
     );
 };

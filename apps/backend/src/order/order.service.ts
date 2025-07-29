@@ -12,25 +12,14 @@ import { exportToWideFormatExcel } from './export-generator/export-to-wide-forma
 import { formatUpdatedOrderMessage } from './notifications/formatUpdatedOrderMessage';
 import { CancelUserOrderDto } from './dto/cancel-user-order-dto';
 import { cancelOrderByUserMessage } from './notifications/cancelOrderByUserMessage';
-import { OrderEntity } from '@core/entities/order.entity';
-import { UsersEntity } from '@core/entities/users.entity';
-import { SelectedProductEntity } from '@core/entities/selected-product.entity';
-import { ProductEntity } from '@core/entities/product.entity';
-import { OrderedProductsEntity } from '@core/entities/ordered-products.entity';
-import { DeliveryTime } from '@core/entities/delivery-time.entity';
 import { OrderStatusEnum } from '@core/enums/order-status-enum';
-import { OrderStoreResolver } from './lib/order-store-resolver';
 import { AdminUpdateOrderStatusDto } from './dto/admin-update-order-status.dto';
 import { getCanceledByAdminMessage } from './notifications/admin-order-status-change.message';
 import { UsersService } from '@app/users/users.service';
-import { StoreUserService } from '@app/store-user/store-user.service';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { StoreService } from '@app/store/store.service';
-import { DeliveryArea } from '@core/entities/delivery-area.entity';
-import { StoreEntity } from '@core/entities/store.entity';
-import { PickupPointEntity } from '@core/entities/pickup-point.entity';
 import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum';
-import { DeliveryStrategy } from '@core/entities/delivery-strategy.entity';
+import { DeliveryArea, DeliveryStrategy, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity, ProductEntity, SelectedProductEntity, UsersEntity } from '@core/entities';
 
 @Injectable()
 export class OrderService {
@@ -332,7 +321,7 @@ export class OrderService {
       );
       
       const deliveryCost = deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance && 
-                          subtotal < store.deliveryFreeFromLimit 
+                          subtotal < store?.deliveryFreeFromLimit 
           ? store.deliveryCost 
           : 0;
       
@@ -362,7 +351,6 @@ export class OrderService {
           return this.orderedProductsRepository.create({
               product: selectedProduct.product,
               quantity: selectedProduct.quantity,
-              telegram_id: user.telegram_id,
               user: { id: userJwt.id },
               order: savedOrder,
           });
@@ -462,7 +450,7 @@ export class OrderService {
     const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
   
     // Обновляем заказ
-    order.totalAmount = totalAmount < user.store.deliveryFreeFromLimit ? totalAmount + user.store.deliveryCost : totalAmount;
+    order.totalAmount = totalAmount < order?.store?.deliveryFreeFromLimit ? totalAmount + user.store.deliveryCost : totalAmount;
     order.ordered_products = savedProducts;
   
     const savedOrder = await this.orderRepository.save(order);
@@ -480,8 +468,8 @@ export class OrderService {
       loadEagerRelations: false
     });
 
-    if (user.telegram_id) {
-      const userMessage = formatUpdatedOrderMessage(updatedOrder, updatedOrder.ordered_products, updatedOrder.deliveryArea, updatedOrder.deliveryTime);
+    if (user?.telegram_id) {
+      const userMessage = formatUpdatedOrderMessage(updatedOrder);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage

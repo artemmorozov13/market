@@ -10,7 +10,6 @@ import { AuthStoreUserDto } from './dto/auth-store-user.dto';
 import { StoreUserService } from '@app/store-user/store-user.service';
 import { StoreUserEntity } from '@core/entities/store-user.entity';
 import { UsersService } from '@app/users/users.service';
-import { StoreService } from '@app/store/store.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -22,19 +21,21 @@ export class AuthService {
         private storeUserService: StoreUserService,
         @Inject(refreshJwtConfig.KEY)
         private refreshTokenConfig:ConfigType<typeof refreshJwtConfig>,
-        private readonly storeService: StoreService
     ) {}
 
-    async generateToken(user: AuthJwtPayload) {
+    async generateToken(user: AuthJwtPayload | UsersEntity | StoreUserEntity ) {
+      if (user.role === Roles.Admin) {
+        const currentUser: AuthJwtPayload = {
+          id: user.id,
+          role: user.role,
+          storeId: (user as StoreUserEntity)?.store?.id || (user as AuthJwtPayload)?.storeId
+        }
+        return await this.jwtService.sign(currentUser)
+      }
       const currentUser: AuthJwtPayload = {
         id: user.id,
         role: user.role,
       }
-      if (user.role === Roles.Admin) {
-
-        currentUser.storeId = user.storeId;
-      }
-
       return await this.jwtService.sign(currentUser)
     }
 
@@ -103,29 +104,5 @@ export class AuthService {
         token,
         refreshToken
       }
-    }
-
-    async loginWithTelegramWidget(initData: TelegramAuthData, storeId: string) {
-      let user = await this.userService.getUserByTelegramId(initData.id);
-
-      if (!user) {
-        const store = await this.storeService.getStoreDataById(Number(storeId))
-        user = await this.userService.createUser({
-          telegram_id: initData.id,
-          name: initData.first_name,
-          telegram_username: initData.username,
-          role: Roles.User,
-          store: store
-        });
-      }
-
-      const token = await this.generateToken(user)
-      const refreshToken = await this.generateRefreshToken(user);
-
-      return {
-        user,
-        token,
-        refreshToken
-      };
     }
 }

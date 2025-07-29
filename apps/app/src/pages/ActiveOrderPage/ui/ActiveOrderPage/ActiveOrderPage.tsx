@@ -116,10 +116,8 @@ const ActiveOrderPage: FC = () => {
   };
 
   return (
-    <Layout>
-      <div className={styles.container}>      
+    <Layout>  
         {renderContent()}
-
         {selectedOrder && (
           <EditOrderModal
             open={isEditModalOpen}
@@ -127,7 +125,6 @@ const ActiveOrderPage: FC = () => {
             order={selectedOrder}
           />
         )}
-      </div>
     </Layout>
   );
 };

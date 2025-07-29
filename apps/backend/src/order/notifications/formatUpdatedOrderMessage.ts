@@ -1,8 +1,6 @@
-import { DeliveryTime } from "@core/entities/delivery-time.entity";
 import { OrderEntity } from "@core/entities/order.entity";
-import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
-import { DeliveryArea } from "@core/entities/delivery-area.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 const textByStatus: Record<OrderStatusEnum, string> = {
     waitForPay: "Создан",
@@ -10,15 +8,9 @@ const textByStatus: Record<OrderStatusEnum, string> = {
     canceled_by_user: 'Отменен',
     cancel_by_admin: 'Отменен Администратором',
     finished_and_rated: 'Заверешен и оценен'
-}
+};
 
-export const formatUpdatedOrderMessage = (
-    order: OrderEntity,
-    orderedProducts: OrderedProductsEntity[],
-    deliveryArea?: DeliveryArea | null,  // Делаем параметр опциональным
-    deliveryTime?: DeliveryTime | null, // Делаем параметр опциональным
-    changes?: string[]
-): string => {
+export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]): string => {
     const escape = (str: string | undefined | null) => 
         str ? str
             .replace(/&/g, '&amp;')
@@ -34,32 +26,71 @@ export const formatUpdatedOrderMessage = (
         year: 'numeric'
     };
 
-    const deliveryDate = escape(new Date(order.deliveryDate).toLocaleDateString('ru-RU', mskOptions));
-    const startTime = escape(deliveryTime?.startTime?.toString().slice(0, 5)); // Используем optional chaining
-    const endTime = escape(deliveryTime?.endTime?.toString().slice(0, 5));     // Используем optional chaining
-    const address = escape(order.fullAddress || order.address || 'Адрес не указан');
-    const pickupName = escape(deliveryArea?.name || 'Пункт выдачи не указан');
+    // Форматирование даты и времени
+    const deliveryDate = order.deliveryDate 
+        ? escape(new Date(order.deliveryDate).toLocaleDateString('ru-RU', mskOptions))
+        : 'Не указана';
+    
+    const startTime = order.deliveryTime?.startTime?.toString().slice(0, 5) || 'Не указано';
+    const endTime = order.deliveryTime?.endTime?.toString().slice(0, 5) || 'Не указано';
 
-    const productsTotal = orderedProducts.reduce(
-        (sum, p) => {
-            const price = Number(p.product?.price || 0);
-            const quantity = Number(p.quantity || 0);
-            return sum + (price * quantity);
-        },
+    // Определение информации о доставке/самовывозе
+    let deliveryInfo = '';
+    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
+        // Для самовывоза используем информацию из полей order
+        const pickupName = order.address?.replace('Самовывоз: ', '') || 'Не указан';
+        const pickupAddress = order.fullAddress || 'Не указан';
+        
+        deliveryInfo = `
+<b>📦 Самовывоз</b>
+┌──────────────────────
+│ 🏢 <b>Пункт выдачи:</b> ${escape(pickupName)}
+│ 📍 <b>Адрес:</b> ${escape(pickupAddress)}
+└──────────────────────
+        `;
+    } else {
+        // Для доставки
+        deliveryInfo = `
+<b>📦 Доставка</b>
+┌──────────────────────
+│ 📅 <b>Дата:</b> ${deliveryDate}
+│ ⏰ <b>Время:</b> ${startTime}–${endTime}
+│ 🏠 <b>Адрес:</b> ${escape(order.fullAddress || order.address || 'Не указан')}
+└──────────────────────
+        `;
+    }
+
+    // Расчет стоимости
+    const productsTotal = order.ordered_products.reduce(
+        (sum, p) => (
+            sum + (
+                Number(p.product?.price || 0) * Number(p.quantity || 0)
+            )
+        ),
         0
     );
-    const deliveryCost = productsTotal >= 4000 ? 0 : 100;
+    
+    let deliveryCost = 0;
+    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.DeliveryToEntrance) {
+        deliveryCost = productsTotal >= 4000 ? 0 : 100;
+    }
+    
     const totalAmount = productsTotal + deliveryCost;
-
+    
     const formatPrice = (price: number) => 
-        new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' })
-            .format(price)
-            .replace(',00', '');
+        new Intl.NumberFormat('ru-RU', { 
+            style: 'currency', 
+            currency: 'RUB',
+            minimumFractionDigits: 0
+        }).format(price).replace(',00', '');
 
-    const productsList = orderedProducts
-        .map(p => `▪️ ${escape(p.product?.name)} — ${escape(p.quantity?.toString())} × ${formatPrice(Number(p.product?.price || 0))}`)
+    // Список товаров
+    const productsList = order.ordered_products
+        .filter(p => p.product) // Фильтруем существующие продукты
+        .map(p => `▪️ ${escape(p.product?.name)} — ${p.quantity} × ${formatPrice(Number(p.product?.price || 0))}`)
         .join('\n');
 
+    // Блок изменений
     const changesBlock = changes?.length ? `
 <b>🔄 Изменения в заказе:</b>
 ${changes.map(change => `• ${escape(change)}`).join('\n')}
@@ -70,13 +101,7 @@ ${changes.map(change => `• ${escape(change)}`).join('\n')}
 
 ${changesBlock}
 
-<b>📦 Детали доставки</b>
-┌──────────────────────
-│ 📅 <b>Дата:</b> ${deliveryDate}
-│ ⏰ <b>Время:</b> ${startTime}–${endTime}
-│ 🏪 <b>Пункт выдачи:</b> ${pickupName}
-│ 📍 <b>Адрес:</b> ${address}
-└──────────────────────
+${deliveryInfo}
 
 <b>🛒 Состав заказа</b>
 ${productsList}

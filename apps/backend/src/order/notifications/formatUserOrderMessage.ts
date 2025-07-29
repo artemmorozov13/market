@@ -1,10 +1,6 @@
-import { DeliveryTime } from "@core/entities/delivery-time.entity";
-import { OrderEntity } from "@core/entities/order.entity";
-import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
-import { DeliveryArea } from "@core/entities/delivery-area.entity";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
-
+import { DeliveryArea, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity } from "@core/entities";
 
 const textByStatus: Record<OrderStatusEnum, string> = {
     waitForPay: "Создан",
@@ -12,13 +8,13 @@ const textByStatus: Record<OrderStatusEnum, string> = {
     canceled_by_user: 'Отменен',
     cancel_by_admin: 'Отменен Администратором',
     finished_and_rated: 'Заверешен и оценен'
-}
+};
 
 export const formatUserOrderMessage = (
     order: OrderEntity,
     orderedProducts: OrderedProductsEntity[],
-    deliveryArea: DeliveryArea,
-    deliveryTime: DeliveryTime
+    deliveryArea: DeliveryArea | null,
+    deliveryTime: DeliveryTime | null
 ): string => {
     const escape = (str: string) => str
         .replace(/&/g, '&amp;')
@@ -33,15 +29,19 @@ export const formatUserOrderMessage = (
         year: 'numeric'
     };
 
-    const deliveryDate = escape(new Date(order.deliveryDate).toLocaleDateString('ru-RU', mskOptions));
-    const startTime = escape(deliveryTime.startTime.toString().slice(0, 5));
-    const endTime = escape(deliveryTime.endTime.toString().slice(0, 5));
-    const address = escape(order.fullAddress || order.address);
-    const pickupName = escape(deliveryArea?.name || '');
+    // Format delivery date
+    const deliveryDate = order.deliveryDate 
+        ? escape(new Date(order.deliveryDate).toLocaleDateString('ru-RU', mskOptions))
+        : 'Не указана';
     
-    const productsTotal = orderedProducts.reduce((sum, p) => sum + (p.product.price * p.quantity), 0);
+    // Format delivery time
+    const startTime = deliveryTime?.startTime?.toString()?.slice(0, 5) || 'Не указано';
+    const endTime = deliveryTime?.endTime?.toString()?.slice(0, 5) || 'Не указано';
+
+    // Calculate totals
+    const productsTotal = orderedProducts.reduce((sum, p) => sum + (Number(p.product.price) * p.quantity), 0);
     
-    // Определяем стоимость доставки в зависимости от типа
+    // Determine delivery cost and description
     let deliveryCost = 0;
     let deliveryDescription = '';
 
@@ -54,53 +54,59 @@ export const formatUserOrderMessage = (
 
     const totalAmount = productsTotal + deliveryCost;
     
+    // Price formatter
     const formatPrice = (price: number) => new Intl.NumberFormat('ru-RU', {
         style: 'currency',
         currency: 'RUB',
         minimumFractionDigits: 0
     }).format(price).replace(',00', '');
 
+    // Products list
     const productsList = orderedProducts.map(p => 
-        `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ${formatPrice(p.product.price)}`
+        `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ${formatPrice(Number(p.product.price))}`
     ).join('\n');
 
-    // Формируем блок доставки в зависимости от типа
-    const deliveryDetails = order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself
-        ? `
-    <b>📦 Самовывоз</b>
-    ┌──────────────────────
-    │ 📅 <b>Дата:</b> ${deliveryDate}
-    │ ⏰ <b>Время:</b> ${startTime}–${endTime}
-    │ 🏢 <b>Пункт выдачи:</b> ${pickupName}
-    └──────────────────────
-            `
-            : `
-    <b>📦 Доставка</b>
-    ┌──────────────────────
-    │ 📅 <b>Дата:</b> ${deliveryDate}
-    │ ⏰ <b>Время:</b> ${startTime}–${endTime}
-    │ 🏠 <b>Адрес:</b> ${address}
-    │ 🚚 <b>Тип:</b> ${deliveryDescription}
-    └──────────────────────
-            `;
+    // Delivery/pickup details
+    let deliveryDetails = '';
+    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
+        const pickupPoint = order.pickupPoint as PickupPointEntity;
+        deliveryDetails = `
+<b>📦 Самовывоз</b>
+┌──────────────────────
+│ 🏢 <b>Пункт выдачи:</b> ${escape(pickupPoint?.name || 'Не указан')}
+│ 📍 <b>Адрес:</b> ${escape(pickupPoint?.fullAddress || 'Не указан')}
+└──────────────────────
+        `;
+    } else {
+        deliveryDetails = `
+<b>📦 Доставка</b>
+┌──────────────────────
+│ 📅 <b>Дата:</b> ${deliveryDate}
+│ ⏰ <b>Время:</b> ${startTime}–${endTime}
+│ 🚚 <b>Тип:</b> ${deliveryDescription}
+│ 🏠 <b>Адрес:</b> ${escape(order?.fullAddress || order?.address || 'Не указан')}
+└──────────────────────
+        `;
+    }
 
-        return `
-    <b>🛍️ Заказ #${order.id} подтверждён!</b>
+    // Final message template
+    return `
+<b>🛍️ Заказ #${order.id} подтверждён!</b>
 
-    ${deliveryDetails}
+${deliveryDetails}
 
-    <b>🛒 Состав заказа</b>
-    ${productsList}
+<b>🛒 Состав заказа</b>
+${productsList}
 
-    <b>💳 Итого к оплате</b>
-    ┌──────────────────────
-    │ <b>Товары:</b> ${formatPrice(productsTotal)}
-    ${deliveryCost > 0 ? `│ <b>Доставка:</b> ${formatPrice(deliveryCost)}` : '│ <b>Доставка:</b> Бесплатно'}
-    │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
-    └──────────────────────
+<b>💳 Итого к оплате</b>
+┌──────────────────────
+│ <b>Товары:</b> ${formatPrice(productsTotal)}
+${deliveryCost > 0 ? `│ <b>Доставка:</b> ${formatPrice(deliveryCost)}` : '│ <b>Доставка:</b> Бесплатно'}
+│ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
+└──────────────────────
 
-    <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
+<b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
 
-    По всем вопросам обращаться @Evamiir1.
-        `.trim();
+По всем вопросам обращаться @Evamiir1.
+    `.trim();
 };

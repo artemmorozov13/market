@@ -4,18 +4,18 @@ import { BasketBaseType } from "./basket-tipe"
 
 export interface UserType {
   id: number,
-  telegram_id: number,
-  telegram_username: string,
-  name: string,
-  phone_number: string,
+  telegram_id: number | null,
+  telegram_username: string | null,
+  name: string | null,
+  phone_number: string | null,
   is_phone_confirmed: boolean,
-  email: string,
-  age: number,
-  created_at: Date
-  updated_at: Date
+  email: string | null,
+  age: number | null,
+  created_at: Date | null
+  updated_at: Date | null
   selectedProducts: BasketBaseType[]
-  selectedAddressId: string
-  selectedAddress: AddressType
+  selectedAddressId: string | null
+  selectedAddress: AddressType | null
   addresses: AddressType[]
 }
 

@@ -17,7 +17,7 @@ const OrderPage: FC = observer(() => {
 
       createOrder(formData)
         .then(() => {
-          navigate(RoutePath.products);
+          navigate(RoutePath.activeOrders);
         })
         .catch((error) => {
           console.error('Order creation failed:', error);
