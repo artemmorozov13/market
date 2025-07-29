@@ -1,21 +1,31 @@
-import { FC, ReactNode, useState, useEffect } from "react"
+import { FC, ReactNode } from "react"
 import { CircularProgress } from "@mui/material"
 import styles from "./AuthProvider.module.scss"
 import 'react-toastify/dist/ReactToastify.css'
 import { userStore, useUser } from "@/entities/User"
-import { TelegramAuthData } from '@telegram-auth/react';
-import { LOCALSTORAGE_STOREID_KEY } from "@/shared/consts/applicationConsts";
+import { StartupScreen } from "@/widgets/StartupScreen"
+import { Roles } from "@core/enums/role-enum"
+import { observer } from "mobx-react-lite"
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
-const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
+const AuthProvider: FC<AuthProviderProps> = observer(({ children }) => {
   const urlParams = new URLSearchParams(window.location.search);
   const storeId = urlParams.get("store");
+  const { role } = userStore
+  const { user } = useUser({
+    storeId,
+    enabled: role !== Roles.NotAuthed
+  })
 
-  const { user } = useUser({ storeId })
 
+  if (role === Roles.NotAuthed) {
+    return (
+      <StartupScreen/>
+    )
+  }
   if (!user) {
     return (
       <div className={styles.wrapper}>
@@ -24,6 +34,6 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     )
   }
   return children
-}
+})
 
 export default AuthProvider

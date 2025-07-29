@@ -200,7 +200,7 @@ const BasketPage: FC = observer(() => {
                         </IconButton>
                       </Box>
                       <Typography className={styles.itemTotal}>
-                        {total.toFixed(2)} ₽
+                        {total.toFixed()} ₽
                       </Typography>
                       <IconButton 
                         onClick={() => clearBasketProduct(item.productId)}
@@ -221,7 +221,7 @@ const BasketPage: FC = observer(() => {
                     {selectedStoreGroup.items.reduce((acc, item) => {
                       const price = item.product.price
                       return acc + (price * item.quantity);
-                    }, 0).toFixed(2)} ₽
+                    }, 0).toFixed()} ₽
                   </Typography>
                 </Box>
                 <Box className={styles.summaryRow}>
@@ -253,21 +253,21 @@ const BasketPage: FC = observer(() => {
 
               <Box className={styles.summaryRow}>
                 <Typography>Товары ({totalItems})</Typography>
-                <Typography>{totalPrice.toFixed(2)} ₽</Typography>
+                <Typography>{totalPrice.toFixed()} ₽</Typography>
               </Box>
 
               {totalDiscount > 0 && (
                 <Box className={styles.summaryRow}>
                   <Typography>Скидка</Typography>
                   <Typography className={styles.discount}>
-                    -{totalDiscount.toFixed(2)} ₽
+                    -{totalDiscount.toFixed()} ₽
                   </Typography>
                 </Box>
               )}
 
               <Box className={styles.summaryRow}>
                 <Typography>Доставка</Typography>
-                <Typography>{totalDelivery.toFixed(2)} ₽</Typography>
+                <Typography>{totalDelivery.toFixed()} ₽</Typography>
               </Box>
 
               <Divider className={styles.divider} />
@@ -275,7 +275,7 @@ const BasketPage: FC = observer(() => {
               <Box className={styles.summaryRow}>
                 <Typography className={styles.grandTotal}>Итого к оплате</Typography>
                 <Typography className={styles.grandTotal}>
-                  {(totalPrice - totalDiscount + totalDelivery).toFixed(2)} ₽
+                  {(totalPrice - totalDiscount + totalDelivery).toFixed()} ₽
                 </Typography>
               </Box>
 

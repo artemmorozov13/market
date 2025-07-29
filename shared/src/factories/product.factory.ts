@@ -29,7 +29,7 @@ export const ProductFactory = setSeederFactory(ProductEntity, () => {
         ])}`;
     product.price = parseFloat(customFaker.commerce.price({ min: 100, max: 5000 }));
     product.discount = product.offeredPrice 
-        ? parseFloat(((1 - product.offeredPrice / product.price) * 100).toFixed(2))
+        ? parseFloat(((1 - product.offeredPrice / product.price) * 100).toFixed())
         : 0;
     product.image = customFaker.image.url();
     product.unitValue = customFaker.number.int({ min: 1, max: 10 });

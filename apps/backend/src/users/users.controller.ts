@@ -9,6 +9,8 @@ import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { TelegramLoginDto } from './dto/telegram-connect.dto';
+import { TelegramAuthData } from '@app/telegram/types/telegram-user-types';
 
 @Controller('users')
 export class UsersController {
@@ -54,7 +56,18 @@ export class UsersController {
     
     @UseGuards(JwtAuthGuard)
     @Post('login')
-    loginWithTelegram(@User() user: AuthJwtPayload) {
+    loginWithtoken(@User() user: AuthJwtPayload) {
         return this.usersService.login(user)
+    }
+
+    @Post('login-telegram')
+    loginWithTelegram(@Body() body: TelegramAuthData) {
+        return this.usersService.loginViaTelegram(body);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('telegram-connect')
+    connectTelegram(@User() user: AuthJwtPayload, @Body() body: TelegramLoginDto) {
+        return this.usersService.connectTelegram(user, body)
     }
 }

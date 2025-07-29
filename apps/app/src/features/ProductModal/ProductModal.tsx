@@ -133,11 +133,11 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
                 {hasDiscount && (
                   <>
                     <Typography variant="h5" className={styles.finalPrice}>
-                      {finalPrice.toFixed(2)} ₽
+                      {finalPrice.toFixed()} ₽
                     </Typography>
                     <Box className={styles.originalPriceContainer}>
                       <Typography variant="body1" className={styles.originalPrice}>
-                        {/* {originalPrice?.toFixed(2)} ₽ */}
+                        {/* {originalPrice?.toFixed()} ₽ */}
                       </Typography>
                       <Chip 
                         label={`-${discount}%`} 
@@ -150,7 +150,7 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
                 )}
                 {!hasDiscount && (
                   <Typography variant="h5" className={styles.finalPrice}>
-                    {/* {originalPrice?.toFixed(2)} ₽ */}
+                    {/* {originalPrice?.toFixed()} ₽ */}
                   </Typography>
                 )}
               </Box>

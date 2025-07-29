@@ -96,7 +96,7 @@ export const Product: FC<ProductProps> = (props) => {
                                 Цена поставщика:
                             </Typography>
                             <Typography variant="h6" className={styles.vendorPriceValue}>
-                                {Number(product.offeredPrice).toFixed(2)} ₽
+                                {Number(product.offeredPrice)} ₽
                             </Typography>
                         </Box>
                         <Divider className={styles.divider} />
@@ -116,7 +116,7 @@ export const Product: FC<ProductProps> = (props) => {
                                 [styles.expiredText]: isExpired,
                                 [styles.revokedText]: isRevoked
                             })}>
-                                {discountedPrice.toFixed(2)}&nbsp;₽
+                                {discountedPrice.toFixed()}&nbsp;₽
                             </Typography>
                             <Chip
                                 label={`-${Math.ceil(Number(product.discount))}%`}

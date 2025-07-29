@@ -1,4 +1,4 @@
-import { useUpdateUser, useUser } from "@/entities/User";
+import { useTelegramIntegrate, useUpdateUser, useUser } from "@/entities/User";
 import { Layout } from "@/widgets/Layout";
 import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -11,11 +11,13 @@ import {
   Divider,
   IconButton,
   Paper,
+  Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import styles from "./ProfilePage.module.scss";
 import clsx from "clsx";
 
@@ -27,8 +29,9 @@ type FormData = {
 };
 
 const ProfilePage: FC = () => {
-  const { user } = useUser();
+  const { user, refetchUser } = useUser();
   const { updateUser } = useUpdateUser()
+  const { authViaTelegram } = useTelegramIntegrate()
 
   const [isEditing, setIsEditing] = useState(false);
   const {
@@ -56,8 +59,8 @@ const ProfilePage: FC = () => {
   };
 
   const handleTelegramAuth = (data: TelegramAuthData) => {
-    console.log("Данные авторизации Telegram:", data);
-    // Обработка данных авторизации Telegram
+    authViaTelegram(data)
+      .then(() => refetchUser())
   };
 
   if (!user) {
@@ -176,29 +179,6 @@ const ProfilePage: FC = () => {
                 />
               )}
             />
-
-            <Controller
-              name="age"
-              control={control}
-              rules={{
-                min: { value: 13, message: "Возраст должен быть не менее 13" },
-                max: { value: 120, message: "Возраст должен быть меньше 120" },
-              }}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Возраст"
-                  variant="outlined"
-                  type="number"
-                  fullWidth
-                  disabled={!isEditing}
-                  className={styles.formField}
-                  error={!!errors.age}
-                  helperText={errors.age?.message}
-                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                />
-              )}
-            />
           </Box>
 
           {isEditing && (
@@ -232,19 +212,35 @@ const ProfilePage: FC = () => {
           </Typography>
           
           <Box className={styles.integrationContainer}>
-            <Typography variant="body1" className={styles.integrationTitle}>
-              Telegram
-            </Typography>
-            <LoginButton
-              botUsername={'okacuki_bot'}
-              authCallbackUrl={'https://akacuki.ru/app'}
-              buttonSize="large"
-              cornerRadius={8}
-              showAvatar={true}
-              lang="ru"
-              onAuthCallback={handleTelegramAuth}
-              requestAccess={'write'}
-            />
+            <Box display="flex" alignItems="center" gap={2} mb={2}>
+              <Typography variant="body1" className={styles.integrationTitle}>
+                Telegram
+              </Typography>
+              {user.telegram_id ? (
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Chip
+                    label="Подключен" 
+                    color="success" 
+                    size="small" 
+                    icon={<CheckCircleOutlineIcon fontSize="small" />}
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    ID: {user.telegram_id}
+                  </Typography>
+                </Box>
+              ) : (
+                <LoginButton
+                  botUsername={'okacuki_bot'}
+                  authCallbackUrl={'https://akacuki.ru/app'}
+                  buttonSize="large"
+                  cornerRadius={8}
+                  showAvatar={true}
+                  lang="ru"
+                  onAuthCallback={handleTelegramAuth}
+                  requestAccess={'write'}
+                />
+              )}
+            </Box>
           </Box>
         </Box>
       </Paper>

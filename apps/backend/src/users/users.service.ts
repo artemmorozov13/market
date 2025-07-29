@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BasketService } from 'src/basket/basket.service';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { GetQueryParamsDto } from './dto/get-query-params.dto';
 import { TelegramUtils } from 'src/utils/telegram.utils';
 import { AuthService } from 'src/auth/auth.service';
@@ -12,6 +12,9 @@ import { AuthJwtPayload } from '@core/types/user-type';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { JwtService } from '@nestjs/jwt';
 import { AddressesEntity } from '@core/entities';
+import { TelegramAuthData } from '@app/telegram/types/telegram-user-types';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { TelegramLoginDto } from './dto/telegram-connect.dto';
 
 @Injectable()
 export class UsersService {
@@ -122,5 +125,35 @@ export class UsersService {
       refreshToken: await this.authService.generateRefreshToken(user),
       token: await this.authService.generateToken(user),
     };
+  }
+
+  async connectTelegram(userJwt: AuthJwtPayload, telegramUser: TelegramLoginDto) {
+    const isValid = this.telegramUtils.validateInitDataObject(telegramUser)
+
+    if (isValid) {
+      const options: FindOptionsWhere<UsersEntity> = {
+        id: userJwt.id
+      }
+      const payload: QueryDeepPartialEntity<UsersEntity> = {
+        telegram_id: telegramUser.id,
+        telegram_username: telegramUser.username,
+      }
+      return await this.usersRepository.update(options, payload)
+    }
+    throw new BadRequestException('Invalid Telegram Data');
+  }
+
+  async loginViaTelegram(telegramUser: TelegramLoginDto) {
+    const isValid = this.telegramUtils.validateInitDataObject(telegramUser)
+
+    if (isValid) {
+      const user = await this.getUserByTelegramId(telegramUser.id);
+      return {
+        user: user,
+        refreshToken: await this.authService.generateRefreshToken(user),
+        token: await this.authService.generateToken(user),
+      }
+    }
+    throw new BadRequestException('Invalid Telegram Data');
   }
 }

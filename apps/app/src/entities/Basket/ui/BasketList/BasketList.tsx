@@ -47,7 +47,7 @@ export const BasketList: FC = observer(() => {
                 )}
                 <div className={styles.basketFooter}>
                     <span className={styles.totalPrice}>
-                        {totalPriceFixed.toFixed(2)}&nbsp;₽
+                        {totalPriceFixed.toFixed()}&nbsp;₽
                     </span>
                     <Link to={RoutePath.order}>
                         <Button

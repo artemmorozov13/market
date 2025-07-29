@@ -14,6 +14,7 @@ import { accessCookiesOptions, refreshCookiesOptions } from "@core/consts/token-
 interface FetchUserDataOptions {
     storeId?: string | number | null
     onSuccess?: () => void
+    enabled?: boolean
 }
 
 const fetchUserData = async (options?: FetchUserDataOptions) => {
@@ -21,7 +22,6 @@ const fetchUserData = async (options?: FetchUserDataOptions) => {
 
   if (refreshToken) {
     const response = await API.post<AuthViaTelegramResponse>("/users/login", {
-      initData: window.Telegram?.WebApp.initData,
       storeId: options?.storeId
     });
 
@@ -59,6 +59,7 @@ export const useUser = (options?: FetchUserDataOptions) => {
         queryClient.invalidateQueries({ queryKey: ['delivery-times'] });
         return response
     },
+    enabled: !!options?.enabled
   });
 
   return {
