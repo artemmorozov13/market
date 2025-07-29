@@ -19,7 +19,6 @@ const StartupScreen: FC = () => {
   const { authViaTelegram } = useTelegramAuth()
 
   const handleTelegramAuth = (user: TelegramAuthData) => {
-    console.log(user)
     authViaTelegram(user)
   }
 
