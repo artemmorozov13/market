@@ -35,18 +35,6 @@ const fetchUserData = async (options?: FetchUserDataOptions) => {
     await fetchBasketList();
     return response.data.user;
   }
-  
-  const response = await API.post<AuthViaTelegramResponse>('/users/create');
-  const { setUserData, setUserRole } = userStore;
-  const { fetchBasketList } = basketStore;
-
-  Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions);
-  Cookies.set(REFRESH_TOKEN, response.data.refreshToken, accessCookiesOptions);
-  setUserData(response.data);
-  setUserRole(Roles.User);
-
-  await fetchBasketList();
-  return response.data.user;
 }
 
 export const useUser = (options?: FetchUserDataOptions) => {

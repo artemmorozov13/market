@@ -10,12 +10,13 @@ import {
 } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
-import { userStore, useTelegramAuth, useTelegramAuthData } from '@/entities/User';
+import { useCreateUser, userStore, useTelegramAuth, useTelegramAuthData } from '@/entities/User';
 import { Roles } from '@core/enums/role-enum';
 import styles from './StartupScreen.module.scss';
 
 const StartupScreen: FC = () => {
   const { initData } = useTelegramAuthData()
+  const { createAnonimousUser } = useCreateUser()
   const { authViaTelegram } = useTelegramAuth()
 
   const handleTelegramAuth = (user: TelegramAuthData) => {
@@ -25,6 +26,7 @@ const StartupScreen: FC = () => {
   const handleAnonimousAuth = () => {
     const { setUserRole } = userStore
     setUserRole(Roles.User)
+    createAnonimousUser()
   }
 
   useEffect(() => {
