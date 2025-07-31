@@ -6,39 +6,40 @@ import {
   Paper, 
   Alert,
   Divider,
-  Stack
+  Stack,
+  LinearProgress
 } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { useCreateUser, userStore, useTelegramAuth, useTelegramAuthData } from '@/entities/User';
 import { Roles } from '@core/enums/role-enum';
 import styles from './StartupScreen.module.scss';
-import { useNavigate } from 'react-router';
 import { RoutePath } from '@/shared/routes/routeConfig';
 
 const StartupScreen: FC = () => {
-  const navigate = useNavigate()
-  const { initData } = useTelegramAuthData()
-  const { createAnonimousUser } = useCreateUser()
-  const { authViaTelegram } = useTelegramAuth()
+  const { initData } = useTelegramAuthData();
+  const { createAnonimousUser, isPending: isAnonPending } = useCreateUser();
+  const { authViaTelegram, isPending: isTelegramPending } = useTelegramAuth();
+
+  const isLoading = isAnonPending || isTelegramPending;
 
   const handleTelegramAuth = async (user: TelegramAuthData) => {
-    await authViaTelegram(user)
-    navigate(RoutePath.stores)
-  }
+    await authViaTelegram(user);
+    window.location.replace(RoutePath.stores);
+  };
 
   const handleAnonimousAuth = async () => {
-    const { setUserRole } = userStore
-    setUserRole(Roles.User)
-    await createAnonimousUser()
-    navigate(RoutePath.stores)
-  }
+    const { setUserRole } = userStore;
+    setUserRole(Roles.User);
+    await createAnonimousUser();
+    window.location.replace(RoutePath.stores);
+  };
 
   useEffect(() => {
     if (initData) {
-      authViaTelegram(initData)
+      authViaTelegram(initData);
     }
-  }, [initData])
+  }, [initData]);
  
   return (
     <Box className={styles.container}>
@@ -52,6 +53,9 @@ const StartupScreen: FC = () => {
         <Alert severity="info" className={styles.alert}>
           Вы можете войти анонимно или авторизоваться через соцсети
         </Alert>
+
+        {/* Добавляем LinearProgress, который показывается при загрузке */}
+        {isLoading && <LinearProgress sx={{ marginBottom: 2 }} />}
         
         <Stack spacing={2} className={styles.actions}>
           <Button 
@@ -60,6 +64,7 @@ const StartupScreen: FC = () => {
             color="primary"
             className={styles.primaryButton}
             onClick={handleAnonimousAuth}
+            disabled={isLoading} // Блокируем кнопку во время загрузки
           >
             Продолжить без авторизации
           </Button>
