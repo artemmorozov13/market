@@ -12,7 +12,7 @@ import { ProductType } from '@core/types/product-item';
 const AddProductPage: FC = observer(() => {
     const { createProduct } = useCreateProduct()
 
-    const createNewProduct = (data: ProductType, methods: UseFormReturn<ProductFormType, any, undefined>) => {
+    const createNewProduct = (data: ProductType, methods: UseFormReturn<ProductFormType>) => {
         createProduct(data)
         .then(() => {
             toast("Добавлен новый товар", { type: "success" })

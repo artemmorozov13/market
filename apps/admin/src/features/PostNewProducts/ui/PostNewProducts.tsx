@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useForm, Controller, UseFormReturn, ControllerRenderProps } from 'react-hook-form';
+import { useForm, Controller, UseFormReturn } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { TextField, Button, Box, Typography } from '@mui/material';
 import { productSchema } from '../lib/productValidationSchema';
@@ -10,7 +10,7 @@ import { UploaderReturnType } from '@core/types/uploader-type';
 
 interface ProductFormProps {
   initialValues?: ProductFormType
-  onSubmit?: (data: ProductFormType, methods: UseFormReturn<ProductFormType, any, undefined>) => void;
+  onSubmit?: (data: ProductFormType, methods: UseFormReturn<ProductFormType>) => void;
 }
 
 export const ProductForm: React.FC<ProductFormProps> = (props) => {

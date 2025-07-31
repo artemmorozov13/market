@@ -4,7 +4,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "../consts/consts";
 import { accessCookiesOptions } from "@core/consts/token-settings"
 
 let isRefreshing = false;
-const timedoutRequestsQueue: [NodeJS.Timeout, (value: unknown) => void][] = [];
+const timedoutRequestsQueue: [any, (value: unknown) => void][] = [];
 const TIMEOUT_REQUEST = 30000;
 
 export const requestTokenMiddleware: any = async (
