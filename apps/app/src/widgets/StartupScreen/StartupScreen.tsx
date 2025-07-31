@@ -38,6 +38,7 @@ const StartupScreen: FC = () => {
   useEffect(() => {
     if (initData) {
       authViaTelegram(initData);
+      window.location.replace(RoutePath.stores);
     }
   }, [initData]);
  

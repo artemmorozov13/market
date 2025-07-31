@@ -213,9 +213,6 @@ const ProfilePage: FC = () => {
           
           <Box className={styles.integrationContainer}>
             <Box display="flex" alignItems="center" gap={2} mb={2}>
-              <Typography variant="body1" className={styles.integrationTitle}>
-                Telegram
-              </Typography>
               {user.telegram_id ? (
                 <Box display="flex" alignItems="center" gap={1}>
                   <Chip
