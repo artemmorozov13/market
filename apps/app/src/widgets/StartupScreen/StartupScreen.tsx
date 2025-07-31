@@ -13,20 +13,25 @@ import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { useCreateUser, userStore, useTelegramAuth, useTelegramAuthData } from '@/entities/User';
 import { Roles } from '@core/enums/role-enum';
 import styles from './StartupScreen.module.scss';
+import { useNavigate } from 'react-router';
+import { RoutePath } from '@/shared/routes/routeConfig';
 
 const StartupScreen: FC = () => {
+  const navigate = useNavigate()
   const { initData } = useTelegramAuthData()
   const { createAnonimousUser } = useCreateUser()
   const { authViaTelegram } = useTelegramAuth()
 
-  const handleTelegramAuth = (user: TelegramAuthData) => {
-    authViaTelegram(user)
+  const handleTelegramAuth = async (user: TelegramAuthData) => {
+    await authViaTelegram(user)
+    navigate(RoutePath.stores)
   }
 
-  const handleAnonimousAuth = () => {
+  const handleAnonimousAuth = async () => {
     const { setUserRole } = userStore
     setUserRole(Roles.User)
-    createAnonimousUser()
+    await createAnonimousUser()
+    navigate(RoutePath.stores)
   }
 
   useEffect(() => {
