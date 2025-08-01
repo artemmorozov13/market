@@ -4,7 +4,7 @@ import { TelegramAuthData } from "@telegram-auth/react";
 
 
 export const postTelegramIntegrate = async (body: TelegramAuthData) => {
-    const response = await API.post('/users/connect', body)
+    const response = await API.post('/users/telegram-connect', body)
     return response.data
 }
 
