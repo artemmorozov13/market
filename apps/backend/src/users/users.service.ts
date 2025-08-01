@@ -129,8 +129,17 @@ export class UsersService {
 
   async connectTelegram(userJwt: AuthJwtPayload, telegramUser: TelegramLoginDto) {
     const isValid = this.telegramUtils.validateInitDataObject(telegramUser)
+    const findUser = await this.getUserByTelegramId(telegramUser.id)
 
-    if (isValid) {
+    if (!isValid) {
+      throw new BadRequestException('Invalid Telegram Data');
+    }
+
+    if (findUser) {
+      return findUser
+    }
+
+    if (!findUser) {
       const options: FindOptionsWhere<UsersEntity> = {
         id: userJwt.id
       }
@@ -140,7 +149,6 @@ export class UsersService {
       }
       return await this.usersRepository.update(options, payload)
     }
-    throw new BadRequestException('Invalid Telegram Data');
   }
 
   async loginViaTelegram(telegramUser: TelegramLoginDto) {
