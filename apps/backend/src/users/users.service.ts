@@ -136,7 +136,11 @@ export class UsersService {
     }
 
     if (findUser) {
-      return findUser
+      return {
+        user: findUser,
+        refreshToken: await this.authService.generateRefreshToken(findUser),
+        token: await this.authService.generateToken(findUser),
+      };
     }
 
     if (!findUser) {
@@ -147,7 +151,13 @@ export class UsersService {
         telegram_id: telegramUser.id,
         telegram_username: telegramUser.username,
       }
-      return await this.usersRepository.update(options, payload)
+      await this.usersRepository.update(options, payload)
+      const user = await this.getUserById(userJwt.id)
+      return {
+        user: user,
+        refreshToken: await this.authService.generateRefreshToken(user),
+        token: await this.authService.generateToken(user),
+      };
     }
   }
 
