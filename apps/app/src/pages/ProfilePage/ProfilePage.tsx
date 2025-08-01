@@ -1,6 +1,6 @@
-import { useTelegramIntegrate, useUpdateUser, useUser } from "@/entities/User";
+import { useTelegramAuthData, useTelegramIntegrate, useUpdateUser, useUser } from "@/entities/User";
 import { Layout } from "@/widgets/Layout";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Box,
@@ -30,6 +30,7 @@ type FormData = {
 
 const ProfilePage: FC = () => {
   const { user, refetchUser } = useUser();
+  const { initData } = useTelegramAuthData();
   const { updateUser } = useUpdateUser()
   const { authViaTelegram } = useTelegramIntegrate()
 
@@ -62,6 +63,12 @@ const ProfilePage: FC = () => {
     authViaTelegram(data)
       .then(() => refetchUser())
   };
+
+  useEffect(() => {
+    if (initData) {
+      authViaTelegram(initData)
+    }
+  }, [initData])
 
   if (!user) {
     return (
@@ -228,7 +235,7 @@ const ProfilePage: FC = () => {
               ) : (
                 <LoginButton
                   botUsername={'okacuki_bot'}
-                  authCallbackUrl={'https://akacuki.ru/app'}
+                  authCallbackUrl={'https://akacuki.ru/app/profile'}
                   buttonSize="large"
                   cornerRadius={8}
                   showAvatar={true}
