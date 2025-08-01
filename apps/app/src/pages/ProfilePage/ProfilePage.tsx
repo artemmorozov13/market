@@ -59,14 +59,10 @@ const ProfilePage: FC = () => {
     setIsEditing(false);
   };
 
-  const handleTelegramAuth = (data: TelegramAuthData) => {
-    authViaTelegram(data)
-      .then(() => refetchUser())
-  };
-
   useEffect(() => {
     if (initData) {
       authViaTelegram(initData)
+        .then(() => refetchUser())
     }
   }, [initData])
 
@@ -240,7 +236,6 @@ const ProfilePage: FC = () => {
                   cornerRadius={8}
                   showAvatar={true}
                   lang="ru"
-                  onAuthCallback={handleTelegramAuth}
                   requestAccess={'write'}
                 />
               )}
