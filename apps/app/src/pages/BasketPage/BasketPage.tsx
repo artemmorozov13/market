@@ -127,7 +127,7 @@ const BasketPage: FC = observer(() => {
         </Box>
 
         {storeGroups.length > 1 && (
-          <Paper>
+          <Paper className={styles.tabsHeader}>
             <Tabs
               value={selectedStoreIndex}
               onChange={(_, newValue) => {
