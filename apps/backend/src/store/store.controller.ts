@@ -15,9 +15,9 @@ export class StoreController {
         private readonly storeService: StoreService
     ) {}
     
-    // @AllowRoles(Roles.User, Roles.SuperAdmin)
-    // @UseGuards(RolesGuard)
-    // @UseGuards(JwtAuthGuard)
+    @AllowRoles(Roles.User, Roles.SuperAdmin)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @Get()
     getStoreDataList(
         @User() user: AuthJwtPayload,

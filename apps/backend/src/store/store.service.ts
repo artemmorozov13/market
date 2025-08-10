@@ -51,99 +51,72 @@ export class StoreService {
 
     async getStoresDataWithPagination(
         userJwt: AuthJwtPayload,
-        page: number = 1,
-        limit: number = 10,
-        userAddressId?: number
+        page = 1,
+        limit = 10
     ): Promise<[StoreEntity[], number]> {
         const skip = (page - 1) * limit;
-        console.log('=== START DEBUG ===');
-        console.log('Input params:', { userJwt, page, limit, userAddressId });
 
-        // 1. Подзапрос для магазинов с самовывозом
-        const pickupStoresQuery = this.storeRepository.createQueryBuilder('store')
-            .innerJoin('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
-                pickupStatus: 'active'
-            })
-            .select('store.id');
-
-        console.log('Pickup stores subquery:', pickupStoresQuery.getQueryAndParameters());
-
-        // 2. Базовый запрос
-        const query = this.storeRepository.createQueryBuilder('store')
-            .leftJoinAndSelect('store.pickupPoints', 'pickupPoints', 'pickupPoints.status = :pickupStatus', {
-                pickupStatus: 'active'
-            })
-            .leftJoinAndSelect('store.deliveryAreas', 'deliveryAreas')
-            .leftJoinAndSelect('deliveryAreas.deliveryTimes', 'deliveryTimes')
-            .leftJoinAndSelect('store.products', 'product',
-                'product.status IN (:...statuses)', 
-                { statuses: [ProductStatusEnum.Accepted, ProductStatusEnum.Active] }
-            );
-
-        let userHasAddress = false;
         let userLat: number | null = null;
         let userLon: number | null = null;
 
-        // 3. Обработка пользователя с адресом
         if (userJwt?.id) {
-            console.log('User has ID, checking address...');
             const user = await this.usersService.getUserById(userJwt.id);
-            console.log('User found:', { id: user.id, hasAddress: !!user.selectedAddress });
-
-            if (user.selectedAddress) {
-                userHasAddress = true;
+            if (user?.selectedAddress) {
                 userLat = parseFloat(user.selectedAddress.geo_lat);
                 userLon = parseFloat(user.selectedAddress.geo_lon);
-                console.log('User address coordinates:', { userLat, userLon });
-
-                const deliveryStoresQuery = this.storeRepository.createQueryBuilder('store')
-                    .innerJoin('store.deliveryAreas', 'deliveryArea')
-                    .where(`
-                        6371 * ACOS(
-                            COS(RADIANS(:userLat)) * 
-                            COS(RADIANS(deliveryArea.geo_lat::float)) * 
-                            COS(RADIANS(deliveryArea.geo_lon::float) - RADIANS(:userLon)) + 
-                            SIN(RADIANS(:userLat)) * 
-                            SIN(RADIANS(deliveryArea.geo_lat::float))
-                        ) <= deliveryArea.radius / 1000
-                    `, { userLat, userLon })
-                    .select('store.id');
-
-                console.log('Delivery stores subquery:', deliveryStoresQuery.getQueryAndParameters());
-
-                query.where(`
-                    store.id IN (${pickupStoresQuery.getQuery()})
-                    OR store.id IN (${deliveryStoresQuery.getQuery()})
-                `)
-                .setParameters({
-                    ...pickupStoresQuery.getParameters(),
-                    ...deliveryStoresQuery.getParameters(),
-                    pickupStatus: 'active'
-                });
-            } else {
-                query.where(`store.id IN (${pickupStoresQuery.getQuery()})`)
-                    .setParameters(pickupStoresQuery.getParameters());
             }
+        }
+
+        const query = this.storeRepository
+            .createQueryBuilder('store')
+            .leftJoinAndSelect(
+                'store.pickupPoints',
+                'pickupPoints',
+                'pickupPoints.status = :pickupStatus',
+                { pickupStatus: 'active' }
+            )
+            .leftJoinAndSelect('store.deliveryAreas', 'deliveryAreas')
+            .leftJoinAndSelect('deliveryAreas.deliveryTimes', 'deliveryTimes')
+
+        // Фильтрация
+        if (userLat !== null && userLon !== null) {
+            query.where(
+                `
+                EXISTS (
+                    SELECT 1 FROM pickup_point pp
+                    WHERE pp.store_id = store.id
+                    AND pp.status = :pickupStatus
+                )
+                OR EXISTS (
+                    SELECT 1 FROM delivery_area da
+                    WHERE da.store_id = store.id
+                    AND da.status = 'active'
+                    AND 6371 * ACOS(
+                            COS(RADIANS(:userLat)) *
+                            COS(RADIANS(da.geo_lat::float)) *
+                            COS(RADIANS(da.geo_lon::float) - RADIANS(:userLon)) +
+                            SIN(RADIANS(:userLat)) *
+                            SIN(RADIANS(da.geo_lat::float))
+                    ) <= da.radius / 1000
+                )
+                `,
+                { pickupStatus: 'active', userLat, userLon }
+            );
         } else {
-            console.log('No user ID provided');
-            query.where(`store.id IN (${pickupStoresQuery.getQuery()})`)
-                .setParameters(pickupStoresQuery.getParameters());
+            query.where(
+                `EXISTS (
+                    SELECT 1 FROM pickup_point pp
+                    WHERE pp.store_id = store.id
+                    AND pp.status = :pickupStatus
+                )`,
+                { pickupStatus: 'active' }
+            );
         }
 
-        try {
-            const [stores, total] = await query
-                .skip(skip)
-                .take(limit)
-                .getManyAndCount();
-
-            return [stores, total];
-        } catch (error) {
-            console.error('Query error:', error);
-            throw error;
-        } finally {
-            console.log('=== END DEBUG ===');
-        }
+        const [stores, total] = await query.skip(skip).take(limit).getManyAndCount();
+        return [stores, total];
     }
+
 
     async getStoreDataById(storeId: number) {
         const store = await this.storeRepository.findOne({

@@ -208,14 +208,8 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
           )}
           <Stack direction="row" justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">Адрес доставки:</Typography>
-            <Typography variant="body2" textAlign="right">{order.fullAddress}</Typography>
+            <Typography variant="body2" textAlign="right">{`${order.fullAddress}`}</Typography>
           </Stack>
-          {order.deliveryArea && (
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" color="text.secondary">Зона доставки:</Typography>
-              <Typography variant="body2">{order.deliveryArea.name}</Typography>
-            </Stack>
-          )}
           <Stack direction="row" justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">Телефон:</Typography>
             <Typography variant="body2">{order.phoneNumber}</Typography>
@@ -269,7 +263,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
         <Stack spacing={2} className={styles.section}>
           <Stack direction="row" justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">Номер заказа:</Typography>
-            <Typography variant="body2">#{order.id}</Typography>
+            <Typography variant="body2">№{order.id}</Typography>
           </Stack>
           
           {renderDeliveryInfo()}

@@ -20,8 +20,8 @@ export class DadataService {
             query,
             count: 15,
             locations: [
-              { region: 'Санкт-Петербург' },
-              { region: 'Ленинградская' }
+              { region: 'Москва' },
+              { region: 'Московская' }
             ],
             restrict_value: true
           },

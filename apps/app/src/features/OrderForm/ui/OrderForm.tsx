@@ -493,7 +493,7 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
                 <TextField
                   value={formatToRussianPhone(value || '')}
                   onChange={(e) => onChange(formatToRussianPhone(e.target.value))}
-                  label="Номер телефона"
+                  label="Номер телефона получателя"
                   fullWidth
                   variant="outlined"
                   margin="normal"

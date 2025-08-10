@@ -240,7 +240,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
                           {...field}
                           label="Полный адрес *"
                           error={!!errors.fullAddress}
-                          helperText={errors.fullAddress?.message || "Введите адрес в Санкт-Петербурге или Ленинградской области"}
+                          helperText={errors.fullAddress?.message || "Введите адрес в Москве или Московской области"}
                           fullWidth
                           multiline
                           maxRows={4}
