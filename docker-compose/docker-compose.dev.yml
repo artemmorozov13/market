@@ -31,11 +31,11 @@ services:
       dockerfile: docker/backend.dev.Dockerfile
     environment:
       - NODE_ENV=development
-      - PORT=8000
+      - PORT=9000
     env_file:
       - ../.env.dev
     ports:
-      - "8000:8000"
+      - "9000:9000"
     volumes:
       - ../apps/backend:/app
       - ../shared/dist:/app/shared
