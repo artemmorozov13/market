@@ -39,7 +39,7 @@ services:
   app:
     build:
       context: ../
-      dockerfile: docker/backend.dev.Dockerfile
+      dockerfile: docker/app.prod.Dockerfile
     environment:
       - NODE_ENV=production
     env_file:
