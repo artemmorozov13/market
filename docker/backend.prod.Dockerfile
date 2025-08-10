@@ -41,5 +41,5 @@ RUN npm install --production
 # 3. Копируем shared модуль (уже с установленными зависимостями)
 COPY --from=builder /usr/src/app/shared ./shared
 
-EXPOSE 9000
+EXPOSE 8000
 CMD ["node", "dist/main.js"]

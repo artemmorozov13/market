@@ -46,7 +46,7 @@ services:
   admin:
     build:
       context: ../
-      dockerfile: docker/admin..dev.Dockerfile
+      dockerfile: docker/admin.dev.Dockerfile
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
@@ -62,7 +62,7 @@ services:
   app:
     build:
       context: ../
-      dockerfile: docker/app..dev.Dockerfile
+      dockerfile: docker/app.dev.Dockerfile
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
