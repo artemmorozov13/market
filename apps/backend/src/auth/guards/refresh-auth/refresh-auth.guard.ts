@@ -29,14 +29,12 @@ export class RefreshAuthGuard implements CanActivate {
         throw new UnauthorizedException('Неверный формат refresh token');
       }
 
-      // Верифицируем refresh token (используем другой секрет, если нужно)
       const user = this.jwtService.verify(token, {
-        secret: process.env.JWT_REFRESH_SECRET, // или ваш refresh secret
+        secret: process.env.REFRESH_JWT_SECRET_KEY,
       });
 
-      // Добавляем пользователя и сам refresh token в request
       request.user = user;
-      request.refreshToken = token; // Сохраняем refresh token для возможного использования
+      request.refreshToken = token;
 
       return true;
     } catch(e) {
