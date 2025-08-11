@@ -24,16 +24,16 @@ export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: 'bigint' })
+    @Column({ type: 'bigint', nullable: true })
     telegram_id: number;
 
-    @Column({ default: "" })
+    @Column({ default: "", nullable: true  })
     telegram_username: string
 
-    @Column()
+    @Column({ default: "", nullable: true })
     name: string
 
-    @Column({ default: "" })
+    @Column({ default: "", nullable: true  })
     phone_number: string
 
     @Column({ default: false })
@@ -42,10 +42,10 @@ export class UsersEntity {
     @Column({ nullable: true })
     email: string
 
-    @Column({ default: 0 })
+    @Column({ default: 0, nullable: true })
     age: number
 
-    @Column({ default: "123456" })
+    @Column({ default: "123456", nullable: true  })
     password: string
 
     @Column({
