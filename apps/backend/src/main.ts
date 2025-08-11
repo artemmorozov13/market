@@ -29,8 +29,8 @@ async function bootstrap() {
     prefix: '/static/',
   });
 
-  console.log(`Server started on port: ${process.env.PORT}`)
+  console.log(`Server started on port: ${process.env.PORT || 8000}`)
 
-  await app.listen(process.env.PORT || 3000, '0.0.0.0');
+  await app.listen(process.env.PORT || 8000, '0.0.0.0');
 }
 bootstrap();
