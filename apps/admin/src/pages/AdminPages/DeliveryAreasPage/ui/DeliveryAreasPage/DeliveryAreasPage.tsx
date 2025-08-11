@@ -167,7 +167,7 @@ const DeliveryAreasPage: FC = () => {
                         <Typography variant="body2" fontWeight="bold">{day}:</Typography>
                         {times.map((time, idx) => (
                           <Typography key={idx} variant="body2" sx={{ ml: 1 }}>
-                            {time.startTime.label} - {time.endTime.label}
+                            {time.startTime.label.slice(0,5)} - {time.endTime.label.slice(0,5)}
                           </Typography>
                         ))}
                       </Box>

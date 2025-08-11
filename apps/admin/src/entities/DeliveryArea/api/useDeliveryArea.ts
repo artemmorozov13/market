@@ -3,6 +3,7 @@ import { API } from '@shared/api/instance';
 import { dayOptions } from '@pages/AdminPages/DeliveryAreasPage/consts/intervals';
 import { DeliveryArea, DeliveryAreaForm, DeliveryAreaResponse } from '../types/pickupPointTypes';
 import { toast } from 'react-toastify';
+import { WeekdayEnum } from '@core/enums/weekday.enum';
 
 // Типы для параметров запросов
 interface FetchDeliveryAreasOptions {
@@ -15,24 +16,53 @@ interface UpdateDeliveryAreaData extends CreateDeliveryAreaData {
   id: number;
 }
 
-const formatDeliveryAreaData = (area: DeliveryAreaResponse): DeliveryArea => ({
-  ...area,
-  deliveryTimes: area.deliveryTimes.map((time) => ({
-    id: time.id,
-    dayOfWeek: {
-      value: time.dayOfWeek,
-      label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
-    },
-    startTime: {
-      value: time.startTime,
-      label: time.startTime
-    },
-    endTime: {
-      value: time.endTime,
-      label: time.endTime
-    }
-  }))
-});
+const formatDeliveryAreaData = (area: DeliveryAreaResponse): DeliveryArea => {
+  // Определяем порядок сортировки дней недели с правильной типизацией
+  const weekdayOrder: { [key in WeekdayEnum]: number } = {
+    [WeekdayEnum.MONDAY]: 1,
+    [WeekdayEnum.TUESDAY]: 2,
+    [WeekdayEnum.WEDNESDAY]: 3,
+    [WeekdayEnum.THURSDAY]: 4,
+    [WeekdayEnum.FRIDAY]: 5,
+    [WeekdayEnum.SATURDAY]: 6,
+    [WeekdayEnum.SUNDAY]: 7,
+  };
+
+  // Сортируем deliveryTimes с проверкой типа
+  const sortedDeliveryTimes = [...area.deliveryTimes]
+    .sort((a, b) => {
+      // Приводим тип к WeekdayEnum для безопасности
+      const dayA = a.dayOfWeek as WeekdayEnum;
+      const dayB = b.dayOfWeek as WeekdayEnum;
+      
+      // Сначала сортируем по дням недели
+      if (dayA !== dayB) {
+        return weekdayOrder[dayA] - weekdayOrder[dayB];
+      }
+      // Затем по времени начала
+      return a.startTime.localeCompare(b.startTime);
+    })
+    .map((time) => ({
+      id: time.id,
+      dayOfWeek: {
+        value: time.dayOfWeek,
+        label: dayOptions.find(d => d.value === time.dayOfWeek)?.label || time.dayOfWeek
+      },
+      startTime: {
+        value: time.startTime,
+        label: time.startTime
+      },
+      endTime: {
+        value: time.endTime,
+        label: time.endTime
+      }
+    }));
+
+  return {
+    ...area,
+    deliveryTimes: sortedDeliveryTimes
+  };
+};
 
 // Запрос на получение списка зон доставки
 export const useDeliveryAreas = (options?: FetchDeliveryAreasOptions) => {

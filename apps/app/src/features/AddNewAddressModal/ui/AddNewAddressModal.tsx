@@ -278,7 +278,7 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label="Парадная"
+                      label="Подъезд"
                       error={!!errors.entrance}
                       helperText={errors.entrance?.message}
                       fullWidth

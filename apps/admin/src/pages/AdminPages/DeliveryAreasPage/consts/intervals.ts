@@ -1,9 +1,14 @@
 import { DayOption, TimeOption } from "@entities/DeliveryArea";
 
-export const timeOptions: TimeOption[] = Array.from({ length: 24 }, (_, i) => ({
-    value: `${i.toString().padStart(2, '0')}:00`,
-    label: `${i.toString().padStart(2, '0')}:00`,
-  }));
+export const timeOptions: TimeOption[] = Array.from({ length: 48 }, (_, i) => {
+    const hours = Math.floor(i / 2);
+    const minutes = (i % 2) * 30;
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    return {
+        value: timeString,
+        label: timeString,
+    };
+});
   
 export const dayOptions: DayOption[] = [
     { value: 'monday', label: 'Понедельник' },
