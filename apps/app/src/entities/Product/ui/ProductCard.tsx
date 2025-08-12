@@ -116,7 +116,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
           />
           {discountPercentage > 0 && (
             <Box className={styles.discountBadge}>
-              -{discountPercentage}%
+              -{discountPercentage.toFixed()}%
             </Box>
           )}
         </Box>
@@ -129,7 +129,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
               </Typography>
               {discountPercentage > 0 && (
                 <Typography className={clsx(styles.originalPrice, styles.text)}>
-                  {originalPrice}&nbsp;₽
+                  {originalPrice.toFixed()}&nbsp;₽
                 </Typography>
               )}
             </Box>

@@ -36,7 +36,8 @@ export const ProductFactory = setSeederFactory(ProductEntity, () => {
     product.unitOfMeasurement = customFaker.helpers.arrayElement([
         UnitOfMeasuresEnum.GRAMS,
         UnitOfMeasuresEnum.KILOGRAMS,
-        UnitOfMeasuresEnum.PIECES
+        UnitOfMeasuresEnum.PIECES,
+        UnitOfMeasuresEnum.BUNCH
     ]);
     product.status = ProductStatusEnum.Active; // Только активные товары
     product.canelComment = ''; // Пустой комментарий для активных товаров

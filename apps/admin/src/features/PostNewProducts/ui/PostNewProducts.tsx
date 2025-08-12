@@ -98,7 +98,7 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
         render={({ field }) => (
           <TextField
             {...field}
-            label="Скидка"
+            label="Скидка ( 0% - 100% )"
             type="number"
             inputProps={{
               min: 0,
@@ -155,6 +155,7 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
             <option value="гр">гр</option>
             <option value="кг">кг</option>
             <option value="шт">шт</option>
+            <option value="букет">букет</option>
           </TextField>
         )}
       />

@@ -10,7 +10,6 @@ import {
   Chip
 } from "@mui/material";
 import { Order } from "../../types/activeOrderTypes";
-import { useAddressById } from "@/entities/Addresses";
 import { ConfirmCancelOrder } from "../ConfirmCancelOrder/ConfirmCancelOrder";
 import { useCancelOrder } from "@/entities/Order/api/cancelOrder";
 import { useActiveOrder } from "../../api/useActiveOrder";
@@ -32,8 +31,6 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
   const isPickup = order.orderDeliveryStrategy === "pickup_by_yourself";
   
-  // Для самовывоза всегда доступно изменение/отмена
-  // Для доставки - только если не прошла дата доставки
   const isAvailable = isPickup ? true : (() => {
     const now = new Date();
     const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
@@ -87,29 +84,13 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
         <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 500 }}>
           Режим работы:
         </Typography>
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            gap: 1,
-            background: 'rgba(0, 0, 0, 0.02)',
-            p: 1.5,
-            borderRadius: 1
-          }}
-        >
+        <Box className={styles.workingHours}>
           {groupedHours.map((group, index) => (
-            <Box 
-              key={index} 
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Box key={index} className={styles.workingHoursItem}>
+              <Typography className={styles.workingHoursDays}>
                 {group.days.join(', ')}
               </Typography>
-              <Typography variant="body2">
+              <Typography className={styles.workingHoursTime}>
                 {group.time}
               </Typography>
             </Box>
@@ -221,6 +202,11 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
     return null;
   };
 
+  // Функция для расчета цены со скидкой
+  const getDiscountedPrice = (price: number, discount: number) => {
+    return price * (1 - discount / 100);
+  };
+
   return (
     <>
       <ConfirmCancelOrder
@@ -230,7 +216,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
         onConfirm={handleConfirm}
       />
       
-      <Paper className={styles.root} elevation={3}>
+      <div className={styles.root}>
         {renderStatusBanner()}
 
         <Box className={styles.header}>
@@ -283,36 +269,111 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
             Состав заказа
           </Typography>
           <Stack spacing={2}>
-            {order.ordered_products.map((item) => (
-              <Stack key={item.id} direction="row" spacing={2} className={styles.productItem}>
-                <Avatar 
-                  variant="rounded" 
-                  src={item.product.image} 
-                  alt={item.product.name}
-                  sx={{ width: 64, height: 64 }}
-                />
-                <Box>
-                  <Typography variant="body1" fontWeight={500}>
-                    {item.product.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.quantity} × {Number(item.product.price).toFixed()} ₽ ={' '}
-                    {(item.quantity * Number(item.product.price)).toFixed()} ₽
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
+            {order.ordered_products.map((item) => {
+              const price = Number(item.product.price);
+              const discount = Number(item.product.discount) || 0;
+              const hasDiscount = discount > 0;
+              const discountedPrice = hasDiscount ? getDiscountedPrice(price, discount) : price;
+              const total = item.quantity * discountedPrice;
+              const originalTotal = item.quantity * price;
+
+              return (
+                <Stack key={item.id} direction="row" spacing={2} className={styles.productItem}>
+                  <Avatar 
+                    variant="rounded" 
+                    src={item.product.image} 
+                    alt={item.product.name}
+                    sx={{ width: 64, height: 64 }}
+                  />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body1" fontWeight={500}>
+                      {item.product.name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                      {hasDiscount ? (
+                        <>
+                          <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 500 }}>
+                            {discountedPrice.toFixed()} ₽
+                          </Typography>
+                          <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                            {price.toFixed()} ₽
+                          </Typography>
+                          <Chip 
+                            label={`-${discount}%`} 
+                            size="small" 
+                            color="error"
+                            sx={{ height: 20, fontSize: '0.75rem' }}
+                          />
+                        </>
+                      ) : (
+                        <Typography variant="body2">
+                          {price.toFixed()} ₽
+                        </Typography>
+                      )}
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" mt={0.5}>
+                      {item.quantity} шт. × {hasDiscount ? discountedPrice.toFixed() : price.toFixed()} ₽ ={' '}
+                      <Typography component="span" fontWeight={500} color="text.primary">
+                        {total.toFixed()} ₽
+                      </Typography>
+                      {hasDiscount && (
+                        <Typography component="span" variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', ml: 1 }}>
+                          {originalTotal.toFixed()} ₽
+                        </Typography>
+                      )}
+                    </Typography>
+                  </Box>
+                </Stack>
+              );
+            })}
           </Stack>
         </Box>
 
         <Divider className={styles.divider} />
 
         <Box className={styles.totalSection}>
-          <Typography variant="h6" fontWeight={700}>
-            Итого: {Number(order.totalAmount).toFixed()}₽
-          </Typography>
+          <Stack spacing={1} sx={{ width: '100%', maxWidth: 400 }}>
+            {/* Промежуточные итоги */}
+            {order.ordered_products.some(item => Number(item.product.discount) > 0) && (
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  Сумма без скидки:
+                </Typography>
+                <Typography variant="body2">
+                  {order.ordered_products
+                    .reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0)
+                    .toFixed()} ₽
+                </Typography>
+              </Stack>
+            )}
+            {order.ordered_products.some(item => Number(item.product.discount) > 0) && (
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  Скидка:
+                </Typography>
+                <Typography variant="body2" color="error.main">
+                  -{order.ordered_products
+                    .reduce((sum, item) => {
+                      const price = Number(item.product.price);
+                      const discount = Number(item.product.discount) || 0;
+                      return sum + (price * item.quantity * (discount / 100));
+                    }, 0)
+                    .toFixed()} ₽
+                </Typography>
+              </Stack>
+            )}
+            {/* Итоговая сумма */}
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="h6" fontWeight={700}>
+                Итого:
+              </Typography>
+              <Typography variant="h6" fontWeight={700}>
+                {Number(order.totalAmount)} ₽
+              </Typography>
+            </Stack>
+          </Stack>
         </Box>
-      </Paper>
+      </div>
     </>
   );
 };

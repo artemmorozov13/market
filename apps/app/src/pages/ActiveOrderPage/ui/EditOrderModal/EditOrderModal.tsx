@@ -8,6 +8,7 @@ import {
   Tooltip,
   IconButton,
   Skeleton,
+  Chip,
 } from "@mui/material";
 import { Order, OrderedProduct } from "../../types/activeOrderTypes";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -22,7 +23,6 @@ import styles from "./EditOrderModal.module.scss";
 import { BasketBaseType } from "@core/types/basket-tipe";
 import { StoreBaseType } from "@core/types/store-type";
 import { LazyLoadImage } from "react-lazy-load-image-component";
-
 
 interface EditOrderModalProps {
   open: boolean;
@@ -52,7 +52,6 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
     threshold: 0.1,
   });
 
-  
   const editOrderStore = useLocalObservable(editOrderModalStore)
   const {
     editingOrder,
@@ -66,6 +65,52 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
   } = editOrderStore
 
   const [isOpenInnerModal, setIsOpenInnerModal] = useState<boolean>(false)
+
+  // Функция для расчета цены со скидкой
+  const getDiscountedPrice = (price: number, discount: number) => {
+    return price * (1 - discount / 100);
+  };
+
+  // Функция для отображения цены со скидкой
+  const renderPrice = (product: { price: number | string, discount?: number | string | null }) => {
+    const price = Number(product.price);
+    const discount = Number(product.discount) || 0;
+    
+    if (discount > 0) {
+      const discountedPrice = getDiscountedPrice(price, discount);
+      return (
+        <Box>
+          <Typography className={styles.productPrice} sx={{ color: 'error.main', fontWeight: 500 }}>
+            {discountedPrice.toFixed()} ₽
+          </Typography>
+          <Typography className={styles.productPrice} sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+            {price.toFixed()} ₽
+          </Typography>
+          <Chip
+            label={`-${discount}%`} 
+            size="small" 
+            color="error"
+            sx={{ height: 20, fontSize: '0.75rem' }}
+          />
+        </Box>
+      );
+    }
+    
+    return (
+      <Typography className={styles.productPrice}>
+        {price.toFixed()} ₽
+      </Typography>
+    );
+  };
+
+  // Функция для расчета общей суммы товара
+  const calculateItemTotal = (price: number, quantity: number, discount?: number | null) => {
+    const effectiveDiscount = Number(discount) || 0;
+    const effectivePrice = effectiveDiscount > 0 
+      ? getDiscountedPrice(price, effectiveDiscount) 
+      : price;
+    return effectivePrice * quantity;
+  };
 
   const handlePlusProduct = (productId: number) => {
     increaseProduct(productId)
@@ -199,7 +244,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
         <Box className={styles.innerModal}>
           <Box className={styles.innerList}>
             {adaptedProducts.map((product) => (
-              <div className={styles.productItem}>
+              <div key={product.productId} className={styles.productItem}>
                 <LazyLoadImage
                   src={product.product.image}
                   alt={product.product.name}
@@ -209,9 +254,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
                   <Typography className={styles.productName}>
                     {product.product.name}
                   </Typography>
-                  <Typography className={styles.productPrice}>
-                    Цена: {product.product.price} ₽
-                  </Typography>
+                  {renderPrice(product.product)}
                 </Box>
                 {selectedProducts?.includes(product.product.id) ? (
                   <Box className={styles.basketControls}>
@@ -239,7 +282,20 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
                         </Tooltip>
                     </Box>
                     <Typography className={styles.totalPrice}>
-                        {`${Math.ceil(product.quantity * +product.product.price)}₽`}
+                        {`${calculateItemTotal(
+                          Number(product.product.price),
+                          product.quantity,
+                          Number(product.product.discount)
+                        ).toFixed()}₽`}
+                        {product.product.discount && Number(product.product.discount) > 0 && (
+                          <Typography component="span" variant="body2" sx={{ 
+                            textDecoration: 'line-through', 
+                            color: 'text.secondary',
+                            ml: 1
+                          }}>
+                            {(Number(product.product.price) * product.quantity).toFixed()}₽
+                          </Typography>
+                        )}
                     </Typography>
                   </Box>
               ) : (
@@ -257,8 +313,8 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
             ))}
           </Box>
           {isFetchingNextPage && Array.from({ length: 3 }).map((_, idx) => (
-              <Box className={styles.grid}>
-                <Skeleton key={idx} variant="rectangular" height={200} />
+              <Box key={idx} className={styles.grid}>
+                <Skeleton variant="rectangular" height={200} />
               </Box>
             ))}
 
@@ -278,7 +334,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
       ) : (
         <Box className={styles.modal}>
           <Typography variant="h6" className={styles.title}>
-            Редактирование заказа #{order?.id}
+            Редактирование заказа №{order?.id}
           </Typography>
           <Button 
               variant="contained" 
@@ -290,6 +346,14 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
           </Button>
           <Stack spacing={2} className={styles.productsList}>
             {editingOrder?.ordered_products.map(ordered_product => {
+              const totalWithDiscount = calculateItemTotal(
+                Number(ordered_product.product.price),
+                ordered_product.quantity,
+                Number(ordered_product.product.discount)
+              );
+              const totalWithoutDiscount = Number(ordered_product.product.price) * ordered_product.quantity;
+              const hasDiscount = ordered_product.product.discount && Number(ordered_product.product.discount) > 0;
+
               return (
                 <Box key={ordered_product.id} className={styles.productItem}>
                   <LazyLoadImage
@@ -301,9 +365,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
                     <Typography className={styles.productName}>
                       {ordered_product.product.name}
                     </Typography>
-                    <Typography className={styles.productPrice}>
-                      Цена: {ordered_product.product.price} ₽
-                    </Typography>
+                    {renderPrice(ordered_product.product)}
 
                     <Box className={styles.basketControls}>
                       <Box className={styles.quantityControls}>
@@ -330,7 +392,16 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
                           </Tooltip>
                       </Box>
                       <Typography className={styles.totalPrice}>
-                          {`${Math.ceil(ordered_product.quantity * +ordered_product.product.price)}₽`}
+                          {`${totalWithDiscount.toFixed()}₽`}
+                          {hasDiscount && (
+                            <Typography component="span" variant="body2" sx={{ 
+                              textDecoration: 'line-through', 
+                              color: 'text.secondary',
+                              ml: 1
+                            }}>
+                              {totalWithoutDiscount.toFixed()}₽
+                            </Typography>
+                          )}
                       </Typography>
                     </Box>
                   </Box>
@@ -359,7 +430,6 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
           </Box>
         </Box>
       )}
-
     </Modal>
   );
 });

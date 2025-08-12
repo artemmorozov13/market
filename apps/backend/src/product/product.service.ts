@@ -44,9 +44,6 @@ export class ProductService {
             where,
             skip,
             take: limit,
-            order: {
-                updatedAt: 'DESC',
-            },
             relations: ['store']
         });
 
@@ -124,10 +121,9 @@ export class ProductService {
     }
 
     async updateProduct(userJwt: AuthJwtPayload, id: number, updateProductDto: UpdateProductDto): Promise<ProductEntity> {
-        const user = await this.userResolver.resolveUser(userJwt);
         const product = await this.getProductById(id)
 
-        if (product.storeUser.id !== user.id) {
+        if (product?.storeUser?.id && product.storeUser.id !== userJwt.id) {
             const isDiscountChanged = Math.abs(Number(product.discount) - Number(updateProductDto.discount)) > 0.001;
 
             if (isDiscountChanged) {
@@ -141,18 +137,22 @@ export class ProductService {
             }
         }
         
-        switch(user.role) {
+        switch(userJwt.role) {
             case Roles.Admin:
                 await this.productRepository.update(id, {
                     ...updateProductDto,
-                    store: user.store,
+                    store: {
+                        id: userJwt.storeId
+                    },
                 });
                 return await this.productRepository.findOneBy({ id });
                 
             case Roles.Vendor:
                 await this.productRepository.update(id, {
                     ...updateProductDto,
-                    store: user.store,
+                    store: {
+                        id: userJwt.storeId
+                    },
                     price: null,
                     offeredPrice: updateProductDto.price,
                     status: ProductStatusEnum.Moderation

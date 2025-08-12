@@ -201,282 +201,294 @@ export class OrderService {
   }
   
   async createOrder(createOrderDto: CreateOrderDto, userJwt: AuthJwtPayload) {
-      const user = await this.userService.getUserById(userJwt.id);
-      const store = await this.storeService.getStoreDataById(createOrderDto.storeId);
+    const user = await this.userService.getUserById(userJwt.id);
+    const store = await this.storeService.getStoreDataById(createOrderDto.storeId);
 
-      // Получаем стратегию доставки
-      const deliveryStrategy = await this.deliveryStrategyRepository.findOne({
-          where: { type: createOrderDto.deliveryStrategy }
-      });
-
-      if (!deliveryStrategy) {
-          throw new NotFoundException('Стратегия доставки не найдена');
-      }
-
-      // Проверка режима работы магазина
-      const { available, reason } = await this.storeService.isDeliveryDateAvailable(
-          store,
-          new Date(createOrderDto.deliveryDate),
-          createOrderDto.deliveryTimeId
-      );
-
-      if (!available) {
-          throw new BadRequestException(reason);
-      }
-
-      // Проверка количества активных заказов
-      const activeOrdersCount = await this.orderRepository.count({
-          where: {
-              user: { id: userJwt.id },
-              store: { id: store.id },
-              status: OrderStatusEnum.WaitForPay
-          }
-      });
-
-      if (activeOrdersCount >= 3) {
-          throw new BadRequestException("Нельзя иметь более 3 активных заказов");
-      }
-
-      // Проверка на существующий заказ на ту же дату
-      const existingOrderOnSameDate = await this.orderRepository.findOne({
-          where: {
-              user: { id: userJwt.id },
-              store: { id: store.id },
-              deliveryDate: new Date(createOrderDto.deliveryDate),
-              status: OrderStatusEnum.WaitForPay
-          }
-      });
-
-      if (existingOrderOnSameDate) {
-          throw new BadRequestException("У вас уже есть заказ на выбранную дату");
-      }
-
-      // Получаем товары из корзины
-      const selectedProducts = await this.selectedProductsRepository.find({
-          where: {
-              user: { id: userJwt.id },
-              store: { id: store.id },
-              product: {
-                  status: In([ProductStatusEnum.Accepted, ProductStatusEnum.Active])
-              }
-          },
-          relations: ["product"]
-      });
-
-      if (!selectedProducts.length) {
-          throw new BadRequestException("Корзина пустая");
-      }
-
-      // Подготовка данных для заказа
-      let deliveryArea: DeliveryArea | null = null;
-      let deliveryTime: DeliveryTime | null = null;
-      let pickupPoint: PickupPointEntity | null = null;
-      let fullAddress = '';
-      let address = '';
-
-      if (deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance) {
-          if (!createOrderDto.address?.fullAddress?.trim()) {
-              throw new BadRequestException("Необходимо указать полный адрес доставки");
-          }
-
-          deliveryArea = await this.deliveryAreaRepository.findOne({
-              where: { id: createOrderDto.deliveryAreaId, store: { id: store.id } }
-          });
-
-          if (!deliveryArea) {
-              throw new NotFoundException('Зона доставки не найдена');
-          }
-
-          deliveryTime = await this.deliveryTimeRepository.findOne({
-              where: { id: createOrderDto.deliveryTimeId }
-          });
-
-          if (!deliveryTime) {
-              throw new NotFoundException('Время доставки не найдено');
-          }
-
-          address = createOrderDto.address.fullAddress;
-          fullAddress = createOrderDto.address.fullAddress;
-      } else if (deliveryStrategy.type === DeliveryStrategyEnum.PickupByYourself) {
-          if (!createOrderDto.pickupPointId) {
-              throw new BadRequestException("Не выбран пункт самовывоза");
-          }
-
-          pickupPoint = await this.pickupPointRepository.findOne({
-              where: { id: createOrderDto.pickupPointId, store: { id: store.id } }
-          });
-
-          if (!pickupPoint) {
-              throw new NotFoundException('Пункт самовывоза не найден');
-          }
-
-          address = `Самовывоз: ${pickupPoint.name}`;
-          fullAddress = pickupPoint.fullAddress;
-      }
-
-      // Расчет общей суммы
-      const subtotal = selectedProducts.reduce(
-          (acc, product) => (acc + product.quantity * product.product.price),
-          0
-      );
-      
-      const deliveryCost = deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance && 
-                          subtotal < store?.deliveryFreeFromLimit 
-          ? store.deliveryCost 
-          : 0;
-      
-      const totalAmount = subtotal + deliveryCost;
-
-      // Создание заказа
-      const order = this.orderRepository.create({
-          address,
-          fullAddress,
-          phoneNumber: createOrderDto.phone,
-          comment: createOrderDto.comment,
-          deliveryDate: deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance ? new Date(createOrderDto.deliveryDate) : null,
-          status: OrderStatusEnum.WaitForPay,
-          orderDeliveryStrategy: deliveryStrategy.type,
-          totalAmount,
-          deliveryArea,
-          deliveryTime,
-          pickupPoint,
-          user: { id: userJwt.id },
-          store: { id: createOrderDto.storeId }
-      });
-
-      const savedOrder = await this.orderRepository.save(order);
-
-      // Создание записей о заказанных товарах
-      const orderedProducts = selectedProducts.map((selectedProduct) => {
-          return this.orderedProductsRepository.create({
-              product: selectedProduct.product,
-              quantity: selectedProduct.quantity,
-              user: { id: userJwt.id },
-              order: savedOrder,
-          });
-      });
-
-      await this.orderedProductsRepository.save(orderedProducts);
-      
-      // Очистка корзины
-      await this.selectedProductsRepository.delete({
-          user: { id: user.id },
-          store: { id: store.id }
-      });
-
-      if (user.telegram_id) {
-        const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime);
-        await this.telegramService.sendMessage(
-            user.telegram_id.toString(),
-            userMessage
-        );
-      }
-
-      return savedOrder;
-  }
-
-  async updateOrder(
-    updateOrderDto: UpdateOrderDto,
-    userJwt: AuthJwtPayload
-  ): Promise<OrderEntity> {
-    const user = await this.userService.getUserById(userJwt.id)
-
-    if (!updateOrderDto.products.length) {
-      throw new BadRequestException("Вы не можете удалить все товары")
-    }
-  
-    const order = await this.orderRepository.findOne({
-      where: {
-        id: updateOrderDto.id,
-      },
-      relations: [
-        'store',
-        'ordered_products',
-        'ordered_products.product'
-      ]
+    // Получаем стратегию доставки
+    const deliveryStrategy = await this.deliveryStrategyRepository.findOne({
+        where: { type: createOrderDto.deliveryStrategy }
     });
-  
-    if (!order) {
-      throw new NotFoundException("Заказ не найден");
+
+    if (!deliveryStrategy) {
+        throw new NotFoundException('Стратегия доставки не найдена');
     }
-  
-    if (order.status !== "waitForPay") {
-      throw new BadRequestException("Изменение заказа возможно только в статусе 'Ожидает оплаты'");
+
+    // Проверка режима работы магазина
+    const { available, reason } = await this.storeService.isDeliveryDateAvailable(
+        store,
+        new Date(createOrderDto.deliveryDate),
+        createOrderDto.deliveryTimeId
+    );
+
+    if (!available) {
+        throw new BadRequestException(reason);
     }
-  
-    // Обрабатываем товары в заказе
-    const selectedProducts = updateOrderDto.products.map(product => product.productId);
-    const availableProducts = await this.productRepository.find({
-      where: {
-        id: In(selectedProducts),
-        store: {
-          id: order.store.id
+
+    // Проверка количества активных заказов
+    const activeOrdersCount = await this.orderRepository.count({
+        where: {
+            user: { id: userJwt.id },
+            store: { id: store.id },
+            status: OrderStatusEnum.WaitForPay
         }
-      }
-    });
-  
-    const normalizedProducts = availableProducts.reduce((acc, product) => {
-      acc[product.id] = product;
-      return acc;
-    }, {} as Record<number, ProductEntity>);
-  
-    const isSomeExpired = availableProducts.some(product => product.status === ProductStatusEnum.Expired || product.status === ProductStatusEnum.Revoked);
-  
-    if (isSomeExpired) {
-      throw new BadRequestException("В списке присутствует недоступный товар");
-    }
-  
-    // Правильный расчет суммы
-    const totalAmount = updateOrderDto.products.reduce((amount, current) => {
-      const product = normalizedProducts[current.productId];
-      return product ? amount + (product.price * current.quantity) : amount;
-    }, 0);
-  
-    // Удаляем старые товары заказа
-    await this.orderedProductsRepository.delete({ order: { id: order.id } });
-  
-    // Создаем новые товары заказа (без циклических ссылок)
-    const orderedProducts = updateOrderDto.products
-      .filter(product => product.quantity > 0)
-      .map(product => ({
-        quantity: product.quantity,
-        telegram_id: user.telegram_id,
-        product: { id: product.productId },
-        order: { id: order.id }, // Только ID, чтобы избежать циклической ссылки
-        user: { id: user.id },
-      }));
-  
-    // Сохраняем товары
-    const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
-  
-    // Обновляем заказ
-    order.totalAmount = totalAmount < order?.store?.deliveryFreeFromLimit ? totalAmount + user.store.deliveryCost : totalAmount;
-    order.ordered_products = savedProducts;
-  
-    const savedOrder = await this.orderRepository.save(order);
-  
-    const updatedOrder = await this.orderRepository.findOne({
-      where: {
-        id: savedOrder.id
-      },
-      relations: [
-        'ordered_products',
-        'ordered_products.product',
-        'deliveryArea',
-        'deliveryTime',
-      ],
-      loadEagerRelations: false
     });
 
-    if (user?.telegram_id) {
-      const userMessage = formatUpdatedOrderMessage(updatedOrder);
+    if (activeOrdersCount >= 3) {
+        throw new BadRequestException("Нельзя иметь более 3 активных заказов");
+    }
+
+    // Проверка на существующий заказ на ту же дату
+    const existingOrderOnSameDate = await this.orderRepository.findOne({
+        where: {
+            user: { id: userJwt.id },
+            store: { id: store.id },
+            deliveryDate: new Date(createOrderDto.deliveryDate),
+            status: OrderStatusEnum.WaitForPay
+        }
+    });
+
+    if (existingOrderOnSameDate) {
+        throw new BadRequestException("У вас уже есть заказ на выбранную дату");
+    }
+
+    // Получаем товары из корзины
+    const selectedProducts = await this.selectedProductsRepository.find({
+        where: {
+            user: { id: userJwt.id },
+            store: { id: store.id },
+            product: {
+                status: In([ProductStatusEnum.Accepted, ProductStatusEnum.Active])
+            }
+        },
+        relations: ["product"]
+    });
+
+    if (!selectedProducts.length) {
+        throw new BadRequestException("Корзина пустая");
+    }
+
+    // Подготовка данных для заказа
+    let deliveryArea: DeliveryArea | null = null;
+    let deliveryTime: DeliveryTime | null = null;
+    let pickupPoint: PickupPointEntity | null = null;
+    let fullAddress = '';
+    let address = '';
+
+    if (deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance) {
+        if (!createOrderDto.address?.fullAddress?.trim()) {
+            throw new BadRequestException("Необходимо указать полный адрес доставки");
+        }
+
+        deliveryArea = await this.deliveryAreaRepository.findOne({
+            where: { id: createOrderDto.deliveryAreaId, store: { id: store.id } }
+        });
+
+        if (!deliveryArea) {
+            throw new NotFoundException('Зона доставки не найдена');
+        }
+
+        deliveryTime = await this.deliveryTimeRepository.findOne({
+            where: { id: createOrderDto.deliveryTimeId }
+        });
+
+        if (!deliveryTime) {
+            throw new NotFoundException('Время доставки не найдено');
+        }
+
+        address = createOrderDto.address.fullAddress;
+        fullAddress = createOrderDto.address.fullAddress;
+    } else if (deliveryStrategy.type === DeliveryStrategyEnum.PickupByYourself) {
+        if (!createOrderDto.pickupPointId) {
+            throw new BadRequestException("Не выбран пункт самовывоза");
+        }
+
+        pickupPoint = await this.pickupPointRepository.findOne({
+            where: { id: createOrderDto.pickupPointId, store: { id: store.id } }
+        });
+
+        if (!pickupPoint) {
+            throw new NotFoundException('Пункт самовывоза не найден');
+        }
+
+        address = `Самовывоз: ${pickupPoint.name}`;
+        fullAddress = pickupPoint.fullAddress;
+    }
+
+    // Расчет общей суммы с учетом скидок
+    const subtotal = selectedProducts.reduce((acc, product) => {
+        const price = product.product.price;
+        const discount = product.product.discount || 0;
+        const discountedPrice = discount > 0 ? price * (1 - discount / 100) : price;
+        return acc + (discountedPrice * product.quantity);
+    }, 0);
+    
+    const deliveryCost = deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance && 
+                        subtotal < store?.deliveryFreeFromLimit 
+        ? store.deliveryCost 
+        : 0;
+    
+    const totalAmount = subtotal + deliveryCost;
+
+    // Создание заказа
+    const order = this.orderRepository.create({
+        address,
+        fullAddress,
+        phoneNumber: createOrderDto.phone,
+        comment: createOrderDto.comment,
+        deliveryDate: deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance ? new Date(createOrderDto.deliveryDate) : null,
+        status: OrderStatusEnum.WaitForPay,
+        orderDeliveryStrategy: deliveryStrategy.type,
+        totalAmount,
+        deliveryArea,
+        deliveryTime,
+        pickupPoint,
+        user: { id: userJwt.id },
+        store: { id: createOrderDto.storeId }
+    });
+
+    const savedOrder = await this.orderRepository.save(order);
+
+    // Создание записей о заказанных товарах
+    const orderedProducts = selectedProducts.map((selectedProduct) => {
+        return this.orderedProductsRepository.create({
+            product: selectedProduct.product,
+            quantity: selectedProduct.quantity,
+            user: { id: userJwt.id },
+            order: savedOrder,
+        });
+    });
+
+    await this.orderedProductsRepository.save(orderedProducts);
+    
+    // Очистка корзины
+    await this.selectedProductsRepository.delete({
+        user: { id: user.id },
+        store: { id: store.id }
+    });
+
+    if (user.telegram_id) {
+      const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
       );
     }
 
-    return updatedOrder
+    return savedOrder;
+}
+
+  async updateOrder(
+    updateOrderDto: UpdateOrderDto,
+    userJwt: AuthJwtPayload
+  ): Promise<OrderEntity> {
+      const user = await this.userService.getUserById(userJwt.id)
+
+      if (!updateOrderDto.products.length) {
+          throw new BadRequestException("Вы не можете удалить все товары")
+      }
+    
+      const order = await this.orderRepository.findOne({
+          where: {
+              id: updateOrderDto.id,
+          },
+          relations: [
+              'store',
+              'ordered_products',
+              'ordered_products.product'
+          ]
+      });
+    
+      if (!order) {
+          throw new NotFoundException("Заказ не найден");
+      }
+    
+      if (order.status !== "waitForPay") {
+          throw new BadRequestException("Изменение заказа возможно только в статусе 'Ожидает оплаты'");
+      }
+    
+      // Обрабатываем товары в заказе
+      const selectedProducts = updateOrderDto.products.map(product => product.productId);
+      const availableProducts = await this.productRepository.find({
+          where: {
+              id: In(selectedProducts),
+              store: {
+                  id: order.store.id
+              }
+          }
+      });
+    
+      const normalizedProducts = availableProducts.reduce((acc, product) => {
+          acc[product.id] = product;
+          return acc;
+      }, {} as Record<number, ProductEntity>);
+    
+      const isSomeExpired = availableProducts.some(product => product.status === ProductStatusEnum.Expired || product.status === ProductStatusEnum.Revoked);
+    
+      if (isSomeExpired) {
+          throw new BadRequestException("В списке присутствует недоступный товар");
+      }
+    
+      // Расчет суммы с учетом скидок
+      const subtotal = updateOrderDto.products.reduce((amount, current) => {
+          const product = normalizedProducts[current.productId];
+          if (!product) return amount;
+          
+          const discount = product.discount || 0;
+          const discountedPrice = discount > 0 ? product.price * (1 - discount / 100) : product.price;
+          return amount + (discountedPrice * current.quantity);
+      }, 0);
+    
+      // Расчет стоимости доставки
+      const deliveryCost = order.orderDeliveryStrategy === DeliveryStrategyEnum.DeliveryToEntrance && 
+                          subtotal < order.store.deliveryFreeFromLimit
+          ? order.store.deliveryCost
+          : 0;
+    
+      // Удаляем старые товары заказа
+      await this.orderedProductsRepository.delete({ order: { id: order.id } });
+    
+      // Создаем новые товары заказа (без циклических ссылок)
+      const orderedProducts = updateOrderDto.products
+          .filter(product => product.quantity > 0)
+          .map(product => ({
+              quantity: product.quantity,
+              telegram_id: user.telegram_id,
+              product: { id: product.productId },
+              order: { id: order.id },
+              user: { id: user.id },
+          }));
+    
+      // Сохраняем товары
+      const savedProducts = await this.orderedProductsRepository.save(orderedProducts);
+    
+      // Обновляем заказ с учетом скидок и доставки
+      order.totalAmount = subtotal + deliveryCost;
+      order.ordered_products = savedProducts;
+    
+      const savedOrder = await this.orderRepository.save(order);
+    
+      const updatedOrder = await this.orderRepository.findOne({
+          where: {
+              id: savedOrder.id
+          },
+          relations: [
+              'ordered_products',
+              'ordered_products.product',
+              'deliveryArea',
+              'deliveryTime',
+          ],
+          loadEagerRelations: false
+      });
+
+      if (user?.telegram_id) {
+          const userMessage = formatUpdatedOrderMessage(updatedOrder);
+          await this.telegramService.sendMessage(
+              user.telegram_id.toString(),
+              userMessage
+          );
+      }
+
+      return updatedOrder;
   }
   
   async exportExcelWithInnerTable(userJwt: AuthJwtPayload, deliveryAreaIds?: number[]): Promise<Uint8Array> {

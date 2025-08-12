@@ -35,39 +35,44 @@ const BasketPage: FC = observer(() => {
   const storeGroups = groupedByStore ? Object.values(groupedByStore) : [];
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
 
-  // Сброс индекса при изменении количества магазинов
   useEffect(() => {
     if (storeGroups.length > 0 && selectedStoreIndex >= storeGroups.length) {
       setSelectedStoreIndex(0);
     }
   }, [storeGroups.length, selectedStoreIndex]);
 
-  const totalItems = basket?.reduce((acc, item) => acc + item.quantity, 0) || 0;
-  const totalPrice = basket?.reduce((acc, item) => {
-    const price = item.product.price
-    return acc + (price * item.quantity);
-  }, 0) || 0;
+  // Функция для расчета цены со скидкой
+  const getDiscountedPrice = (price: number, discount: number) => {
+    return price * (1 - discount / 100);
+  };
 
-  const totalDiscount = basket?.reduce((acc, item) => {
-    const discount = Number(item.product.discount);
-    const price = item.product.price
-    return discount > 0
-      ? acc + (price * item.quantity * (discount / 100))
-      : acc;
-  }, 0) || 0;
+  const selectedStoreGroup = storeGroups[selectedStoreIndex];
 
-  const totalDelivery = storeGroups.reduce((acc, storeGroup) => {
-    const storeTotal = storeGroup.items.reduce((sum, item) => {
-      const price = item.product.price
-      return sum + (price * item.quantity);
-    }, 0);
-    
-    return acc + (
-      storeTotal >= Number(storeGroup.store.deliveryFreeFromLimit) 
-        ? 0 
-        : Number(storeGroup.store.deliveryCost)
-    );
+  // Пересчитываем показатели только для выбранного магазина
+  const selectedStoreItems = selectedStoreGroup?.items || [];
+  
+  const totalItemsForSelectedStore = selectedStoreItems.reduce((acc, item) => acc + item.quantity, 0);
+  
+  // Общая стоимость с учетом скидки для выбранного магазина
+  const totalPriceForSelectedStore = selectedStoreItems.reduce((acc, item) => {
+    const price = Number(item.product.price);
+    const discount = Number(item.product.discount) || 0;
+    const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
+    return acc + (discountedPrice * item.quantity);
   }, 0);
+
+  // Общая стоимость без скидки для выбранного магазина
+  const totalOriginalPriceForSelectedStore = selectedStoreItems.reduce((acc, item) => {
+    const price = Number(item.product.price);
+    return acc + (price * item.quantity);
+  }, 0);
+
+  const totalDiscountForSelectedStore = totalOriginalPriceForSelectedStore - totalPriceForSelectedStore;
+
+  const deliveryCostForSelectedStore = 
+    totalPriceForSelectedStore >= Number(selectedStoreGroup?.store.deliveryFreeFromLimit || 0)
+      ? 0 
+      : Number(selectedStoreGroup?.store.deliveryCost || 0);
 
   if (isLoading) {
     return (
@@ -105,8 +110,6 @@ const BasketPage: FC = observer(() => {
       </Layout>
     );
   }
-
-  const selectedStoreGroup = storeGroups[selectedStoreIndex];
 
   return (
     <Layout>
@@ -158,7 +161,11 @@ const BasketPage: FC = observer(() => {
 
               <Box className={styles.itemsContainer}>
                 {selectedStoreGroup.items.map((item) => {
-                  const total = item.product.price * item.quantity;
+                  const price = Number(item.product.price);
+                  const discount = Number(item.product.discount) || 0;
+                  const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
+                  const total = discountedPrice * item.quantity;
+                  const originalTotal = price * item.quantity;
 
                   return (
                     <Box key={`${item.productId}-${item.id}`} className={styles.item}>
@@ -177,9 +184,20 @@ const BasketPage: FC = observer(() => {
                           {item.product.description}
                         </Typography>
                         <Box className={styles.priceContainer}>
-                          <Typography className={styles.price}>
-                            {item.product.price} ₽
-                          </Typography>
+                          {discount > 0 ? (
+                            <>
+                              <Typography className={styles.discountedPrice}>
+                                {price.toFixed()} ₽
+                              </Typography>
+                              <Typography className={styles.discountBadge}>
+                                -{discount}%
+                              </Typography>
+                            </>
+                          ) : (
+                            <Typography className={styles.price}>
+                              {price.toFixed()} ₽
+                            </Typography>
+                          )}
                         </Box>
                       </Box>
                       <Box className={styles.quantityControls}>
@@ -219,28 +237,44 @@ const BasketPage: FC = observer(() => {
                   <Typography>Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)})</Typography>
                   <Typography>
                     {selectedStoreGroup.items.reduce((acc, item) => {
-                      const price = item.product.price
+                      const price = Number(item.product.price);
                       return acc + (price * item.quantity);
                     }, 0).toFixed()} ₽
                   </Typography>
                 </Box>
+                {selectedStoreGroup.items.some(item => Number(item.product.discount) > 0) && (
+                  <Box className={styles.summaryRow}>
+                    <Typography>Скидка</Typography>
+                    <Typography className={styles.discount}>
+                      -{selectedStoreGroup.items.reduce((acc, item) => {
+                        const price = Number(item.product.price);
+                        const discount = Number(item.product.discount) || 0;
+                        return acc + (price * item.quantity * (discount / 100));
+                      }, 0).toFixed()} ₽
+                    </Typography>
+                  </Box>
+                )}
                 <Box className={styles.summaryRow}>
                   <Typography>Доставка</Typography>
                   <Typography>
                     {selectedStoreGroup.items.reduce((acc, item) => {
-                      const price = item.product.price
-                      return acc + (price * item.quantity);
+                      const price = Number(item.product.price);
+                      const discount = Number(item.product.discount) || 0;
+                      const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
+                      return acc + (discountedPrice * item.quantity);
                     }, 0) >= Number(selectedStoreGroup.store.deliveryFreeFromLimit)
                       ? "Бесплатно"
-                      : `${selectedStoreGroup.store.deliveryCost} ₽`}
+                      : `${selectedStoreGroup.store.deliveryCost.toFixed()} ₽`}
                   </Typography>
                 </Box>
                 {selectedStoreGroup.items.reduce((acc, item) => {
-                  const price = item.product.price
-                  return acc + (price * item.quantity);
+                  const price = Number(item.product.price);
+                  const discount = Number(item.product.discount) || 0;
+                  const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
+                  return acc + (discountedPrice * item.quantity);
                 }, 0) < Number(selectedStoreGroup.store.deliveryFreeFromLimit) && (
                   <Typography className={styles.storeDeliveryNote}>
-                    Бесплатная доставка от {selectedStoreGroup.store.deliveryFreeFromLimit} ₽
+                    Бесплатная доставка от {selectedStoreGroup.store.deliveryFreeFromLimit.toFixed()} ₽
                   </Typography>
                 )}
               </Box>
@@ -252,22 +286,26 @@ const BasketPage: FC = observer(() => {
               </Typography>
 
               <Box className={styles.summaryRow}>
-                <Typography>Товары ({totalItems})</Typography>
-                <Typography>{totalPrice.toFixed()} ₽</Typography>
+                <Typography>Товары ({totalItemsForSelectedStore})</Typography>
+                <Typography>{totalOriginalPriceForSelectedStore.toFixed()} ₽</Typography>
               </Box>
 
-              {totalDiscount > 0 && (
+              {totalDiscountForSelectedStore > 0 && (
                 <Box className={styles.summaryRow}>
                   <Typography>Скидка</Typography>
                   <Typography className={styles.discount}>
-                    -{totalDiscount.toFixed()} ₽
+                    -{totalDiscountForSelectedStore.toFixed()} ₽
                   </Typography>
                 </Box>
               )}
 
               <Box className={styles.summaryRow}>
                 <Typography>Доставка</Typography>
-                <Typography>{totalDelivery.toFixed()} ₽</Typography>
+                <Typography>
+                  {deliveryCostForSelectedStore === 0 
+                    ? "Бесплатно" 
+                    : `${deliveryCostForSelectedStore.toFixed()} ₽`}
+                </Typography>
               </Box>
 
               <Divider className={styles.divider} />
@@ -275,7 +313,7 @@ const BasketPage: FC = observer(() => {
               <Box className={styles.summaryRow}>
                 <Typography className={styles.grandTotal}>Итого к оплате</Typography>
                 <Typography className={styles.grandTotal}>
-                  {(totalPrice - totalDiscount + totalDelivery).toFixed()} ₽
+                  {(totalPriceForSelectedStore + deliveryCostForSelectedStore).toFixed()} ₽
                 </Typography>
               </Box>
 

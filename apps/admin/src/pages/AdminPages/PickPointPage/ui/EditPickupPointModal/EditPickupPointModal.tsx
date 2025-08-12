@@ -1,4 +1,5 @@
-import { FC, useState } from 'react';
+// EditPickupPointModal.tsx
+import { FC, useState, useMemo } from 'react';
 import { Control, Controller, UseFormSetValue, useFieldArray } from 'react-hook-form';
 import {
   Box,
@@ -22,22 +23,22 @@ import { WeekdayEnum } from "@core/enums/weekday.enum";
 import { AddressSearchField } from '@features/AddressSearchField/ui/AddressSearchField';
 import { PickupPointFormData } from '../../types/pickupPointPageType';
 
-// Конфигурация временных интервалов
-const timeOptions = [
-  { value: '08:00', label: '08:00' },
-  { value: '09:00', label: '09:00' },
-  { value: '10:00', label: '10:00' },
-  { value: '11:00', label: '11:00' },
-  { value: '12:00', label: '12:00' },
-  { value: '13:00', label: '13:00' },
-  { value: '14:00', label: '14:00' },
-  { value: '15:00', label: '15:00' },
-  { value: '16:00', label: '16:00' },
-  { value: '17:00', label: '17:00' },
-  { value: '18:00', label: '18:00' },
-  { value: '19:00', label: '19:00' },
-  { value: '20:00', label: '20:00' }
-];
+// Генерация временных интервалов с шагом 30 минут
+const generateTimeOptions = () => {
+  const options = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      options.push({
+        value: timeValue,
+        label: timeValue
+      });
+    }
+  }
+  return options;
+};
+
+const timeOptions = generateTimeOptions();
 
 // Опции дней недели на русском
 const weekdayOptions = [
@@ -49,12 +50,6 @@ const weekdayOptions = [
   { value: WeekdayEnum.SATURDAY, label: 'Суббота' },
   { value: WeekdayEnum.SUNDAY, label: 'Воскресенье' }
 ];
-
-// Функция для перевода дней недели
-const getRussianWeekdayName = (day: WeekdayEnum) => {
-  const option = weekdayOptions.find(d => d.value === day);
-  return option ? option.label : day;
-};
 
 interface EditPickupPointModalProps {
   open: boolean;
@@ -87,8 +82,8 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newTime, setNewTime] = useState({
     dayOfWeek: weekdayOptions[0].value,
-    openingTime: timeOptions[2].value, // 10:00 по умолчанию
-    closingTime: timeOptions[5].value  // 13:00 по умолчанию
+    openingTime: '08:00',
+    closingTime: '20:00'
   });
 
   const handleAddNewTime = () => {
@@ -106,8 +101,8 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
   const resetNewTime = () => {
     setNewTime({
       dayOfWeek: weekdayOptions[0].value,
-      openingTime: timeOptions[2].value,
-      closingTime: timeOptions[5].value
+      openingTime: '08:00',
+      closingTime: '20:00'
     });
   };
 
@@ -134,7 +129,17 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
     );
   };
 
+  // Фильтруем доступные времена для закрытия
+  const availableClosingTimes = useMemo(() => {
+    return timeOptions.filter(option => option.value > newTime.openingTime);
+  }, [newTime.openingTime]);
+
   const groupedTimes = groupByDay();
+
+  const getRussianWeekdayName = (day: WeekdayEnum) => {
+    const option = weekdayOptions.find(d => d.value === day);
+    return option ? option.label : day;
+  };
 
   return (
     <Dialog 
@@ -381,13 +386,11 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                           }}
                           error={newTime.closingTime <= newTime.openingTime}
                         >
-                          {timeOptions
-                            .filter(option => option.value > newTime.openingTime)
-                            .map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
+                          {availableClosingTimes.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
                         </Select>
                         {newTime.closingTime <= newTime.openingTime && (
                           <Typography variant="caption" color="error">

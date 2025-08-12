@@ -1,5 +1,6 @@
 export enum UnitOfMeasuresEnum {
     GRAMS = "гр",
     KILOGRAMS = "кг",
-    PIECES = "шт"
+    PIECES = "шт",
+    BUNCH = "букет",
 }
