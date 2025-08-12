@@ -32,6 +32,8 @@ export const Uploader: FC<UploaderProps> = (props) => {
         originalFile?: File;
     } | null>(null);
 
+    console.log(value)
+
     const compressImage = async (file: File): Promise<File> => {
         // Поддерживаемые форматы
         const supportedFormats = [
@@ -87,8 +89,9 @@ export const Uploader: FC<UploaderProps> = (props) => {
     const getFileIcon = (type: string) => {
         if (type.startsWith('image/')) {
             return (
-                <img 
-                    src={fileInfo?.url} 
+                <img
+                    // @ts-ignore
+                    src={fileInfo?.url || value} 
                     alt="Preview" 
                     className={styles.filePreview}
                 />

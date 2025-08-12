@@ -34,6 +34,8 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
     formState: { errors },
   } = methods
 
+  console.log(initialValues)
+
   const handleFileChange = (onChange: (fileUrl: UploaderReturnType) => void) => (file: UploaderReturnType) => {
     onChange(file)
   };

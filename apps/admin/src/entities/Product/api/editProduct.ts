@@ -5,7 +5,11 @@ import { toast } from "react-toastify";
 import { AxiosResponse } from "axios";
 
 const editProductFn = async (data: ProductType) => {
-  const response = await API.patch(`/product/${data.id}`, data);
+  const body = {
+    ...data,
+    image: (data.image as any).url
+  }
+  const response = await API.patch(`/product/${data.id}`, body);
   return response.data;
 };
 
