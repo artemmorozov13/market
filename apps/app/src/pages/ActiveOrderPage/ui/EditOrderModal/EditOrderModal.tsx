@@ -23,6 +23,7 @@ import styles from "./EditOrderModal.module.scss";
 import { BasketBaseType } from "@core/types/basket-tipe";
 import { StoreBaseType } from "@core/types/store-type";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface EditOrderModalProps {
   open: boolean;
@@ -81,10 +82,10 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
       return (
         <Box>
           <Typography className={styles.productPrice} sx={{ color: 'error.main', fontWeight: 500 }}>
-            {discountedPrice.toFixed()} ₽
+            {formatRubbles(discountedPrice)}
           </Typography>
           <Typography className={styles.productPrice} sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-            {price.toFixed()} ₽
+            {formatRubbles(price)}
           </Typography>
           <Chip
             label={`-${discount}%`} 
@@ -98,7 +99,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
     
     return (
       <Typography className={styles.productPrice}>
-        {price.toFixed()} ₽
+        {formatRubbles(price)}
       </Typography>
     );
   };
@@ -109,7 +110,7 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
     const effectivePrice = effectiveDiscount > 0 
       ? getDiscountedPrice(price, effectiveDiscount) 
       : price;
-    return effectivePrice * quantity;
+    return formatRubbles(effectivePrice * quantity);
   };
 
   const handlePlusProduct = (productId: number) => {
@@ -286,14 +287,14 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
                           Number(product.product.price),
                           product.quantity,
                           Number(product.product.discount)
-                        ).toFixed()}₽`}
+                        )}`}
                         {product.product.discount && Number(product.product.discount) > 0 && (
                           <Typography component="span" variant="body2" sx={{ 
                             textDecoration: 'line-through', 
                             color: 'text.secondary',
                             ml: 1
                           }}>
-                            {(Number(product.product.price) * product.quantity).toFixed()}₽
+                            {formatRubbles(Number(product.product.price) * product.quantity)}
                           </Typography>
                         )}
                     </Typography>
@@ -392,14 +393,14 @@ export const EditOrderModal: FC<EditOrderModalProps> = observer((props) => {
                           </Tooltip>
                       </Box>
                       <Typography className={styles.totalPrice}>
-                          {`${totalWithDiscount.toFixed()}₽`}
+                          {totalWithDiscount}
                           {hasDiscount && (
                             <Typography component="span" variant="body2" sx={{ 
                               textDecoration: 'line-through', 
                               color: 'text.secondary',
                               ml: 1
                             }}>
-                              {totalWithoutDiscount.toFixed()}₽
+                              {formatRubbles(totalWithoutDiscount)}
                             </Typography>
                           )}
                       </Typography>

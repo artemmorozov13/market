@@ -5,6 +5,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import styles from "./BasketTools.module.scss"
 import { observer } from "mobx-react-lite";
 import { BasketBaseType } from "@core/types/basket-tipe";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface BasketToolsProps {
     basketItem: BasketBaseType
@@ -51,7 +52,7 @@ export const BasketTools: FC<BasketToolsProps> = observer((props) => {
                     </Tooltip>
                 </Box>
                 <Typography className={styles.totalPrice}>
-                    {`${totalPrice.toFixed()}₽`}
+                    {formatRubbles(totalPrice)}
                 </Typography>
                 </Box>
             ) : (

@@ -1,4 +1,5 @@
 import { OrderEntity } from '@core/entities/order.entity';
+import { formatRubbles } from '@core/utils/formatRubbles';
 import * as XLSX from 'xlsx';
 
 interface TableExportOptions {
@@ -40,7 +41,7 @@ export const exportToExcelWithInnerTable = (options: TableExportOptions) => {
         `${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}`,
         order.phoneNumber,
         order.comment || 'Нет комментария',
-        order.totalAmount + ' ₽',
+        formatRubbles(order.totalAmount),
         'Ожидает оплаты' // Так как мы фильтровали по waitForPay, можно явно указать статус
       ]);
 
@@ -53,7 +54,7 @@ export const exportToExcelWithInnerTable = (options: TableExportOptions) => {
         excelData.push([
           '',
           product.product.name,
-          product.product.price + ' ₽',
+          formatRubbles(product.product.price),
           product.quantity,
           product.product.discount + '%',
           product.quantity * Number(product.product.price),

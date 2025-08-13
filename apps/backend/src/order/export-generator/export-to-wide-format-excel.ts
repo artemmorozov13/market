@@ -1,6 +1,7 @@
 import { OrderEntity } from '@core/entities/order.entity';
 import { ProductEntity } from '@core/entities/product.entity';
 import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum';
+import { formatRubbles } from '@core/utils/formatRubbles';
 import * as XLSX from 'xlsx';
 
 interface TableExportOptions {
@@ -59,7 +60,7 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
             order.deliveryTime ? `${order.deliveryTime.startTime} - ${order.deliveryTime.endTime}` : 'Не указано',
             order.phoneNumber,
             order.comment || 'Нет комментария',
-            order.totalAmount + ' ₽',
+            formatRubbles(order.totalAmount),
             order.status || 'Ожидает оплаты',
             // Добавляем количество для каждого товара
             ...products.map(product => 
@@ -72,7 +73,7 @@ export const exportToWideFormatExcel = (options: TableExportOptions): Uint8Array
     // Итоговая строка
     const totalsRow = [
         'Итого:', '', '', '', '', '', '', '', '',
-        `${orders.reduce((acc, order) => acc + (Number(order.totalAmount) || 0), 0)} ₽`,
+        formatRubbles(orders.reduce((acc, order) => acc + (Number(order.totalAmount) || 0), 0)),
         '',
         // Итоги по товарам
         ...products.map(product => {

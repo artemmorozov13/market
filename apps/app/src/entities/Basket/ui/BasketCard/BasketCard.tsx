@@ -20,6 +20,7 @@ import clsx from "clsx";
 import styles from "./BasketCard.module.scss";
 import { ProductStatusEnum } from "@core/enums/product-status-enum";
 import { BasketBaseType } from "@core/types/basket-tipe";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface BasketItemProps {
   item: BasketBaseType;
@@ -103,11 +104,11 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
           <Box className={styles.priceSection}>
             <Box className={styles.priceContainer}>
               <Typography className={styles.currentPrice}>
-                {totalPrice.toFixed()} ₽
+                {formatRubbles(totalPrice)}
               </Typography>
               {hasDiscount && (
                 <Typography className={styles.originalPrice}>
-                  {totalOriginalPrice.toFixed()} ₽
+                  {formatRubbles(totalOriginalPrice)}
                 </Typography>
               )}
             </Box>

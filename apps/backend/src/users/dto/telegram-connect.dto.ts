@@ -25,4 +25,8 @@ export class TelegramLoginDto implements TelegramAuthData {
   @IsString()
   @IsOptional()
   username?: string;
+
+  @IsNumber()
+  @IsOptional()
+  storeId?: number
 }

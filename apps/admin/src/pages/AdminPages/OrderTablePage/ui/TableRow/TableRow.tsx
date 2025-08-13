@@ -20,6 +20,7 @@ import { OrderStatusEnum } from "@core/enums/order-status-enum";
 
 import styles from "./TableRow.module.scss";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface RowProps {
     order: TableOrder;
@@ -131,7 +132,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                 </TableCell>
                 <TableCell>
                     <Typography fontWeight="bold">Сумма</Typography>
-                    {order.totalAmount} ₽
+                    {formatRubbles(order.totalAmount)}
                 </TableCell>
                 <TableCell>
                     <Button 
@@ -162,11 +163,11 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                                     {order.ordered_products.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell>{product.product.name}</TableCell>
-                                            <TableCell align="right">{product.product.price} ₽</TableCell>
+                                            <TableCell align="right">{product.product.price}₽</TableCell>
                                             <TableCell align="right">{product.quantity}</TableCell>
                                             <TableCell align="right">{product.product.discount}%</TableCell>
                                             <TableCell align="right">
-                                                {(Number(product.product.price) * product.quantity * (1 - Number(product.product.discount)/100))} ₽
+                                                {formatRubbles(Number(product.product.price) * product.quantity * (1 - Number(product.product.discount)/100))}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -176,7 +177,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
                                         </TableCell>
                                         <TableCell align="right">
                                             <strong>
-                                                {order.totalAmount} ₽
+                                                {formatRubbles(order.totalAmount)}
                                             </strong>
                                         </TableCell>
                                     </TableRow>

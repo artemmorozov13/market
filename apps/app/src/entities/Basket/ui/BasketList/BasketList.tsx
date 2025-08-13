@@ -5,6 +5,7 @@ import { BasketCard, useBasket, useClearBasket } from '../..';
 import styles from './BasketList.module.scss';
 import { RoutePath } from '@/shared/routes/routeConfig';
 import { Link } from 'react-router';
+import { formatRubbles } from '@core/utils/formatRubbles';
 
 export const BasketList: FC = observer(() => {
     const { basket } = useBasket()
@@ -47,7 +48,7 @@ export const BasketList: FC = observer(() => {
                 )}
                 <div className={styles.basketFooter}>
                     <span className={styles.totalPrice}>
-                        {totalPriceFixed.toFixed()}&nbsp;₽
+                        {formatRubbles(totalPriceFixed)}
                     </span>
                     <Link to={RoutePath.order}>
                         <Button

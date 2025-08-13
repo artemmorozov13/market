@@ -21,6 +21,7 @@ import { BasketTools } from '@/shared/ui/BasketTools';
 import { useBasket, usePushBasketItem, useRemoveBasketItem } from '@/entities/Basket';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { ProductType } from '@core/types/product-item';
+import { formatRubbles } from '@core/utils/formatRubbles';
 
 interface ProductModalProps {
   open: boolean;
@@ -133,7 +134,7 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
                 {hasDiscount && (
                   <>
                     <Typography variant="h5" className={styles.finalPrice}>
-                      {finalPrice.toFixed()} ₽
+                      {formatRubbles(finalPrice)}
                     </Typography>
                     <Box className={styles.originalPriceContainer}>
                       <Typography variant="body1" className={styles.originalPrice}>

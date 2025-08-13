@@ -5,6 +5,7 @@ import { PostNewProductModalForm } from "@features/PostNewProducts";
 import { ProductType } from "@core/types/product-item";
 import clsx from "clsx";
 import { ProductStatusEnum } from "@core/enums/product-status-enum";
+import { formatRubbles } from "@core/utils/formatRubbles"
 
 interface ProductProps {
     product: ProductType;
@@ -96,7 +97,7 @@ export const Product: FC<ProductProps> = (props) => {
                                 Цена поставщика:
                             </Typography>
                             <Typography variant="h6" className={styles.vendorPriceValue}>
-                                {Number(product.offeredPrice)} ₽
+                                {formatRubbles(product.offeredPrice)}
                             </Typography>
                         </Box>
                         <Divider className={styles.divider} />
@@ -110,13 +111,13 @@ export const Product: FC<ProductProps> = (props) => {
                                 [styles.expiredText]: isExpired,
                                 [styles.revokedText]: isRevoked
                             })}>
-                                {product.price}&nbsp;₽
+                                {formatRubbles(product.price)}
                             </Typography>
                             <Typography variant="h6" className={clsx(styles.newPrice, {
                                 [styles.expiredText]: isExpired,
                                 [styles.revokedText]: isRevoked
                             })}>
-                                {discountedPrice.toFixed()}&nbsp;₽
+                                {formatRubbles(discountedPrice)}
                             </Typography>
                             <Chip
                                 label={`-${Math.ceil(Number(product.discount))}%`}
@@ -130,7 +131,7 @@ export const Product: FC<ProductProps> = (props) => {
                             [styles.expiredText]: isExpired,
                             [styles.revokedText]: isRevoked
                         })}>
-                            {product.price}&nbsp;₽
+                            {formatRubbles(product.price)}
                         </Typography>
                     )}
                 </Box>

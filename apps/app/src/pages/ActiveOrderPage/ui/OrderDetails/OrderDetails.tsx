@@ -15,6 +15,7 @@ import { useCancelOrder } from "@/entities/Order/api/cancelOrder";
 import { useActiveOrder } from "../../api/useActiveOrder";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import styles from "./OrderDetails.module.scss";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface OrderDetailsProps {
   order: Order;
@@ -293,10 +294,10 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                       {hasDiscount ? (
                         <>
                           <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 500 }}>
-                            {discountedPrice.toFixed()} ₽
+                            {formatRubbles(discountedPrice)}
                           </Typography>
                           <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-                            {price.toFixed()} ₽
+                            {formatRubbles(price)}
                           </Typography>
                           <Chip 
                             label={`-${discount}%`} 
@@ -307,18 +308,18 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                         </>
                       ) : (
                         <Typography variant="body2">
-                          {price.toFixed()} ₽
+                          {formatRubbles(price)}
                         </Typography>
                       )}
                     </Box>
                     <Typography variant="body2" color="text.secondary" mt={0.5}>
-                      {item.quantity} шт. × {hasDiscount ? discountedPrice.toFixed() : price.toFixed()} ₽ ={' '}
+                      {item.quantity} шт. × {hasDiscount ? formatRubbles(discountedPrice) : formatRubbles(price)} ={' '}
                       <Typography component="span" fontWeight={500} color="text.primary">
-                        {total.toFixed()} ₽
+                        {formatRubbles(total)}
                       </Typography>
                       {hasDiscount && (
                         <Typography component="span" variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', ml: 1 }}>
-                          {originalTotal.toFixed()} ₽
+                          {formatRubbles(originalTotal)}
                         </Typography>
                       )}
                     </Typography>
@@ -340,9 +341,8 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                   Сумма без скидки:
                 </Typography>
                 <Typography variant="body2">
-                  {order.ordered_products
-                    .reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0)
-                    .toFixed()} ₽
+                  {formatRubbles(order.ordered_products
+                    .reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0))}
                 </Typography>
               </Stack>
             )}
@@ -352,13 +352,12 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                   Скидка:
                 </Typography>
                 <Typography variant="body2" color="error.main">
-                  -{order.ordered_products
+                  -{formatRubbles(order.ordered_products
                     .reduce((sum, item) => {
                       const price = Number(item.product.price);
                       const discount = Number(item.product.discount) || 0;
                       return sum + (price * item.quantity * (discount / 100));
-                    }, 0)
-                    .toFixed()} ₽
+                    }, 0))}
                 </Typography>
               </Stack>
             )}
@@ -368,7 +367,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
                 Итого:
               </Typography>
               <Typography variant="h6" fontWeight={700}>
-                {Number(order.totalAmount)} ₽
+                {formatRubbles(order.totalAmount)}
               </Typography>
             </Stack>
           </Stack>

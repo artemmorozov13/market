@@ -47,6 +47,7 @@ import { getOrderFormSchema } from "../lib/orderFormSchema";
 import { AddressType } from "@core/types/address-type";
 import { DayOfWeek, PickupPointType } from "@core/types/pickup-point-type";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface OrderFormProps {
   onSubmit: (data: OrderFormInputs) => void;
@@ -190,9 +191,9 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   const selectedDeliveryArea = deliveryAreas?.find(p => p.id === selectedDeliveryAreaId);
   const selectedPickupPoint = activePickupPoints.find(p => p.id === pickupPointId);
 
-  const deliveryCostInfo = store?.isDeliveryFree 
-    ? "Бесплатная доставка" 
-    : `Стоимость доставки: ${store?.deliveryCost.toFixed()} ₽${store?.deliveryFreeFromLimit.toFixed() ? ` (бесплатно от ${store.deliveryFreeFromLimit.toFixed()} ₽)` : ''}`;
+  const deliveryCostInfo = store?.isDeliveryFree ? (
+    "Бесплатная доставка"
+  ) : `Стоимость доставки: ${formatRubbles(store?.deliveryCost)} ${store?.deliveryFreeFromLimit.toFixed() ? ` (бесплатно от ${formatRubbles(store.deliveryFreeFromLimit)})` : ''}`;
 
   if (isLoadingDeliveryArea) {
     return (

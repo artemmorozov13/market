@@ -61,7 +61,7 @@ export class UsersController {
     }
 
     @Post('login-telegram')
-    loginWithTelegram(@Body() body: TelegramAuthData) {
+    loginWithTelegram(@Body() body: TelegramLoginDto) {
         return this.usersService.loginViaTelegram(body);
     }
 

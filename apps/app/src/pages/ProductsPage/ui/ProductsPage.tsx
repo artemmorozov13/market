@@ -26,6 +26,7 @@ import styles from "./ProductsPage.module.scss";
 import { useBasket, usePushBasketItem, useRemoveBasketItem } from "@/entities/Basket";
 import { ManageAddressForm } from "@/features/ManageAddressForm";
 import { useStore } from "@/entities/Store";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 const PRODUCTS_PER_PAGE = 10;
 
@@ -144,11 +145,11 @@ const ProductsPage: FC = observer(() => {
                 <LocalShippingIcon color="primary" />
                 <Typography variant="body2">
                   {store.isDeliveryFree ? 'Бесплатная доставка' : 
-                   `Доставка: ${store.deliveryCost.toFixed()} ₽`}
+                   `Доставка: ${formatRubbles(store.deliveryCost)}`}
                 </Typography>
                 {store.deliveryFreeFromLimit > 0 && (
                   <Chip 
-                    label={`Бесплатно от ${store.deliveryFreeFromLimit.toFixed()} ₽`} 
+                    label={`Бесплатно от ${formatRubbles(store.deliveryFreeFromLimit)}`} 
                     size="small" 
                     className={styles.freeDeliveryChip}
                   />

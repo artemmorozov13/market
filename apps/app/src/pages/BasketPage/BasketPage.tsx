@@ -21,6 +21,7 @@ import { useNavigate } from "react-router";
 import { groupBasketData } from "./lib/groupBasketData";
 import { userStore } from "@/entities/User";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 const BasketPage: FC = observer(() => {
   const navigate = useNavigate();
@@ -187,7 +188,7 @@ const BasketPage: FC = observer(() => {
                           {discount > 0 ? (
                             <>
                               <Typography className={styles.discountedPrice}>
-                                {price.toFixed()} ₽
+                                {formatRubbles(price)}
                               </Typography>
                               <Typography className={styles.discountBadge}>
                                 -{discount}%
@@ -195,7 +196,7 @@ const BasketPage: FC = observer(() => {
                             </>
                           ) : (
                             <Typography className={styles.price}>
-                              {price.toFixed()} ₽
+                              {formatRubbles(price)}
                             </Typography>
                           )}
                         </Box>
@@ -218,7 +219,7 @@ const BasketPage: FC = observer(() => {
                         </IconButton>
                       </Box>
                       <Typography className={styles.itemTotal}>
-                        {total.toFixed()} ₽
+                        {formatRubbles(total)}
                       </Typography>
                       <IconButton 
                         onClick={() => clearBasketProduct(item.productId)}
@@ -236,21 +237,21 @@ const BasketPage: FC = observer(() => {
                 <Box className={styles.summaryRow}>
                   <Typography>Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)})</Typography>
                   <Typography>
-                    {selectedStoreGroup.items.reduce((acc, item) => {
+                    {formatRubbles(selectedStoreGroup.items.reduce((acc, item) => {
                       const price = Number(item.product.price);
                       return acc + (price * item.quantity);
-                    }, 0).toFixed()} ₽
+                    }, 0))}
                   </Typography>
                 </Box>
                 {selectedStoreGroup.items.some(item => Number(item.product.discount) > 0) && (
                   <Box className={styles.summaryRow}>
                     <Typography>Скидка</Typography>
                     <Typography className={styles.discount}>
-                      -{selectedStoreGroup.items.reduce((acc, item) => {
+                      -{formatRubbles(selectedStoreGroup.items.reduce((acc, item) => {
                         const price = Number(item.product.price);
                         const discount = Number(item.product.discount) || 0;
                         return acc + (price * item.quantity * (discount / 100));
-                      }, 0).toFixed()} ₽
+                      }, 0))}
                     </Typography>
                   </Box>
                 )}
@@ -264,7 +265,7 @@ const BasketPage: FC = observer(() => {
                       return acc + (discountedPrice * item.quantity);
                     }, 0) >= Number(selectedStoreGroup.store.deliveryFreeFromLimit)
                       ? "Бесплатно"
-                      : `${selectedStoreGroup.store.deliveryCost.toFixed()} ₽`}
+                      : formatRubbles(selectedStoreGroup.store.deliveryCost)}
                   </Typography>
                 </Box>
                 {selectedStoreGroup.items.reduce((acc, item) => {
@@ -274,7 +275,7 @@ const BasketPage: FC = observer(() => {
                   return acc + (discountedPrice * item.quantity);
                 }, 0) < Number(selectedStoreGroup.store.deliveryFreeFromLimit) && (
                   <Typography className={styles.storeDeliveryNote}>
-                    Бесплатная доставка от {selectedStoreGroup.store.deliveryFreeFromLimit.toFixed()} ₽
+                    Бесплатная доставка от {formatRubbles(selectedStoreGroup.store.deliveryFreeFromLimit)}
                   </Typography>
                 )}
               </Box>
@@ -287,14 +288,14 @@ const BasketPage: FC = observer(() => {
 
               <Box className={styles.summaryRow}>
                 <Typography>Товары ({totalItemsForSelectedStore})</Typography>
-                <Typography>{totalOriginalPriceForSelectedStore.toFixed()} ₽</Typography>
+                <Typography>{formatRubbles(totalOriginalPriceForSelectedStore)}</Typography>
               </Box>
 
               {totalDiscountForSelectedStore > 0 && (
                 <Box className={styles.summaryRow}>
                   <Typography>Скидка</Typography>
                   <Typography className={styles.discount}>
-                    -{totalDiscountForSelectedStore.toFixed()} ₽
+                    -{formatRubbles(totalDiscountForSelectedStore)}
                   </Typography>
                 </Box>
               )}
@@ -304,7 +305,7 @@ const BasketPage: FC = observer(() => {
                 <Typography>
                   {deliveryCostForSelectedStore === 0 
                     ? "Бесплатно" 
-                    : `${deliveryCostForSelectedStore.toFixed()} ₽`}
+                    : formatRubbles(deliveryCostForSelectedStore)}
                 </Typography>
               </Box>
 
@@ -313,7 +314,7 @@ const BasketPage: FC = observer(() => {
               <Box className={styles.summaryRow}>
                 <Typography className={styles.grandTotal}>Итого к оплате</Typography>
                 <Typography className={styles.grandTotal}>
-                  {(totalPriceForSelectedStore + deliveryCostForSelectedStore).toFixed()} ₽
+                  {formatRubbles(totalPriceForSelectedStore + deliveryCostForSelectedStore)}
                 </Typography>
               </Box>
 

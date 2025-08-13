@@ -25,6 +25,7 @@ import { ProductStatusEnum } from "@core/enums/product-status-enum";
 
 import styles from "./SupplierCard.module.scss";
 import { useChangeProductStatus } from "@entities/OfferedProduct";
+import { formatRubbles } from "@core/utils/formatRubbles";
 
 interface SupplierCardProps {
     supplier: StoreUserBaseType;
@@ -108,7 +109,7 @@ const ProductModal: FC<ProductModalProps> = ({ isOpen, onClose, products, onStat
                           {product.description}
                         </Typography>
                         <Typography component="span" display="block">
-                          {product.offeredPrice} ₽ / {product.unitValue} {product.unitOfMeasurement}
+                          {formatRubbles(product.offeredPrice)} / {product.unitValue} {product.unitOfMeasurement}
                         </Typography>
                         {product.status === ProductStatusEnum.Expired && (
                           <Typography component="span" display="block" color="text.secondary" fontStyle="italic">

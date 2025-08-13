@@ -14,6 +14,7 @@ import { ProductModal } from '@/features/ProductModal';
 import { BasketTools } from '@/shared/ui/BasketTools';
 import { MINIMUM_QUANTITY_TO_BE_IN_BASKET } from '@/shared/consts/applicationConsts';
 import { ProductType } from '@core/types/product-item';
+import { formatRubbles } from '@core/utils/formatRubbles';
 
 interface ProductCardProps {
   product: ProductType;
@@ -125,11 +126,11 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
           <div className={styles.infoSection} onClick={() => setIsOpenProduct(true)}>
             <Box className={styles.priceRow}>
               <Typography variant='body1' className={clsx(styles.price, styles.text)}>
-                {`${discountedPrice.toFixed()}₽`}
+                {`${formatRubbles(discountedPrice)}`}
               </Typography>
               {discountPercentage > 0 && (
                 <Typography className={clsx(styles.originalPrice, styles.text)}>
-                  {originalPrice.toFixed()}&nbsp;₽
+                  {formatRubbles(originalPrice)}
                 </Typography>
               )}
             </Box>

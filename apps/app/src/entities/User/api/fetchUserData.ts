@@ -19,9 +19,26 @@ interface FetchUserDataOptions {
 
 const fetchUserData = async (options?: FetchUserDataOptions) => {
   const refreshToken = Cookies.get(REFRESH_TOKEN)
+  const telegramUser = window.Telegram?.WebApp.initData;
 
   if (refreshToken) {
     const response = await API.post<AuthViaTelegramResponse>("/users/login", {
+      storeId: options?.storeId
+    });
+
+    const { setUserData, setUserRole } = userStore;
+    const { fetchBasketList } = basketStore;
+
+    Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions);
+    setUserData(response.data);
+    setUserRole(Roles.User);
+
+    await fetchBasketList();
+    return response.data.user;
+  }
+
+  if (telegramUser) {
+    const response = await API.post<AuthViaTelegramResponse>("/users/login-telegram", {
       storeId: options?.storeId
     });
 

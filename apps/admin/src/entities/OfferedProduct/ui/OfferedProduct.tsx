@@ -14,6 +14,7 @@ import styles from './OfferedProduct.module.scss';
 import { PostNewProductModalForm } from "@features/PostNewProducts";
 import { ProductType } from "@core/types/product-item";
 import { ProductStatusEnum } from "@core/enums/product-status-enum";
+import { formatRubbles } from "@core/utils/formatRubbles"
 
 interface OfferedProductProps {
     offeredProduct: ProductType;
@@ -159,15 +160,15 @@ export const OfferedProduct: FC<OfferedProductProps> = (props) => {
                 )}
 
                 <Typography variant="h6" mb={2}>
-                    {offeredProduct.offeredPrice} ₽
-                    {offeredProduct.discount !== "0.00" && (
+                    {formatRubbles(offeredProduct.offeredPrice)}
+                    {!Number(offeredProduct.discount) && (
                         <Typography 
                             component="span" 
                             variant="body2" 
                             color="text.secondary" 
                             sx={{ textDecoration: 'line-through', ml: 1 }}
                         >
-                            {offeredProduct.discount} ₽
+                            {formatRubbles(offeredProduct.discount)}
                         </Typography>
                     )}
                 </Typography>

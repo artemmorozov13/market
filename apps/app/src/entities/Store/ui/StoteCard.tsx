@@ -6,6 +6,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { FC } from 'react';
 import { Link } from 'react-router';
 import { RoutePath } from '@/shared/routes/routeConfig';
+import { formatRubbles } from "@core/utils/formatRubbles"
 
 interface StoreCardProps {
     store: StoreBaseType;
@@ -42,12 +43,12 @@ export const StoreCard: FC<StoreCardProps> = ({ store }) => {
                                     {store.isDeliveryFree ? (
                                         <span className={styles.freeDelivery}>Бесплатно</span>
                                     ) : (
-                                        `${store.deliveryCost.toFixed()}₽`
+                                        formatRubbles(store.deliveryCost)
                                     )}
                                 </Typography>
                                 {!store.isDeliveryFree && store.deliveryFreeFromLimit > 0 && (
                                     <Typography variant="caption" className={styles.freeFrom}>
-                                        Бесплатно от {store.deliveryFreeFromLimit.toFixed()}&nbsp;₽
+                                        Бесплатно от {formatRubbles(store.deliveryFreeFromLimit)}
                                     </Typography>
                                 )}
                             </Box>
