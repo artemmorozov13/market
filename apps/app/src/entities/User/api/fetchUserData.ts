@@ -1,15 +1,13 @@
-// useUser.ts
 import { basketStore } from "@/entities/Basket"
 import { userStore } from "@/entities/User"
 import { AuthViaTelegramResponse } from "@/entities/User/types/userTypes"
 import { API } from "@/shared/api/API"
-import { ACCESS_TOKEN, LOCALSTORAGE_STOREID_KEY, REFRESH_TOKEN } from "@/shared/consts/applicationConsts"
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/shared/consts/applicationConsts"
 import { Roles } from "@core/enums/role-enum"
-import { UserType } from "@core/types/user-type"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { TelegramAuthData } from "@telegram-auth/react"
 import Cookies from "js-cookie"
 import { accessCookiesOptions, refreshCookiesOptions } from "@core/consts/token-settings"
+import { parseTelegramData } from "@/shared/helpers/parseTelegramData"
 
 interface FetchUserDataOptions {
     storeId?: string | number | null
@@ -38,7 +36,9 @@ const fetchUserData = async (options?: FetchUserDataOptions) => {
   }
 
   if (telegramUser) {
+    const telegramData = parseTelegramData(telegramUser);
     const response = await API.post<AuthViaTelegramResponse>("/users/login-telegram", {
+      ...telegramData,
       storeId: options?.storeId
     });
 
