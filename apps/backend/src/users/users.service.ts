@@ -15,6 +15,7 @@ import { AddressesEntity } from '@core/entities';
 import { TelegramAuthData } from '@app/telegram/types/telegram-user-types';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { TelegramLoginDto } from './dto/telegram-connect.dto';
+import { Roles } from '@core/enums';
 
 @Injectable()
 export class UsersService {
@@ -166,11 +167,21 @@ export class UsersService {
 
     if (isValid) {
       const user = await this.getUserByTelegramId(telegramUser.id);
-      return {
-        user: user,
-        refreshToken: await this.authService.generateRefreshToken(user),
-        token: await this.authService.generateToken(user),
+
+      if (user) {
+        return {
+          user: user,
+          refreshToken: await this.authService.generateRefreshToken(user),
+          token: await this.authService.generateToken(user),
+        }
       }
+
+      return await this.createUser({
+        telegram_username: telegramUser.username,
+        name: telegramUser.first_name,
+        telegram_id: telegramUser.id,
+        role: Roles.User
+      })
     }
     throw new BadRequestException('Invalid Telegram Data');
   }
