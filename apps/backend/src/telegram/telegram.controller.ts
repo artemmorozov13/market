@@ -22,4 +22,21 @@ export class TelegramController {
         await this.telegramService.broadcastMessage(user, body.message);
         return { success: true };
     }
+
+    @Post('test-message')
+    @AllowRoles(Roles.Admin)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
+    async sendTestMessage(
+        @User() user: AuthJwtPayload,
+        @Body() body: { botToken: string }
+    ) {
+        const result = await this.telegramService.sendTestMessage(body.botToken);
+        return {
+            success: result.success,
+            message: result.success 
+                ? 'Тестовое сообщение успешно отправлено' 
+                : 'Не удалось отправить тестовое сообщение: ' + result.error
+        };
+    }
 }

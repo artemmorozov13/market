@@ -144,7 +144,6 @@ export const sendStoreNotification = async (
     try {
         const message = formatStoreNotificationMessage(order, orderedProducts, user);
 
-        // Если chatId не указан, пытаемся отправить владельцу бота
         await telegramService.sendMessageToBotOwner(
             store.telegramBotToken,
             message
@@ -153,7 +152,7 @@ export const sendStoreNotification = async (
         return true;
         
     } catch (error) {
-        logger.error(`Ошибка при отправке уведомления магазину ${store.id} о заказе #${order.id}:`, error.message);
+        console.log(error)
         return false;
     }
 };

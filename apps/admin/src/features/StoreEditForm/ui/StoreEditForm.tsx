@@ -16,7 +16,8 @@ import {
   Switch,
   Chip,
   Alert,
-  IconButton
+  IconButton,
+  AlertTitle
 } from '@mui/material';
 import { storeSchema } from '../lib/editStoreSchema';
 import { StoreEditFormType } from '../types/storeEditTypes';
@@ -27,9 +28,12 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
 import { useAddStoreStrategy, useRemoveStoreStrategy, useStoreDeliveryStrategies, useStrategies } from '@entities/StoreStrategy';
+import SendIcon from '@mui/icons-material/Send';
 
 import styles from './StoreEditForm.module.scss';
 import { Uploader } from '@entities/Uploader/ui/Uploader';
+import { API } from '@shared/api/instance';
+import { toast } from 'react-toastify';
 
 interface StoreEditFormProps {
   storeData: StoreBaseType;
@@ -85,6 +89,17 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
       });
     }
   };
+
+  const handleTestNotification = async () => {
+    try {
+      const response = await API.post('/telegram/test-message', {
+        botToken: watch('telegramBotToken')
+      });
+      toast(response.data.message, { type: 'success' })
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const handleRemoveStrategy = (strategyId: number) => {
     removeStrategy(strategyId);
@@ -375,16 +390,40 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
             name="telegramBotToken"
             control={control}
             render={({ field }) => (
-              <TextField
-                {...field}
-                label="Telegram Bot Token"
-                fullWidth
-                margin="normal"
-                error={!!errors.telegramBotToken}
-                helperText={errors.telegramBotToken?.message}
-              />
+              <>
+                <TextField
+                  {...field}
+                  label="Telegram Bot Token"
+                  fullWidth
+                  margin="normal"
+                  error={!!errors.telegramBotToken}
+                  helperText={errors.telegramBotToken?.message}
+                />
+                <Alert severity="warning" sx={{ mt: 1 }}>
+                  <AlertTitle>Важно!</AlertTitle>
+                  Для корректной работы необходимо:
+                  <ul>
+                    <li>Бот должен быть администратором чата уведомлений (если используется групповой чат)</li>
+                    <li>Владелец бота должен отправить любое текстовое сообщение боту в личном чате</li>
+                    <li>Бот должен иметь разрешение на отправку сообщений</li>
+                  </ul>
+                  После добавления токена проверьте работу, отправив тестовое сообщение.
+                </Alert>
+              </>
             )}
           />
+          <Button 
+            variant="contained" 
+            color="secondary"
+            onClick={handleTestNotification}
+            disabled={!watch('telegramBotToken')}
+            startIcon={<SendIcon />}
+            fullWidth
+            style={{ marginTop: '1.5rem' }}
+          >
+            Отправить тестовое сообщение
+          </Button>
+
         </section>
 
         <Box className={styles.actions}>

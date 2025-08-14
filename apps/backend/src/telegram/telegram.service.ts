@@ -37,25 +37,84 @@ export class TelegramService implements OnModuleDestroy {
 
   async sendMessageToBotOwner(botToken: string, message: string): Promise<void> {
     try {
-      // 1. Получаем информацию о боте
-      const botInfo = await this.getBotInfo(botToken);
-      
-      // 2. Получаем updates бота (последние сообщения)
-      const updates = await this.getBotUpdates(botToken);
-      
-      // 3. Находим чат с владельцем
-      const ownerChatId = this.findOwnerChatId(updates, botInfo.id);
-      
-      if (!ownerChatId) {
-        throw new Error('Не удалось определить chat_id для отправки сообщений');
-      }
-      
-      // 4. Отправляем сообщение
-      await this.sendMessageWithToken(botToken, ownerChatId, message);
+        // 1. Получаем информацию о боте
+        const botInfo = await this.getBotInfo(botToken);
+        
+        // 2. Пробуем несколько способов определить chat_id владельца
+        let ownerChatId = await this.findOwnerChatIdByVariousMethods(botToken, botInfo.id);
+        
+        if (!ownerChatId) {
+            throw new Error('Не удалось определить chat_id владельца бота. Бот должен иметь хотя бы одно сообщение от владельца.');
+        }
+        
+        // 3. Отправляем сообщение
+        await this.sendMessageWithToken(botToken, ownerChatId, message);
     } catch (error) {
-      this.logger.error(`Ошибка отправки сообщения через бота ${botToken}: ${error.message}`);
-      throw error;
+        this.logger.error(`Ошибка отправки сообщения через бота ${botToken}: ${error.message}`);
+        throw error;
     }
+  }
+
+  async sendTestMessage(botToken: string): Promise<{ success: boolean; chatId?: string, error?: any }> {
+    try {
+        const testMessage = '✅ Сообщения работают корректно!';
+        await this.sendMessageToBotOwner(botToken, testMessage);
+        return { success: true };
+    } catch (error) {
+        this.logger.error(`Ошибка отправки тестового сообщения: ${error.message}`);
+        return { 
+            success: false,
+            error: error
+        };
+    }
+}
+
+  private async findOwnerChatIdByVariousMethods(botToken: string, botId: number): Promise<string | null> {
+    // Способ 1: Из последних обновлений
+    try {
+        const updates = await this.getBotUpdates(botToken);
+        const fromUpdates = this.findOwnerChatIdInUpdates(updates, botId);
+        if (fromUpdates) return fromUpdates;
+    } catch (error) {
+        this.logger.warn(`Не удалось получить updates для бота ${botId}: ${error.message}`);
+    }
+
+    // Способ 2: Через getChatAdministrators (если бот в группе)
+    try {
+        const chatId = await this.tryGetChatViaAdminList(botToken);
+        if (chatId) return chatId;
+    } catch (error) {
+        this.logger.warn(`Не удалось получить администраторов чата для бота ${botId}: ${error.message}`);
+    }
+
+    return null;
+  }
+
+  private findOwnerChatIdInUpdates(updates: any[], botId: number): string | null {
+      // Ищем последнее сообщение НЕ от бота
+      for (const update of updates.reverse()) {
+          if (update.message && update.message.from && update.message.from.id !== botId) {
+              return update.message.chat.id.toString();
+          }
+      }
+      return null;
+  }
+
+  private async tryGetChatViaAdminList(botToken: string): Promise<string | null> {
+      try {
+          // Пытаемся получить список чатов, где бот является администратором
+          const response = await axios.get(`https://api.telegram.org/bot${botToken}/getChatAdministrators`, {
+              params: { chat_id: '@' } // Специальный параметр для поиска
+          });
+          
+          // Если есть хотя бы один чат, берем первый
+          if (response.data.result?.length > 0) {
+              return response.data.result[0].chat.id.toString();
+          }
+      } catch (error) {
+          // Игнорируем ошибки, так как это не основной метод
+      }
+      return null;
   }
 
   private async getBotInfo(botToken: string): Promise<any> {
