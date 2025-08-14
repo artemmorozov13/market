@@ -338,7 +338,7 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
         </section>
 
         {/* Интеграции */}
-        <section className={styles.section}>          
+        <section className={styles.section}>
           <Typography variant="h6" className={styles.sectionTitle}>
             Ссылки для клиентов
           </Typography>
@@ -365,6 +365,26 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
               {isCopiedBrowser ? "Скопировано!" : "Скопировать ссылку для браузера"}
             </Button>
           </div>
+        </section>
+
+        <section className={styles.section}>
+          <Typography variant="h6" className={styles.sectionTitle}>
+            Токен бота для отправки сообщений
+          </Typography>
+          <Controller
+            name="telegramBotToken"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Telegram Bot Token"
+                fullWidth
+                margin="normal"
+                error={!!errors.telegramBotToken}
+                helperText={errors.telegramBotToken?.message}
+              />
+            )}
+          />
         </section>
 
         <Box className={styles.actions}>
