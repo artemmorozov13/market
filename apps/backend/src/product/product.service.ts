@@ -50,6 +50,36 @@ export class ProductService {
         return this.responseBuilder.buildResponse(items, total, limit, skip);
     }
 
+    async getProductsListByStoreId(
+        storeId: number,
+        page: number = 1,
+        limit: number = 10
+    ) {
+    const [products, total] = await this.productRepository.findAndCount({
+        where: {
+        status: In([
+            ProductStatusEnum.Accepted,
+            ProductStatusEnum.Active
+        ]),
+        store: { id: storeId }
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: { createdAt: 'DESC' } // по желанию
+    });
+
+    return {
+        data: products,
+        meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+        }
+    };
+    }
+
+
     async getOfferedProductsList(
         userJwt: AuthJwtPayload, 
         options?: PaginationDto

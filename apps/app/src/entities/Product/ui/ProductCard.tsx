@@ -19,8 +19,8 @@ import { formatRubbles } from '@core/utils/formatRubbles';
 interface ProductCardProps {
   product: ProductType;
   isInBasket?: boolean;
-  onAddItemBasket: (product: ProductType) => Promise<void>;
-  onRemoveBasketItem: (product: ProductType) => Promise<void>;
+  onAddItemBasket: (product: ProductType) => void;
+  onRemoveBasketItem: (product: ProductType) => void;
 }
 
 export const ProductCard: FC<ProductCardProps> = observer((props) => {
@@ -124,6 +124,9 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
         
         <CardContent className={styles.content}>
           <div className={styles.infoSection} onClick={() => setIsOpenProduct(true)}>
+            <Typography variant="body1" className={styles.name}>
+              {product.name}
+            </Typography>
             <Box className={styles.priceRow}>
               <Typography variant='body1' className={clsx(styles.price, styles.text)}>
                 {`${formatRubbles(discountedPrice)}`}
@@ -134,12 +137,9 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
                 </Typography>
               )}
             </Box>
-            <Typography variant="body1" className={styles.name} noWrap>
-              {product.name}
-            </Typography>
             <Box className={styles.priceSection}>
               <Typography variant="caption" className={styles.unit}>
-                {`${displayUnitValue}${displayUnitOfMeasurement}`}
+                {`${displayUnitValue} ${displayUnitOfMeasurement}`}
               </Typography>
             </Box>
           </div>

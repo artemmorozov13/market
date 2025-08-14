@@ -121,7 +121,6 @@ export class StoreService {
         const store = await this.storeRepository.findOne({
             where: { id: storeId },
             relations: [
-                'products',
                 'deliveryAreas',
                 'pickupPoints',
                 'pickupPoints.workingHours',

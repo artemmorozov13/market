@@ -22,6 +22,16 @@ export class ProductController {
         return this.productService.getProductsList(user, options);
     }
 
+    @Get('store/:id')
+    getProductsListByStoreId(
+        @Param('id') storeId: number,
+        @Query('page') page = 1,
+        @Query('limit') limit = 10
+    ) {
+        return this.productService.getProductsListByStoreId(storeId, page, limit);
+    }
+
+
     @Get('offered')
     @AllowRoles(Roles.Admin, Roles.SuperAdmin, Roles.User, Roles.Vendor)
     @UseGuards(RolesGuard)
