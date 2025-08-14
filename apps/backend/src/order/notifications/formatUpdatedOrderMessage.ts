@@ -34,10 +34,31 @@ export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]
     const startTime = order.deliveryTime?.startTime?.toString().slice(0, 5) || 'Не указано';
     const endTime = order.deliveryTime?.endTime?.toString().slice(0, 5) || 'Не указано';
 
+    // Функция для расчета цены со скидкой
+    const calculateDiscountedPrice = (price: number, discount: number | null) => {
+        if (!discount || discount <= 0) return price;
+        return price - (price * discount / 100);
+    };
+
+    // Расчет стоимости товаров
+    const productsTotalWithoutDiscount = order.ordered_products.reduce(
+        (sum, p) => sum + (Number(p.product?.price || 0) * Number(p.quantity || 0)),
+        0
+    );
+
+    const productsTotal = order.ordered_products.reduce(
+        (sum, p) => {
+            const price = Number(p.product?.price || 0);
+            const discount = p.product?.discount ? Number(p.product.discount) : 0;
+            const discountedPrice = calculateDiscountedPrice(price, discount);
+            return sum + (discountedPrice * Number(p.quantity || 0));
+        },
+        0
+    );
+
     // Определение информации о доставке/самовывозе
     let deliveryInfo = '';
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
-        // Для самовывоза используем информацию из полей order
         const pickupName = order.address?.replace('Самовывоз: ', '') || 'Не указан';
         const pickupAddress = order.fullAddress || 'Не указан';
         
@@ -49,7 +70,6 @@ export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]
 └──────────────────────
         `;
     } else {
-        // Для доставки
         deliveryInfo = `
 <b>📦 Доставка</b>
 ┌──────────────────────
@@ -60,22 +80,15 @@ export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]
         `;
     }
 
-    // Расчет стоимости
-    const productsTotal = order.ordered_products.reduce(
-        (sum, p) => (
-            sum + (
-                Number(p.product?.price || 0) * Number(p.quantity || 0)
-            )
-        ),
-        0
-    );
-    
+    // Расчет стоимости доставки (учитываем сумму со скидкой)
     let deliveryCost = 0;
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.DeliveryToEntrance) {
         deliveryCost = productsTotal >= 4000 ? 0 : 100;
     }
     
     const totalAmount = productsTotal + deliveryCost;
+    const discountAmount = productsTotalWithoutDiscount - productsTotal;
+    const hasDiscount = discountAmount > 0;
     
     const formatPrice = (price: number) => 
         new Intl.NumberFormat('ru-RU', { 
@@ -84,10 +97,21 @@ export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]
             minimumFractionDigits: 0
         }).format(price).replace(',00', '');
 
-    // Список товаров
+    // Список товаров с учетом скидки
     const productsList = order.ordered_products
         .filter(p => p.product) // Фильтруем существующие продукты
-        .map(p => `▪️ ${escape(p.product?.name)} — ${p.quantity} × ${formatPrice(Number(p.product?.price || 0))}`)
+        .map(p => {
+            const price = Number(p.product?.price || 0);
+            const discount = p.product?.discount ? Number(p.product.discount) : 0;
+            const discountedPrice = calculateDiscountedPrice(price, discount);
+            
+            if (discount > 0) {
+                return `▪️ ${escape(p.product?.name)} — ${p.quantity} × ` +
+                       `${formatPrice(discountedPrice)} (${discount}% скидка, было ${formatPrice(price)})`;
+            } else {
+                return `▪️ ${escape(p.product?.name)} — ${p.quantity} × ${formatPrice(price)}`;
+            }
+        })
         .join('\n');
 
     // Блок изменений
@@ -108,7 +132,8 @@ ${productsList}
 
 <b>💳 Итого к оплате</b>
 ┌──────────────────────
-│ <b>Товары:</b> ${formatPrice(productsTotal)}
+│ <b>Товары${hasDiscount ? ' (со скидкой)' : ''}:</b> ${formatPrice(productsTotal)}
+${hasDiscount ? `│ <b>Скидка:</b> -${formatPrice(discountAmount)}` : ''}
 │ <b>Доставка:</b> ${deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost)}
 │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
 └──────────────────────

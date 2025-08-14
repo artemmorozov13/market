@@ -20,6 +20,7 @@ import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { StoreService } from '@app/store/store.service';
 import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum';
 import { DeliveryArea, DeliveryStrategy, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity, ProductEntity, SelectedProductEntity, UsersEntity } from '@core/entities';
+import { sendStoreNotification } from './notifications/store-order-notification';
 
 @Injectable()
 export class OrderService {
@@ -366,6 +367,16 @@ export class OrderService {
         store: { id: store.id }
     });
 
+    if (store.telegramBotToken) {
+        await sendStoreNotification(
+            this.telegramService,
+            store,
+            savedOrder,
+            orderedProducts,
+            user
+        );
+    }
+
     if (user.telegram_id) {
       const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime);
       await this.telegramService.sendMessage(
@@ -375,7 +386,7 @@ export class OrderService {
     }
 
     return savedOrder;
-}
+  }
 
   async updateOrder(
     updateOrderDto: UpdateOrderDto,

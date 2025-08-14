@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '@app/users/users.service';
 import { StoreUserService } from '@app/store-user/store-user.service';
 import { AuthJwtPayload } from '@core/types/user-type';
+import axios from 'axios';
 
 @Injectable()
 export class TelegramService implements OnModuleDestroy {
@@ -18,6 +19,63 @@ export class TelegramService implements OnModuleDestroy {
     private readonly storeUserService: StoreUserService,
   ) {
     this.initializeBot();
+  }
+
+  async sendMessageWithToken(botToken: string, chatId: string, message: string, parseMode: 'HTML' | 'Markdown' = 'HTML'): Promise<void> {
+    try {
+      const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+      await axios.post(url, {
+        chat_id: chatId,
+        text: message,
+        parse_mode: parseMode
+      });
+    } catch (error) {
+      this.logger.error(`Failed to send message via bot token to ${chatId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async sendMessageToBotOwner(botToken: string, message: string): Promise<void> {
+    try {
+      // 1. Получаем информацию о боте
+      const botInfo = await this.getBotInfo(botToken);
+      
+      // 2. Получаем updates бота (последние сообщения)
+      const updates = await this.getBotUpdates(botToken);
+      
+      // 3. Находим чат с владельцем
+      const ownerChatId = this.findOwnerChatId(updates, botInfo.id);
+      
+      if (!ownerChatId) {
+        throw new Error('Не удалось определить chat_id для отправки сообщений');
+      }
+      
+      // 4. Отправляем сообщение
+      await this.sendMessageWithToken(botToken, ownerChatId, message);
+    } catch (error) {
+      this.logger.error(`Ошибка отправки сообщения через бота ${botToken}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  private async getBotInfo(botToken: string): Promise<any> {
+    const response = await axios.get(`https://api.telegram.org/bot${botToken}/getMe`);
+    return response.data.result;
+  }
+
+  private async getBotUpdates(botToken: string): Promise<any[]> {
+    const response = await axios.get(`https://api.telegram.org/bot${botToken}/getUpdates?limit=10`);
+    return response.data.result || [];
+  }
+
+  private findOwnerChatId(updates: any[], botId: number): string | null {
+    // Ищем чат, где боту писали сообщения
+    for (const update of updates) {
+      if (update.message?.from?.id !== botId) {
+        return update.message?.chat?.id?.toString() || null;
+      }
+    }
+    return null;
   }
 
   private initializeBot() {

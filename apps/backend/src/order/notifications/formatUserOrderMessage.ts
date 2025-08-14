@@ -1,14 +1,5 @@
-import { OrderStatusEnum } from "@core/enums/order-status-enum";
-import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 import { DeliveryArea, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity } from "@core/entities";
-
-const textByStatus: Record<OrderStatusEnum, string> = {
-    waitForPay: "Создан",
-    finished: "Завершен",
-    canceled_by_user: 'Отменен',
-    cancel_by_admin: 'Отменен Администратором',
-    finished_and_rated: 'Заверешен и оценен'
-};
+import { DeliveryStrategyEnum } from "@core/enums";
 
 export const formatUserOrderMessage = (
     order: OrderEntity,
@@ -39,8 +30,26 @@ export const formatUserOrderMessage = (
     const endTime = deliveryTime?.endTime?.toString()?.slice(0, 5) || 'Не указано';
 
     // Calculate totals
-    const productsTotal = orderedProducts.reduce((sum, p) => sum + (Number(p.product.price) * p.quantity), 0);
+    const calculateDiscountedPrice = (price: number, discount: number | null) => {
+        if (!discount || discount <= 0) return price;
+        return price - (price * discount / 100);
+    };
+
+    const productsTotalWithoutDiscount = orderedProducts.reduce(
+        (sum, p) => sum + (Number(p.product.price) * p.quantity), 
+        0
+    );
     
+    const productsTotal = orderedProducts.reduce(
+        (sum, p) => {
+            const price = Number(p.product.price);
+            const discount = p.product.discount ? Number(p.product.discount) : 0;
+            const discountedPrice = calculateDiscountedPrice(price, discount);
+            return sum + (discountedPrice * p.quantity);
+        }, 
+        0
+    );
+
     // Determine delivery cost and description
     let deliveryCost = 0;
     let deliveryDescription = '';
@@ -61,52 +70,64 @@ export const formatUserOrderMessage = (
         minimumFractionDigits: 0
     }).format(price).replace(',00', '');
 
-    // Products list
-    const productsList = orderedProducts.map(p => 
-        `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ${formatPrice(Number(p.product.price))}`
-    ).join('\n');
+    // Products list - showing original and discounted prices if applicable
+    const productsList = orderedProducts.map(p => {
+        const originalPrice = Number(p.product.price);
+        const discount = p.product.discount ? Number(p.product.discount) : 0;
+        const discountedPrice = calculateDiscountedPrice(originalPrice, discount);
+        
+        if (discount > 0) {
+            return `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ` +
+                   `${formatPrice(discountedPrice)} (${discount}% скидка, было ${formatPrice(originalPrice)})`;
+        } else {
+            return `▪️ ${escape(p.product.name)} — ${escape(p.quantity.toString())} × ${formatPrice(originalPrice)}`;
+        }
+    }).join('\n');
 
     // Delivery/pickup details
     let deliveryDetails = '';
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
         const pickupPoint = order.pickupPoint as PickupPointEntity;
         deliveryDetails = `
-<b>📦 Самовывоз</b>
-┌──────────────────────
-│ 🏢 <b>Пункт выдачи:</b> ${escape(pickupPoint?.name || 'Не указан')}
-│ 📍 <b>Адрес:</b> ${escape(pickupPoint?.fullAddress || 'Не указан')}
-└──────────────────────
-        `;
-    } else {
-        deliveryDetails = `
-<b>📦 Доставка</b>
-┌──────────────────────
-│ 📅 <b>Дата:</b> ${deliveryDate}
-│ ⏰ <b>Время:</b> ${startTime}–${endTime}
-│ 🚚 <b>Тип:</b> ${deliveryDescription}
-│ 🏠 <b>Адрес:</b> ${escape(order?.fullAddress || order?.address || 'Не указан')}
-└──────────────────────
-        `;
-    }
+    <b>📦 Самовывоз</b>
+    ┌──────────────────────
+    │ 🏢 <b>Пункт выдачи:</b> ${escape(pickupPoint?.name || 'Не указан')}
+    │ 📍 <b>Адрес:</b> ${escape(pickupPoint?.fullAddress || 'Не указан')}
+    └──────────────────────
+            `;
+        } else {
+            deliveryDetails = `
+    <b>📦 Доставка</b>
+    ┌──────────────────────
+    │ 📅 <b>Дата:</b> ${deliveryDate}
+    │ ⏰ <b>Время:</b> ${startTime}–${endTime}
+    │ 🚚 <b>Тип:</b> ${deliveryDescription}
+    │ 🏠 <b>Адрес:</b> ${escape(order?.fullAddress || order?.address || 'Не указан')}
+    └──────────────────────
+            `;
+        }
 
-    // Final message template
-    return `
-<b>🛍️ Заказ #${order.id} подтверждён!</b>
+        // Calculate discount amount if any
+        const discountAmount = productsTotalWithoutDiscount - productsTotal;
+        const hasDiscount = discountAmount > 0;
 
-${deliveryDetails}
+        // Final message template
+        return `
+    <b>🛍️ Заказ #${order.id} подтверждён!</b>
 
-<b>🛒 Состав заказа</b>
-${productsList}
+    ${deliveryDetails}
 
-<b>💳 Итого к оплате</b>
-┌──────────────────────
-│ <b>Товары:</b> ${formatPrice(productsTotal)}
-${deliveryCost > 0 ? `│ <b>Доставка:</b> ${formatPrice(deliveryCost)}` : '│ <b>Доставка:</b> Бесплатно'}
-│ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
-└──────────────────────
+    <b>🛒 Состав заказа</b>
+    ${productsList}
 
-<b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
+    <b>💳 Итого к оплате</b>
+    ┌──────────────────────
+    │ <b>Товары${hasDiscount ? ' (со скидкой)' : ''}:</b> ${formatPrice(productsTotal)}
+    ${hasDiscount ? `│ <b>Скидка:</b> -${formatPrice(discountAmount)}` : ''}
+    ${deliveryCost > 0 ? `│ <b>Доставка:</b> ${formatPrice(deliveryCost)}` : '│ <b>Доставка:</b> Бесплатно'}
+    │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
+    └──────────────────────
 
-По всем вопросам обращаться @Evamiir1.
-    `.trim();
+    По всем вопросам обращаться @Evamiir1.
+        `.trim();
 };
