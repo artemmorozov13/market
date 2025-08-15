@@ -37,9 +37,17 @@ export const formatStoreNotificationMessage = (
     }, 0);
 
     // Форматирование даты доставки
-    const formatDeliveryDate = (date: Date | undefined) => {
+    // Форматирование даты доставки
+    const formatDeliveryDate = (date: Date | string | undefined | null) => {
         if (!date) return '—';
-        return date.toLocaleDateString('ru-RU', {
+        
+        // Convert to Date if it's a string
+        const dateObj = typeof date === 'string' ? new Date(date) : date;
+        
+        // Check if the date is valid
+        if (isNaN(dateObj.getTime())) return '—';
+        
+        return dateObj.toLocaleDateString('ru-RU', {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
