@@ -18,18 +18,11 @@ const AuthProvider: FC<AuthProviderProps> = observer(({ children }) => {
   const storeId = urlParams.get("store");
   const refreshToken = Cookies.get(REFRESH_TOKEN);
   const isAuthed = !!refreshToken || !!window.Telegram?.WebApp.initData;
-  const { user } = useUser({
+  useUser({
     storeId,
     enabled: isAuthed
   })
 
-  if (!user) {
-    return (
-      <div className={styles.wrapper}>
-        <CircularProgress/>
-      </div>
-    )
-  }
   if (!isAuthed) {
     return (
       <StartupScreen/>
