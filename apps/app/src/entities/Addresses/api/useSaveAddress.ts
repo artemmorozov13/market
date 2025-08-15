@@ -1,8 +1,10 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { API } from '@/shared/api/API';
 import { AddressFormValues } from '@/features/AddNewAddressModal';
 
 export const useSaveAddress = () => {
+  const queryClient = useQueryClient()
+
   const options = useMutation({
     mutationKey: ["address"],
     mutationFn: async (addressData: AddressFormValues) => {
@@ -24,7 +26,9 @@ export const useSaveAddress = () => {
       return response.data;
     },
     onSuccess: () => {
-      
+      queryClient.invalidateQueries({
+          queryKey: ['stores']
+      })
     },
     onError: () => {
     },
