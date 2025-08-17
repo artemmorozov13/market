@@ -20,6 +20,7 @@ export class StoreUserService {
         @InjectRepository(StoreUserEntity)
         private readonly storeUserRepository: Repository<StoreUserEntity>,
         private readonly telegramUtils: TelegramUtils,
+        @Inject(forwardRef(() => AuthService))
         private readonly authService: AuthService,
     ) {}
 
