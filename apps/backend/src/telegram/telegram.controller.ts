@@ -27,11 +27,8 @@ export class TelegramController {
     @AllowRoles(Roles.Admin)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    async sendTestMessage(
-        @User() user: AuthJwtPayload,
-        @Body() body: { botToken: string }
-    ) {
-        const result = await this.telegramService.sendTestMessage(body.botToken);
+    async sendTestMessage(@User() user: AuthJwtPayload) {
+        const result = await this.telegramService.sendTestMessage(user);
         return {
             success: result.success,
             message: result.success 

@@ -8,6 +8,7 @@ import { AllowRoles } from '@app/auth/decorators/roles.decorator';
 import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from '@app/auth/guards/roles/roles.guard';
 import { DeleteParamsDto } from './dto/delete-patams.dto';
+import { TelegramLoginDto } from './dto/telegram-connect.dto';
 
 @Controller('store-user')
 export class StoreUserController {
@@ -35,6 +36,14 @@ export class StoreUserController {
         @Body() body: CreateUserDto
     ) {
         return this.storeUserServuce.createVendorUser(user, body)
+    }
+
+    @AllowRoles(Roles.Admin)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
+    @Post('telegram-connect')
+    connectTelegram(@User() user: AuthJwtPayload, @Body() body: TelegramLoginDto) {
+        return this.storeUserServuce.connectTelegram(user, body)
     }
 
     @AllowRoles(Roles.Admin)

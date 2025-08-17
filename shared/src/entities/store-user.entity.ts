@@ -21,6 +21,12 @@ export class StoreUserEntity {
     })
     role: Roles
 
+    @Column({ type: 'bigint', nullable: true })
+    telegram_id?: number;
+
+    @Column({ nullable: true, default: null })
+    telegram_username: string | null
+
     @CreateDateColumn()
     createdAt: Date;
 

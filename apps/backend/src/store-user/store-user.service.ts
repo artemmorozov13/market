@@ -1,7 +1,7 @@
 import { StoreUserEntity } from '@core/entities/store-user.entity';
 import { BadRequestException, ConflictException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { StoreService } from '@app/store/store.service';
 import * as bcrypt from "bcryptjs"
@@ -9,12 +9,18 @@ import { Roles } from '@core/enums/role-enum';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { DeleteParamsDto } from './dto/delete-patams.dto';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
+import { TelegramLoginDto } from './dto/telegram-connect.dto';
+import { TelegramUtils } from '@app/utils/telegram.utils';
+import { AuthService } from '@app/auth/auth.service';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class StoreUserService {
     constructor(
         @InjectRepository(StoreUserEntity)
         private readonly storeUserRepository: Repository<StoreUserEntity>,
+        private readonly telegramUtils: TelegramUtils,
+        private readonly authService: AuthService,
     ) {}
 
     async getStoreUserByEmail(email: string) {
@@ -45,6 +51,47 @@ export class StoreUserService {
         }
         
         return user
+    }
+
+    async connectTelegram(userJwt: AuthJwtPayload, telegramUser: TelegramLoginDto) {
+        const isValid = this.telegramUtils.validateInitDataObject(telegramUser)
+        const findUser = await this.storeUserRepository.findOne({ where: { telegram_id: telegramUser.id }});
+    
+        if (!isValid) {
+            throw new BadRequestException('Invalid Telegram Data');
+        }
+    
+        if (findUser) {
+            const refreshToken = await this.authService.generateRefreshToken(findUser);
+            const token = await this.authService.generateToken(findUser);
+
+            return {
+                user: findUser,
+                token: token,
+                refreshToken: refreshToken,
+            };
+        }
+    
+        if (!findUser) {
+            const options: FindOptionsWhere<StoreUserEntity> = {
+                id: userJwt.id
+            }
+            const payload: QueryDeepPartialEntity<StoreUserEntity> = {
+                telegram_id: telegramUser.id,
+                telegram_username: telegramUser.username,
+            }
+            await this.storeUserRepository.update(options, payload)
+
+            const user = await this.getStoreUserById(userJwt.id)
+            const token = await this.authService.generateToken(user);
+            const refreshToken = await this.authService.generateRefreshToken(user);
+
+            return {
+                user,
+                refreshToken,
+                token,
+            };
+        }
     }
 
     async createUser(body: CreateUserDto) {

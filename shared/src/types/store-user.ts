@@ -7,6 +7,8 @@ export interface StoreUserBaseType {
     email: string,
     password: string,
     role: Roles,
+    telegram_id?: number | null
+    telegram_username?: string | null 
     createdAt: Date,
     updatedAt: Date,
     store?: StoreBaseType

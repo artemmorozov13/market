@@ -367,15 +367,18 @@ export class OrderService {
         store: { id: store.id }
     });
 
-    if (store.telegramBotToken) {
-        await sendStoreNotification(
+    store.staff.forEach((person) => {
+      if (person?.telegram_id) {
+        sendStoreNotification(
             this.telegramService,
             store,
             savedOrder,
             orderedProducts,
-            user
+            user,
+            person.telegram_id.toString()
         );
     }
+    })
 
     if (user.telegram_id) {
       const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime);

@@ -35,31 +35,46 @@ export class TelegramService implements OnModuleDestroy {
     }
   }
 
-  async sendMessageToBotOwner(botToken: string, message: string): Promise<void> {
+  async sendNotification(message: string, chatId?: string): Promise<void> {
     try {
-        // 1. Получаем информацию о боте
+        const botToken = process.env.TELEGRAM_ADMIN_NOTIFICATION_BOT_TOKEN;
+        if (!botToken) {
+            throw new Error('TELEGRAM_ADMIN_NOTIFICATION_BOT_TOKEN не настроен в .env');
+        }
+
+        // Если передан chatId - отправляем туда
+        if (chatId) {
+            await this.sendMessageWithToken(botToken, chatId, message);
+            return;
+        }
+
+        // Если chatId не передан - пытаемся определить chat_id владельца
         const botInfo = await this.getBotInfo(botToken);
-        
-        // 2. Пробуем несколько способов определить chat_id владельца
-        let ownerChatId = await this.findOwnerChatIdByVariousMethods(botToken, botInfo.id);
+        const ownerChatId = await this.findOwnerChatIdByVariousMethods(botToken, botInfo.id);
         
         if (!ownerChatId) {
-            throw new Error('Не удалось определить chat_id владельца бота. Бот должен иметь хотя бы одно сообщение от владельца.');
+            throw new Error('Не удалось определить chat_id владельца бота');
         }
         
-        // 3. Отправляем сообщение
         await this.sendMessageWithToken(botToken, ownerChatId, message);
     } catch (error) {
-        this.logger.error(`Ошибка отправки сообщения через бота ${botToken}: ${error.message}`);
+        this.logger.error(`Ошибка отправки уведомления: ${error.message}`);
         throw error;
     }
   }
 
-  async sendTestMessage(botToken: string): Promise<{ success: boolean; chatId?: string, error?: any }> {
+  async sendTestMessage(userJwt: AuthJwtPayload): Promise<{ success: boolean; chatId?: string, error?: any }> {
     try {
+        const storeUser = await this.storeUserService.getStoreUserById(userJwt.id);
         const testMessage = '✅ Сообщения работают корректно!';
-        await this.sendMessageToBotOwner(botToken, testMessage);
-        return { success: true };
+        
+        if (storeUser.telegram_id) {
+            await this.sendNotification(testMessage, storeUser.telegram_id.toString());
+            return { 
+                success: true,
+                chatId: storeUser.telegram_id.toString()
+            };
+        }
     } catch (error) {
         this.logger.error(`Ошибка отправки тестового сообщения: ${error.message}`);
         return { 
@@ -67,7 +82,7 @@ export class TelegramService implements OnModuleDestroy {
             error: error
         };
     }
-}
+  }
 
   private async findOwnerChatIdByVariousMethods(botToken: string, botId: number): Promise<string | null> {
     // Способ 1: Из последних обновлений

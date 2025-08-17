@@ -124,7 +124,8 @@ export class StoreService {
                 'deliveryAreas',
                 'pickupPoints',
                 'pickupPoints.workingHours',
-                'deliveryStrategies'
+                'deliveryStrategies',
+                'staff'
             ],
         });
         

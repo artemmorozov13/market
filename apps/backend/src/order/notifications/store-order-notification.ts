@@ -4,6 +4,7 @@ import { OrderEntity } from "@core/entities/order.entity";
 import { OrderedProductsEntity } from "@core/entities/ordered-products.entity";
 import { UsersEntity } from "@core/entities/users.entity";
 import { DeliveryStrategyEnum } from "@core/enums";
+import { StoreUserBaseType } from "@core/index";
 import { Logger } from '@nestjs/common';
 
 const logger = new Logger('StoreNotification');
@@ -142,7 +143,8 @@ export const sendStoreNotification = async (
     store: StoreEntity,
     order: OrderEntity,
     orderedProducts: OrderedProductsEntity[],
-    user: UsersEntity
+    user: UsersEntity,
+    telegramId: string
 ): Promise<boolean> => {
     if (!store.telegramBotToken) {
         logger.warn(`Не настроен telegramBotToken для магазина ${store.id}`);
@@ -152,9 +154,9 @@ export const sendStoreNotification = async (
     try {
         const message = formatStoreNotificationMessage(order, orderedProducts, user);
 
-        await telegramService.sendMessageToBotOwner(
-            store.telegramBotToken,
-            message
+        await telegramService.sendNotification(
+            message,
+            telegramId
         );
         logger.log(`Уведомление о заказе #${order.id} отправлено владельцу бота магазина ${store.id}`);
         return true;

@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import clsx from "clsx";
@@ -16,24 +16,26 @@ import {
   Switch,
   Chip,
   Alert,
-  IconButton,
-  AlertTitle
+  IconButton
 } from '@mui/material';
 import { storeSchema } from '../lib/editStoreSchema';
 import { StoreEditFormType } from '../types/storeEditTypes';
 import { StoreBaseType } from '@core/types/store-type';
 import { useUpdateStore } from '../api/updateStore';
-import { useUser } from '@entities/User';
+import { useTelegramAuthData, useTelegramIntegrate, useUser } from '@entities/User';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useAddStoreStrategy, useRemoveStoreStrategy, useStoreDeliveryStrategies, useStrategies } from '@entities/StoreStrategy';
 import SendIcon from '@mui/icons-material/Send';
+import { LoginButton } from '@telegram-auth/react';
 
 import styles from './StoreEditForm.module.scss';
 import { Uploader } from '@entities/Uploader/ui/Uploader';
 import { API } from '@shared/api/instance';
 import { toast } from 'react-toastify';
+import { routeConfig } from '@shared/lib/consts/routeConfig';
 
 interface StoreEditFormProps {
   storeData: StoreBaseType;
@@ -53,10 +55,13 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   const [isCopiedBrowser, setIsCopiedBrowser] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<number | ''>('');
 
+  const { initData } = useTelegramAuthData();
+  const { connectTelegram } = useTelegramIntegrate()
   const { data: strategies } = useStrategies();
   const { data: storeStrategies } = useStoreDeliveryStrategies(storeData.id);
   const { mutate: addStrategy } = useAddStoreStrategy(storeData.id);
   const { mutate: removeStrategy } = useRemoveStoreStrategy(storeData.id);
+  const { user } = useUser()
   
   const { mutate: updateStore } = useUpdateStore();
   const { refetch } = useUser();
@@ -92,9 +97,7 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
 
   const handleTestNotification = async () => {
     try {
-      const response = await API.post('/telegram/test-message', {
-        botToken: watch('telegramBotToken')
-      });
+      const response = await API.post('/telegram/test-message');
       toast(response.data.message, { type: 'success' })
     } catch (error) {
       console.log(error)
@@ -113,6 +116,13 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   const availableStrategies = strategies?.filter(strategy => 
     !storeStrategies?.some(storeStrategy => storeStrategy.strategy.id === strategy.id)
   );
+
+  useEffect(() => {
+    if (initData) {
+      connectTelegram(initData)
+        .then(() => window.location.replace(routeConfig['shop/settings']))
+    }
+  }, [initData]);
 
   return (
     <Box className={styles.formContainer}>
@@ -384,34 +394,31 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
 
         <section className={styles.section}>
           <Typography variant="h6" className={styles.sectionTitle}>
-            Токен бота для отправки сообщений
+              Интеграции
           </Typography>
-          <Controller
-            name="telegramBotToken"
-            control={control}
-            render={({ field }) => (
-              <>
-                <TextField
-                  {...field}
-                  label="Telegram Bot Token"
-                  fullWidth
-                  margin="normal"
-                  error={!!errors.telegramBotToken}
-                  helperText={errors.telegramBotToken?.message}
-                />
-                <Alert severity="warning" sx={{ mt: 1 }}>
-                  <AlertTitle>Важно!</AlertTitle>
-                  Для корректной работы необходимо:
-                  <ul>
-                    <li>Бот должен быть администратором чата уведомлений (если используется групповой чат)</li>
-                    <li>Владелец бота должен отправить любое текстовое сообщение боту в личном чате</li>
-                    <li>Бот должен иметь разрешение на отправку сообщений</li>
-                  </ul>
-                  После добавления токена проверьте работу, отправив тестовое сообщение.
-                </Alert>
-              </>
-            )}
-          />
+          {user?.telegram_id ? (
+            <Box display="flex" alignItems="center" gap={1}>
+              <Chip
+                label="Подключен" 
+                color="success" 
+                size="small" 
+                icon={<CheckCircleOutlineIcon fontSize="small" />}
+              />
+              <Typography variant="body2" color="text.secondary">
+                ID: {user.telegram_id}
+              </Typography>
+            </Box>
+          ) : (
+            <LoginButton
+              botUsername={'okacuki_bot'}
+              authCallbackUrl={'https://akacuki.ru/admin/shop/settings'}
+              buttonSize="large"
+              cornerRadius={8}
+              showAvatar={true}
+              lang="ru"
+              requestAccess={'write'}
+            />
+          )}
           <Button 
             variant="contained" 
             color="secondary"
