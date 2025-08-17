@@ -7,7 +7,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "@shared/lib/consts/consts";
 
 
 export const postTelegramIntegrate = async (body: TelegramAuthData) => {
-    const response = await API.post('/store-users/telegram-connect', body)
+    const response = await API.post('/store-user/telegram-connect', body)
 
     Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions);
     Cookies.set(REFRESH_TOKEN, response.data.refreshToken, refreshCookiesOptions);
