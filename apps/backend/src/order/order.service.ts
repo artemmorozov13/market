@@ -296,8 +296,24 @@ export class OrderService {
             throw new NotFoundException('Время доставки не найдено');
         }
 
+        // Формируем полный адрес с деталями
+        const addressParts = [createOrderDto.address.fullAddress];
+        
+        if (createOrderDto.address.entrance) {
+            addressParts.push(`подъезд ${createOrderDto.address.entrance}`);
+        }
+        
+        if (createOrderDto.address.floor) {
+            addressParts.push(`этаж ${createOrderDto.address.floor}`);
+        }
+        
+        if (createOrderDto.address.apartment) {
+            addressParts.push(`квартира ${createOrderDto.address.apartment}`);
+        }
+        
+        fullAddress = addressParts.join(', ');
         address = createOrderDto.address.fullAddress;
-        fullAddress = createOrderDto.address.fullAddress;
+
     } else if (deliveryStrategy.type === DeliveryStrategyEnum.PickupByYourself) {
         if (!createOrderDto.pickupPointId) {
             throw new BadRequestException("Не выбран пункт самовывоза");
