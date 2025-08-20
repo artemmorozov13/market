@@ -28,38 +28,27 @@ const ActiveOrderPage: FC = () => {
   };
 
   const isDeliveryAvailable = (order: Order): boolean => {
-    // Для самовывоза всегда разрешаем изменение
+    // 1. Для самовывоза всегда разрешаем изменение
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
         return true;
     }
 
     const now = new Date();
-    const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
-
-    // Проверка 1: Дата доставки уже прошла?
-    if (deliveryDate <= now) {
-        return false;
-    }
-
-    // Проверка 2: Не позже чем за день до доставки?
-    const dayBeforeDelivery = new Date(deliveryDate);
-    dayBeforeDelivery.setDate(deliveryDate.getDate() - 1);
-    dayBeforeDelivery.setHours(23, 0, 0, 0); // Конец дня перед доставкой
-
-    if (now >= dayBeforeDelivery) {
-        return false;
-    }
-
-    // Проверка 3: Не позже чем за N часов до начала доставки?
-    // Создаем точное время начала доставки
+    
+    // 2. Создаем объект Date для точного времени начала доставки
     const deliveryStartDateTime = new Date(order.deliveryDate + 'T' + order.deliveryTime.startTime);
     
-    // Вычисляем "deadline" для редактирования: время начала доставки минус minOrderBeforeDeliveryHours
+    // 3. Проверяем, не началась ли уже доставка
+    if (now >= deliveryStartDateTime) {
+        return false;
+    }
+    
+    // 4. Вычисляем дедлайн для редактирования: время начала доставки минус minOrderBeforeDeliveryHours
     const editDeadline = new Date(deliveryStartDateTime);
-    const hoursToSubtract = order?.store?.minOrderBeforeDeliveryHours || 1; // Используем значение из настроек магазина, по умолчанию 1 час
+    const hoursToSubtract = order?.store?.minOrderBeforeDeliveryHours || 1;
     editDeadline.setHours(editDeadline.getHours() - hoursToSubtract);
-
-    // Если текущий момент позже дедлайна, редактировать нельзя
+    
+    // 5. Разрешаем редактирование только если текущее время РАНЬШЕ дедлайна
     return now < editDeadline;
   };
 
