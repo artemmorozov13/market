@@ -129,6 +129,6 @@ export const formatUserOrderMessage = (
     │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
     └──────────────────────
 
-    По всем вопросам обращаться ${store.helpTelegramAccount}.
+    По всем вопросам обращаться @${store.helpTelegramAccount}.
         `.trim();
 };

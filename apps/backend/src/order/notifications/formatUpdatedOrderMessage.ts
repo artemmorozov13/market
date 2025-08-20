@@ -140,6 +140,6 @@ ${hasDiscount ? `│ <b>Скидка:</b> -${formatPrice(discountAmount)}` : ''}
 
 <b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
 
-По всем вопросам обращаться ${order.store.helpTelegramAccount}.
+По всем вопросам обращаться @${order.store.helpTelegramAccount}.
     `.trim();
 };

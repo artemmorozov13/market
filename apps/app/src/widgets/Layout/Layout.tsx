@@ -87,11 +87,11 @@ export const Layout: FC<LayoutProps> = observer(({ children, className }) => {
       ),
       label: "Корзина"
     },
-    {
-      path: RoutePath.help,
-      icon: <Help />,
-      label: "Поддержка"
-    },
+    // {
+    //   path: RoutePath.help,
+    //   icon: <Help />,
+    //   label: "Поддержка"
+    // },
     {
       path: RoutePath.profile,  // Предполагается, что RoutePath.profile уже определен
       icon: <AccountCircle />,  // Импортируйте из MUI: import { AccountCircle } from '@mui/icons-material'

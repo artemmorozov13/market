@@ -33,7 +33,7 @@ const faqs = [
     }
 ];
 
-const TELEGRAM_CHAT_URL = "https://t.me/Evamiir1";
+const TELEGRAM_CHAT_URL = "https://t.me/morozov4";
 
 const HelpPage: FC = observer(() => {
     return (
