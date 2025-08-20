@@ -16,6 +16,7 @@ import { useActiveOrder } from "../../api/useActiveOrder";
 import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import styles from "./OrderDetails.module.scss";
 import { formatRubbles } from "@core/utils/formatRubbles";
+import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 interface OrderDetailsProps {
   order: Order;
@@ -32,18 +33,41 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
   const isPickup = order.orderDeliveryStrategy === "pickup_by_yourself";
   
-  const isAvailable = isPickup ? true : (() => {
+  const isDeliveryAvailable = (order: Order): boolean => {
+    // Для самовывоза всегда разрешаем изменение
+    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
+        return true;
+    }
+
     const now = new Date();
     const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
-    
-    if (!order.deliveryTime || deliveryDate <= now) return false;
-    
+
+    // Проверка 1: Дата доставки уже прошла?
+    if (deliveryDate <= now) {
+        return false;
+    }
+
+    // Проверка 2: Не позже чем за день до доставки?
     const dayBeforeDelivery = new Date(deliveryDate);
     dayBeforeDelivery.setDate(deliveryDate.getDate() - 1);
-    dayBeforeDelivery.setHours(23, 0, 0, 0);
+    dayBeforeDelivery.setHours(23, 0, 0, 0); // Конец дня перед доставкой
+
+    if (now >= dayBeforeDelivery) {
+        return false;
+    }
+
+    // Проверка 3: Не позже чем за N часов до начала доставки?
+    // Создаем точное время начала доставки
+    const deliveryStartDateTime = new Date(order.deliveryDate + 'T' + order.deliveryTime.startTime);
     
-    return now < dayBeforeDelivery;
-  })();
+    // Вычисляем "deadline" для редактирования: время начала доставки минус minOrderBeforeDeliveryHours
+    const editDeadline = new Date(deliveryStartDateTime);
+    const hoursToSubtract = order?.store?.minOrderBeforeDeliveryHours || 1; // Используем значение из настроек магазина, по умолчанию 1 час
+    editDeadline.setHours(editDeadline.getHours() - hoursToSubtract);
+
+    // Если текущий момент позже дедлайна, редактировать нельзя
+    return now < editDeadline;
+  };
 
   const renderWorkingHours = (workingHours: any[]) => {
     if (!workingHours || workingHours.length === 0) return null;
@@ -237,7 +261,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
               variant="outlined"
               color="error"
               size="small"
-              disabled={!isAvailable}
+              disabled={!isDeliveryAvailable(order)}
               onClick={() => setIsOpen(true)}
             >
               Отменить заказ
