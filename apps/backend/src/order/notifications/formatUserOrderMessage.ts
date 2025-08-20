@@ -30,7 +30,7 @@ export const formatUserOrderMessage = (
     const startTime = deliveryTime?.startTime?.toString()?.slice(0, 5) || 'Не указано';
     const endTime = deliveryTime?.endTime?.toString()?.slice(0, 5) || 'Не указано';
 
-    // Calculate totals
+    // Calculate product totals (with discounts applied)
     const calculateDiscountedPrice = (price: number, discount: number | null) => {
         if (!discount || discount <= 0) return price;
         return price - (price * discount / 100);
@@ -56,12 +56,21 @@ export const formatUserOrderMessage = (
     let deliveryDescription = '';
 
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.DeliveryToEntrance) {
-        deliveryCost = productsTotal >= 4000 ? 0 : 100;
+        // Стоимость доставки рассчитывается без учета скидок на товары
+        // Используем оригинальную стоимость товаров (без скидки) для проверки бесплатной доставки
+        const originalProductsTotal = orderedProducts.reduce(
+            (sum, p) => sum + (Number(p.product.price) * p.quantity), 
+            0
+        );
+        
+        deliveryCost = originalProductsTotal >= store.deliveryFreeFromLimit ? 0 : store.deliveryCost;
         deliveryDescription = 'Доставка до подъезда';
     } else if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
         deliveryDescription = 'Самовывоз';
+        deliveryCost = 0; // Самовывоз всегда бесплатный
     }
 
+    // Итоговая сумма: товары со скидкой + доставка без скидки
     const totalAmount = productsTotal + deliveryCost;
     
     // Price formatter
@@ -90,45 +99,41 @@ export const formatUserOrderMessage = (
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
         const pickupPoint = order.pickupPoint as PickupPointEntity;
         deliveryDetails = `
-    <b>📦 Самовывоз</b>
-    ┌──────────────────────
-    │ 🏢 <b>Пункт выдачи:</b> ${escape(pickupPoint?.name || 'Не указан')}
-    │ 📍 <b>Адрес:</b> ${escape(pickupPoint?.fullAddress || 'Не указан')}
-    └──────────────────────
-            `;
-        } else {
-            deliveryDetails = `
-    <b>📦 Доставка</b>
-    ┌──────────────────────
-    │ 📅 <b>Дата:</b> ${deliveryDate}
-    │ ⏰ <b>Время:</b> ${startTime}–${endTime}
-    │ 🚚 <b>Тип:</b> ${deliveryDescription}
-    │ 🏠 <b>Адрес:</b> ${escape(order?.fullAddress || order?.address || 'Не указан')}
-    └──────────────────────
-            `;
-        }
+<b>📦 Самовывоз</b>
+🏢 <b>Пункт выдачи:</b> ${escape(pickupPoint?.name || 'Не указан')}
+📍 <b>Адрес:</b> ${escape(pickupPoint?.fullAddress || 'Не указан')}
+        `;
+    } else {
+        deliveryDetails = `
+<b>📦 Доставка</b>
+📅 <b>Дата:</b> ${deliveryDate}
+⏰ <b>Время:</b> ${startTime}–${endTime}
+🚚 <b>Тип:</b> ${deliveryDescription}
+🏠 <b>Адрес:</b> ${escape(order?.fullAddress || order?.address || 'Не указан')}
+${deliveryCost > 0 ? `💰 <b>Стоимость доставки:</b> ${formatPrice(deliveryCost)}` : '💰 <b>Доставка:</b> Бесплатно'}
+${store.deliveryFreeFromLimit > 0 ? `🎯 <b>Бесплатная доставка от:</b> ${formatPrice(store.deliveryFreeFromLimit)}` : ''}
+        `;
+    }
 
-        // Calculate discount amount if any
-        const discountAmount = productsTotalWithoutDiscount - productsTotal;
-        const hasDiscount = discountAmount > 0;
+    // Calculate discount amount if any
+    const discountAmount = productsTotalWithoutDiscount - productsTotal;
+    const hasDiscount = discountAmount > 0;
 
-        // Final message template
-        return `
-    <b>🛍️ Заказ #${order.id} подтверждён!</b>
+    // Final message template
+    return `
+<b>🛍️ Заказ #${order.id} подтверждён!</b>
 
-    ${deliveryDetails}
+${deliveryDetails}
 
-    <b>🛒 Состав заказа</b>
-    ${productsList}
+<b>🛒 Состав заказа</b>
+${productsList}
 
-    <b>💳 Итого к оплате</b>
-    ┌──────────────────────
-    │ <b>Товары${hasDiscount ? ' (со скидкой)' : ''}:</b> ${formatPrice(productsTotal)}
-    ${hasDiscount ? `│ <b>Скидка:</b> -${formatPrice(discountAmount)}` : ''}
-    ${deliveryCost > 0 ? `│ <b>Доставка:</b> ${formatPrice(deliveryCost)}` : '│ <b>Доставка:</b> Бесплатно'}
-    │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
-    └──────────────────────
+<b>💳 Итого к оплате</b>
+🛒 <b>Товары${hasDiscount ? ' (со скидкой)' : ''}:</b> ${formatPrice(productsTotal)}
+${hasDiscount ? `🎁 <b>Скидка на товары:</b> -${formatPrice(discountAmount)}` : ''}
+🚚 ${deliveryCost > 0 ? `<b>Доставка:</b> ${formatPrice(deliveryCost)}` : '<b>Доставка:</b> Бесплатно'}
+💵 <b>Общая сумма:</b> ${formatPrice(totalAmount)}
 
-    По всем вопросам обращаться @${store.helpTelegramAccount}.
-        `.trim();
+📞 <b>По всем вопросам:</b> @${store.helpTelegramAccount}
+    `.trim();
 };

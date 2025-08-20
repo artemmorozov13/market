@@ -10,6 +10,13 @@ const textByStatus: Record<OrderStatusEnum, string> = {
     finished_and_rated: 'Заверешен и оценен'
 };
 
+const formatPrice = (price: number) => 
+    new Intl.NumberFormat('ru-RU', { 
+        style: 'currency', 
+        currency: 'RUB',
+        minimumFractionDigits: 0
+    }).format(price).replace(',00', '');
+
 export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]): string => {
     const escape = (str: string | undefined | null) => 
         str ? str
@@ -58,44 +65,43 @@ export const formatUpdatedOrderMessage = (order: OrderEntity, changes?: string[]
 
     // Определение информации о доставке/самовывозе
     let deliveryInfo = '';
+    let deliveryCost = 0;
+    
     if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
         const pickupName = order.address?.replace('Самовывоз: ', '') || 'Не указан';
         const pickupAddress = order.fullAddress || 'Не указан';
         
         deliveryInfo = `
 <b>📦 Самовывоз</b>
-┌──────────────────────
-│ 🏢 <b>Пункт выдачи:</b> ${escape(pickupName)}
-│ 📍 <b>Адрес:</b> ${escape(pickupAddress)}
-└──────────────────────
+🏢 <b>Пункт выдачи:</b> ${escape(pickupName)}
+📍 <b>Адрес:</b> ${escape(pickupAddress)}
         `;
+        deliveryCost = 0; // Самовывоз всегда бесплатный
     } else {
+        // Для доставки используем оригинальную стоимость товаров (без скидки) 
+        // для проверки условия бесплатной доставки
+        const originalProductsTotal = order.ordered_products.reduce(
+            (sum, p) => sum + (Number(p.product?.price || 0) * Number(p.quantity || 0)),
+            0
+        );
+        
+        deliveryCost = originalProductsTotal >= order.store.deliveryFreeFromLimit 
+            ? 0 
+            : order.store.deliveryCost;
+        
         deliveryInfo = `
 <b>📦 Доставка</b>
-┌──────────────────────
-│ 📅 <b>Дата:</b> ${deliveryDate}
-│ ⏰ <b>Время:</b> ${startTime}–${endTime}
-│ 🏠 <b>Адрес:</b> ${escape(order.fullAddress || order.address || 'Не указан')}
-└──────────────────────
+📅 <b>Дата:</b> ${deliveryDate}
+⏰ <b>Время:</b> ${startTime}–${endTime}
+🏠 <b>Адрес:</b> ${escape(order.fullAddress || order.address || 'Не указан')}
+💰 <b>Стоимость доставки:</b> ${deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost)}
+${order.store.deliveryFreeFromLimit > 0 ? `🎯 <b>Бесплатная доставка от:</b> ${formatPrice(order.store.deliveryFreeFromLimit)}` : ''}
         `;
-    }
-
-    // Расчет стоимости доставки (учитываем сумму со скидкой)
-    let deliveryCost = 0;
-    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.DeliveryToEntrance) {
-        deliveryCost = productsTotal >= 4000 ? 0 : 100;
     }
     
     const totalAmount = productsTotal + deliveryCost;
     const discountAmount = productsTotalWithoutDiscount - productsTotal;
     const hasDiscount = discountAmount > 0;
-    
-    const formatPrice = (price: number) => 
-        new Intl.NumberFormat('ru-RU', { 
-            style: 'currency', 
-            currency: 'RUB',
-            minimumFractionDigits: 0
-        }).format(price).replace(',00', '');
 
     // Список товаров с учетом скидки
     const productsList = order.ordered_products
@@ -131,15 +137,13 @@ ${deliveryInfo}
 ${productsList}
 
 <b>💳 Итого к оплате</b>
-┌──────────────────────
-│ <b>Товары${hasDiscount ? ' (со скидкой)' : ''}:</b> ${formatPrice(productsTotal)}
-${hasDiscount ? `│ <b>Скидка:</b> -${formatPrice(discountAmount)}` : ''}
-│ <b>Доставка:</b> ${deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost)}
-│ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
-└──────────────────────
+🛒 <b>Товары${hasDiscount ? ' (со скидкой)' : ''}:</b> ${formatPrice(productsTotal)}
+${hasDiscount ? `🎁 <b>Скидка на товары:</b> -${formatPrice(discountAmount)}` : ''}
+🚚 ${deliveryCost > 0 ? `<b>Доставка:</b> ${formatPrice(deliveryCost)}` : '<b>Доставка:</b> Бесплатно'}
+💵 <b>Общая сумма:</b> ${formatPrice(totalAmount)}
 
-<b>ℹ️ Статус заказа:</b> ${escape(textByStatus[order.status])}
+📊 <b>Статус заказа:</b> ${escape(textByStatus[order.status])}
 
-По всем вопросам обращаться @${order.store.helpTelegramAccount}.
+📞 <b>По всем вопросам:</b> @${order.store.helpTelegramAccount}
     `.trim();
 };
