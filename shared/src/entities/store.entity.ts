@@ -51,8 +51,14 @@ export class StoreEntity {
     })
     timezone: string;
 
+    @Column({ type: 'boolean', default: false })
+    isWorkWithPartners: boolean
+
     @Column({ nullable: true, default: null })
     imageUrl: string | null
+
+    @Column({ type: 'varchar', default: null, nullable: true })
+    helpTelegramAccount: string
 
     @OneToMany(() => UsersEntity, user => user.store)
     users: UsersEntity[];

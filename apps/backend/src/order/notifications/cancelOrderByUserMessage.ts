@@ -5,7 +5,7 @@ export const cancelOrderByUserMessage = (order: OrderEntity) => {
         ✖️ <b>Заказ #${order.id} отменён</b> 😔
 
         ❓ Если это произошло по ошибке или у вас есть вопросы, 
-        напишите нам @Evamiir1 👨‍💻
+        напишите нам ${order.store.helpTelegramAccount}👨‍💻
 
         Будем рады видеть вас снова! 🛒💖
     `.trim();

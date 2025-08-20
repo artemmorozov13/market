@@ -15,12 +15,9 @@ import { Button, Skeleton, IconButton } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import styles from "./ShopOwnerLayout.module.scss"
-import { routeConfig } from "../../shared/lib/consts/routeConfig";
-import TelegramIcon from '@mui/icons-material/Telegram';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { LocationOn as DeliveryAreasIcon,} from '@mui/icons-material';
+import { routeConfig } from "../../../shared/lib/consts/routeConfig";
 import Cookies from "js-cookie";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../shared/lib/consts/consts";
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../../shared/lib/consts/consts";
 
 import {
     Storefront as StorefrontIcon,
@@ -37,6 +34,8 @@ import {
 } from '@mui/icons-material';
 import { useUser } from "@entities/User";
 import { Roles } from "@core/enums/role-enum";
+import { bottomMenu, menuListTop, middleMenu } from "../lib/sidebarList";
+import { SidebarListEnum } from "../types/sidebarListEnum";
 
 interface ShopOwnerLayoutProps {
     children: ReactNode
@@ -45,92 +44,10 @@ interface ShopOwnerLayoutProps {
 export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
     const { children } = props
 
-    const storeUser = useUser()
     const [mobileOpen, setMobileOpen] = useState<boolean>(false)
     const { user, isLoading } = useUser()
 
     const drawerWidth = 240;
-
-    const menuListTop = [
-        {
-            label: "Статистика",
-            href: routeConfig['statistic'],
-            icon: <StatsIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Статистика",
-            href: routeConfig['supplier-statistic'],
-            icon: <StatsIcon />,
-            roles: [Roles.Vendor]
-        },
-    ]
-
-    const middleMenu = [
-        {
-            label: "Таблица заказов",
-            href: routeConfig["order-table"],
-            icon: <PointOfSaleIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Список товаров",
-            href: routeConfig["product"],
-            icon: <InventoryIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Районы доставки",
-            href: routeConfig["delivery-areas"],
-            icon: <DeliveryIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Пункты выдачи",
-            href: routeConfig["pickup-points"],
-            icon: <DeliveryAreasIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Поставщики",
-            href: routeConfig["suppliers"],
-            icon: <SuppliersIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Таблица заказов",
-            href: routeConfig['supplier-orders'],
-            icon: <PointOfSaleIcon />,
-            roles: [Roles.Vendor]
-        },
-    ]
-
-    const bottomMenu = [
-        {
-            label: "Добавить товар",
-            href: routeConfig["product/create"],
-            icon: <AddIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Создать телеграм рассылку",
-            href: routeConfig["telegram-broadcast"],
-            icon: <TelegramIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Настройки",
-            href: routeConfig["shop/settings"],
-            icon: <SettingsIcon />,
-            roles: [Roles.Admin]
-        },
-        {
-            label: "Товары",
-            href: routeConfig['supplier-products'],
-            icon: <InventoryIcon />,
-            roles: [Roles.Vendor]
-        },
-    ]
 
     const handleLogout = () => {
         Cookies.remove(ACCESS_TOKEN)
@@ -142,12 +59,18 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
         setMobileOpen(!mobileOpen)
     }
 
-    const menuListFilter = (item: any) => (
-        item.roles.includes(storeUser.data?.role)
-    )
+    const menuListFilter = (item: any) => {
+        const isShopWorkWithSuppliers = !!user?.store?.isWorkWithPartners
+        if (item.name === SidebarListEnum.Suppliers && !isShopWorkWithSuppliers) {
+            return false
+        }
+        return (
+            item.roles.includes(user?.role)
+        )
+    }
 
     const drawer = () => {
-        if (storeUser.data?.role) {
+        if (user?.role) {
             return (
                 <div>
                     <Toolbar />

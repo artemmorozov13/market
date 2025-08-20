@@ -6,12 +6,19 @@ export class UpdateStoreDto {
 
     @IsString()
     name: string
+
+    @IsString()
+    @IsOptional()
+    helpTelegramAccount: string | null
     
     @IsString()
     description: string
 
     @IsBoolean()
     isDeliveryFree: boolean
+
+    @IsBoolean()
+    isWorkWithPartners: boolean
 
     @IsNumber()
     deliveryCost: number

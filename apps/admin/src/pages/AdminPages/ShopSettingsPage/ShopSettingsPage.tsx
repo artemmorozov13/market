@@ -1,5 +1,5 @@
 import { useUser } from "@entities/User";
-import { StoreEditForm } from "@features/StoreEditForm";
+import { StoreEditForm } from "@widgets/StoreEditForm";
 import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
 import { FC } from "react";
 import styles from './ShopSettingsPage.module.scss';

@@ -8,11 +8,13 @@ export interface StoreBaseType {
     name: string
     description: string
     isDeliveryFree: boolean
+    isWorkWithPartners: boolean
     deliveryCost: number;
     deliveryFreeFromLimit: number
     telegramBotToken: string;
     imageUrl: string;
     isWeekLimited: boolean,
+    helpTelegramAccount: string
     timezone: string;
     minOrderBeforeDeliveryHours: number
     products: ProductType[]
