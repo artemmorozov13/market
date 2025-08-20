@@ -124,7 +124,7 @@ export class OrderService {
         },
         status: In([OrderStatusEnum.WaitForPay])
       },
-      relations: ['user', 'ordered_products'] // Подгружаем связанные данные
+      relations: ['user', 'ordered_products', 'store'] // Подгружаем связанные данные
     });
 
     if (!order) {
@@ -381,7 +381,7 @@ export class OrderService {
     })
 
     if (user.telegram_id) {
-      const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime);
+      const userMessage = formatUserOrderMessage(savedOrder, orderedProducts, savedOrder.deliveryArea, savedOrder.deliveryTime, store);
       await this.telegramService.sendMessage(
           user.telegram_id.toString(),
           userMessage
@@ -490,6 +490,7 @@ export class OrderService {
               'ordered_products.product',
               'deliveryArea',
               'deliveryTime',
+              'store'
           ],
           loadEagerRelations: false
       });

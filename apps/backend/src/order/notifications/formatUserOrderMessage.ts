@@ -1,11 +1,12 @@
-import { DeliveryArea, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity } from "@core/entities";
+import { DeliveryArea, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity, StoreEntity } from "@core/entities";
 import { DeliveryStrategyEnum } from "@core/enums";
 
 export const formatUserOrderMessage = (
     order: OrderEntity,
     orderedProducts: OrderedProductsEntity[],
     deliveryArea: DeliveryArea | null,
-    deliveryTime: DeliveryTime | null
+    deliveryTime: DeliveryTime | null,
+    store: StoreEntity
 ): string => {
     const escape = (str: string) => str
         .replace(/&/g, '&amp;')
@@ -128,6 +129,6 @@ export const formatUserOrderMessage = (
     │ <b>Общая сумма:</b> ${formatPrice(totalAmount)}
     └──────────────────────
 
-    По всем вопросам обращаться ${order.store.helpTelegramAccount}.
+    По всем вопросам обращаться ${store.helpTelegramAccount}.
         `.trim();
 };
