@@ -42,7 +42,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
     const now = new Date();
     
     // 2. Создаем объект Date для точного времени начала доставки
-    const deliveryStartDateTime = new Date(order.deliveryDate + 'T' + order.deliveryTime.startTime);
+    const deliveryStartDateTime = new Date(order?.deliveryDate + 'T' + order?.deliveryTime?.startTime);
     
     // 3. Проверяем, не началась ли уже доставка
     if (now >= deliveryStartDateTime) {
