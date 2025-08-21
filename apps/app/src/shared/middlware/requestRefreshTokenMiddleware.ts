@@ -1,7 +1,7 @@
 import axios, { InternalAxiosRequestConfig } from 'axios'
 import Cookies from 'js-cookie'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../consts/applicationConsts'
-import { accessCookiesOptions } from "@core/consts/token-settings";
+import { accessCookiesOptions } from '@core/consts/token-settings'
 
 let isRefreshing = false
 const timedoutRequestsQueue: [NodeJS.Timeout, (value: unknown) => void][] = []
@@ -34,9 +34,9 @@ export const requestTokenMidleware = async (config: InternalAxiosRequestConfig) 
       {},
       {
         headers: {
-          Authorization: `Bearer ${refreshToken}`
-        }
-      }
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      },
     )
 
     Cookies.set(ACCESS_TOKEN, response.data.token, accessCookiesOptions)
@@ -51,7 +51,7 @@ export const requestTokenMidleware = async (config: InternalAxiosRequestConfig) 
   }
 
   const accessKey = Cookies.get(ACCESS_TOKEN)
-  
+
   if (accessKey) {
     config.headers.Authorization = `Bearer ${accessKey}`
   }

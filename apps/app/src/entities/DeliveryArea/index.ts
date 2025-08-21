@@ -1,1 +1,1 @@
-export { useDeliveryAreas } from "./api/usePickupPoint";
+export { useDeliveryAreas } from './api/usePickupPoint'

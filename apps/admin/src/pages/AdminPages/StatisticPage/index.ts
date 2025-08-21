@@ -1,1 +1,1 @@
-export { StatisticPageLazy as StatisticPage } from "./StatisticPageLazy";
+export { StatisticPageLazy as StatisticPage } from './StatisticPageLazy'

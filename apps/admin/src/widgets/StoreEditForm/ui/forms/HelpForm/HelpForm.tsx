@@ -1,7 +1,7 @@
-import { TextField, Typography } from '@mui/material';
-import styles from './HelpForm.module.scss';
-import { FC } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { TextField, Typography } from '@mui/material'
+import styles from './HelpForm.module.scss'
+import { FC } from 'react'
+import { Controller, useFormContext } from 'react-hook-form'
 
 export const HelpForm: FC = () => {
   const { control } = useFormContext()
@@ -12,19 +12,19 @@ export const HelpForm: FC = () => {
         Поддержка
       </Typography>
       <Controller
-        name='helpTelegramAccount'
+        name="helpTelegramAccount"
         control={control}
         render={({ field: { value, onChange } }) => (
           <TextField
             value={value}
             onChange={onChange}
-            label='Аккаунт поддержки телеграм'
-            placeholder='Например: @morozov4'
+            label="Аккаунт поддержки телеграм"
+            placeholder="Например: @morozov4"
             className={styles.helpForm}
             fullWidth
           />
         )}
       />
     </section>
-  );
-};
+  )
+}

@@ -1,25 +1,25 @@
 .parentContainer {
-    position: relative; /* Родительский контейнер */
+  position: relative; /* Родительский контейнер */
 }
 
 .root {
-    position: relative; /* Блок категорий */
-    transition: transform 0.2s ease-in-out; /* Для плавных изменений */
+  position: relative; /* Блок категорий */
+  transition: transform 0.2s ease-in-out; /* Для плавных изменений */
 }
 
 .fixed {
-    position: fixed; /* Фиксация блока при достижении конца */
-    top: 0; /* Блок прилипает к верхней границе окна */
+  position: fixed; /* Фиксация блока при достижении конца */
+  top: 0; /* Блок прилипает к верхней границе окна */
 }
 
 .title {
-    font-family: "Roboto";
-    font-size: 1.25rem;
-    padding-left: 1rem;
+  font-family: 'Roboto';
+  font-size: 1.25rem;
+  padding-left: 1rem;
 }
 
 .rootList {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }

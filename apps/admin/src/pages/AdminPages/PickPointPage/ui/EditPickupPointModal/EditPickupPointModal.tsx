@@ -1,6 +1,6 @@
 // EditPickupPointModal.tsx
-import { FC, useState, useMemo } from 'react';
-import { Control, Controller, UseFormSetValue, useFieldArray } from 'react-hook-form';
+import { FC, useState, useMemo } from 'react'
+import { Control, Controller, UseFormSetValue, useFieldArray } from 'react-hook-form'
 import {
   Box,
   Button,
@@ -16,29 +16,34 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
-  Divider
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import { WeekdayEnum } from "@core/enums/weekday.enum";
-import { AddressSearchField } from '@features/AddressSearchField/ui/AddressSearchField';
-import { PickupPointFormData } from '../../types/pickupPointPageType';
+  Divider,
+} from '@mui/material'
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+} from '@mui/icons-material'
+import { WeekdayEnum } from '@core/enums/weekday.enum'
+import { AddressSearchField } from '@features/AddressSearchField/ui/AddressSearchField'
+import { PickupPointFormData } from '../../types/pickupPointPageType'
 
 // Генерация временных интервалов с шагом 30 минут
 const generateTimeOptions = () => {
-  const options = [];
+  const options = []
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
       options.push({
         value: timeValue,
-        label: timeValue
-      });
+        label: timeValue,
+      })
     }
   }
-  return options;
-};
+  return options
+}
 
-const timeOptions = generateTimeOptions();
+const timeOptions = generateTimeOptions()
 
 // Опции дней недели на русском
 const weekdayOptions = [
@@ -48,19 +53,19 @@ const weekdayOptions = [
   { value: WeekdayEnum.THURSDAY, label: 'Четверг' },
   { value: WeekdayEnum.FRIDAY, label: 'Пятница' },
   { value: WeekdayEnum.SATURDAY, label: 'Суббота' },
-  { value: WeekdayEnum.SUNDAY, label: 'Воскресенье' }
-];
+  { value: WeekdayEnum.SUNDAY, label: 'Воскресенье' },
+]
 
 interface EditPickupPointModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: () => void;
-  control: Control<PickupPointFormData>;
-  setValue: UseFormSetValue<PickupPointFormData>;
-  errors: any;
-  isSubmitting: boolean;
-  isEditing: boolean;
-  selectedPoint: any | null;
+  open: boolean
+  onClose: () => void
+  onSubmit: () => void
+  control: Control<PickupPointFormData>
+  setValue: UseFormSetValue<PickupPointFormData>
+  errors: any
+  isSubmitting: boolean
+  isEditing: boolean
+  selectedPoint: any | null
 }
 
 export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
@@ -77,93 +82,95 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'workingHours',
-  });
+  })
 
-  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isAddingNew, setIsAddingNew] = useState(false)
   const [newTime, setNewTime] = useState({
     dayOfWeek: weekdayOptions[0].value,
     openingTime: '08:00',
-    closingTime: '20:00'
-  });
+    closingTime: '20:00',
+  })
 
   const handleAddNewTime = () => {
-    if (!validateTimeInterval()) return;
-    
+    if (!validateTimeInterval()) return
+
     append({
       dayOfWeek: newTime.dayOfWeek,
       openingTime: newTime.openingTime,
-      closingTime: newTime.closingTime
-    });
-    setIsAddingNew(false);
-    resetNewTime();
-  };
+      closingTime: newTime.closingTime,
+    })
+    setIsAddingNew(false)
+    resetNewTime()
+  }
 
   const resetNewTime = () => {
     setNewTime({
       dayOfWeek: weekdayOptions[0].value,
       openingTime: '08:00',
-      closingTime: '20:00'
-    });
-  };
+      closingTime: '20:00',
+    })
+  }
 
   const groupByDay = () => {
-    const grouped: Record<string, typeof fields[number][]> = {};
-    
-    fields.forEach(field => {
-      const day = field.dayOfWeek;
+    const grouped: Record<string, (typeof fields)[number][]> = {}
+
+    fields.forEach((field) => {
+      const day = field.dayOfWeek
       if (!grouped[day]) {
-        grouped[day] = [];
+        grouped[day] = []
       }
-      grouped[day].push(field);
-    });
-    
-    return grouped;
-  };
+      grouped[day].push(field)
+    })
+
+    return grouped
+  }
 
   const validateTimeInterval = () => {
     return (
-      newTime.dayOfWeek && 
-      newTime.openingTime && 
+      newTime.dayOfWeek &&
+      newTime.openingTime &&
       newTime.closingTime &&
       newTime.openingTime < newTime.closingTime
-    );
-  };
+    )
+  }
 
   // Фильтруем доступные времена для закрытия
   const availableClosingTimes = useMemo(() => {
-    return timeOptions.filter(option => option.value > newTime.openingTime);
-  }, [newTime.openingTime]);
+    return timeOptions.filter((option) => option.value > newTime.openingTime)
+  }, [newTime.openingTime])
 
-  const groupedTimes = groupByDay();
+  const groupedTimes = groupByDay()
 
   const getRussianWeekdayName = (day: WeekdayEnum) => {
-    const option = weekdayOptions.find(d => d.value === day);
-    return option ? option.label : day;
-  };
+    const option = weekdayOptions.find((d) => d.value === day)
+    return option ? option.label : day
+  }
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 2
-        }
+          borderRadius: 2,
+        },
       }}
     >
       <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
         {isEditing ? `Редактировать ПВЗ: ${selectedPoint?.name}` : 'Добавить новый пункт выдачи'}
       </DialogTitle>
-      
+
       <form onSubmit={onSubmit}>
         <DialogContent sx={{ pt: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Основная информация */}
             <Box>
-              <Typography variant="h6" sx={{ mb: 2 }}>Основная информация</Typography>
-              
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Основная информация
+              </Typography>
+
               <Controller
                 name="name"
                 control={control}
@@ -193,10 +200,10 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                     error={errors.fullAddress}
                     onAddressSelect={(addressData) => {
                       if (addressData) {
-                        setValue('postal_code', addressData.postal_code);
-                        setValue('fias_id', addressData.fias_id);
-                        setValue('geo_lat', addressData.geo_lat);
-                        setValue('geo_lon', addressData.geo_lon);
+                        setValue('postal_code', addressData.postal_code)
+                        setValue('fias_id', addressData.fias_id)
+                        setValue('geo_lat', addressData.geo_lat)
+                        setValue('geo_lon', addressData.geo_lon)
                       }
                     }}
                   />
@@ -219,7 +226,7 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                     />
                   )}
                 />
-                
+
                 <Controller
                   name="geo_lon"
                   control={control}
@@ -253,7 +260,7 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                     />
                   )}
                 />
-                
+
                 <Controller
                   name="fias_id"
                   control={control}
@@ -294,22 +301,23 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {times.map((time, index) => {
                       const fieldIndex = fields.findIndex(
-                        f => f.dayOfWeek === day && 
-                        f.openingTime === time.openingTime && 
-                        f.closingTime === time.closingTime
-                      );
-                      
+                        (f) =>
+                          f.dayOfWeek === day &&
+                          f.openingTime === time.openingTime &&
+                          f.closingTime === time.closingTime,
+                      )
+
                       return (
-                        <Box 
+                        <Box
                           key={`${day}-${time.openingTime}-${time.closingTime}`}
-                          sx={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
                             p: 1.5,
                             border: '1px solid #e0e0e0',
                             borderRadius: 1,
-                            bgcolor: 'background.paper'
+                            bgcolor: 'background.paper',
                           }}
                         >
                           <Typography>
@@ -324,7 +332,8 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
-                      )})}
+                      )
+                    })}
                   </Box>
                 </Box>
               ))}
@@ -338,10 +347,10 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                         value={newTime.dayOfWeek}
                         label="День недели *"
                         onChange={(e) => {
-                          setNewTime(prev => ({ 
-                            ...prev, 
-                            dayOfWeek: e.target.value as WeekdayEnum 
-                          }));
+                          setNewTime((prev) => ({
+                            ...prev,
+                            dayOfWeek: e.target.value as WeekdayEnum,
+                          }))
                         }}
                       >
                         {weekdayOptions.map((option) => (
@@ -359,10 +368,10 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                           value={newTime.openingTime}
                           label="Время открытия *"
                           onChange={(e) => {
-                            setNewTime(prev => ({ 
-                              ...prev, 
-                              openingTime: e.target.value 
-                            }));
+                            setNewTime((prev) => ({
+                              ...prev,
+                              openingTime: e.target.value,
+                            }))
                           }}
                         >
                           {timeOptions.map((option) => (
@@ -373,16 +382,19 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                         </Select>
                       </FormControl>
 
-                      <FormControl fullWidth error={!newTime.closingTime || newTime.closingTime <= newTime.openingTime}>
+                      <FormControl
+                        fullWidth
+                        error={!newTime.closingTime || newTime.closingTime <= newTime.openingTime}
+                      >
                         <InputLabel>Время закрытия *</InputLabel>
                         <Select
                           value={newTime.closingTime}
                           label="Время закрытия *"
                           onChange={(e) => {
-                            setNewTime(prev => ({ 
-                              ...prev, 
-                              closingTime: e.target.value 
-                            }));
+                            setNewTime((prev) => ({
+                              ...prev,
+                              closingTime: e.target.value,
+                            }))
                           }}
                           error={newTime.closingTime <= newTime.openingTime}
                         >
@@ -415,8 +427,8 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
                     <Button
                       variant="outlined"
                       onClick={() => {
-                        setIsAddingNew(false);
-                        resetNewTime();
+                        setIsAddingNew(false)
+                        resetNewTime()
                       }}
                       fullWidth
                       sx={{ py: 1.5 }}
@@ -440,13 +452,9 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
             </Box>
           </Box>
         </DialogContent>
-        
+
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={onClose} 
-            startIcon={<CancelIcon />}
-            sx={{ mr: 2 }}
-          >
+          <Button onClick={onClose} startIcon={<CancelIcon />} sx={{ mr: 2 }}>
             Отмена
           </Button>
           <Button
@@ -462,5 +470,5 @@ export const EditPickupPointModal: FC<EditPickupPointModalProps> = ({
         </DialogActions>
       </form>
     </Dialog>
-  );
-};
+  )
+}

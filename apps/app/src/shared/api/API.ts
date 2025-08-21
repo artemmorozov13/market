@@ -1,8 +1,8 @@
-import axios from "axios"
-import { requestTokenMidleware } from "../middlware/requestRefreshTokenMiddleware";
+import axios from 'axios'
+import { requestTokenMidleware } from '../middlware/requestRefreshTokenMiddleware'
 
 export const API = axios.create({
-    baseURL: process.env.VITE_BACKEND_HOST,
+  baseURL: process.env.VITE_BACKEND_HOST,
 })
 
-API.interceptors.request.use(requestTokenMidleware);
+API.interceptors.request.use(requestTokenMidleware)

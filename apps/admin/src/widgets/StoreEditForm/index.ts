@@ -1,1 +1,1 @@
-export { StoreEditForm } from "./ui/StoreEditForm/StoreEditForm";
+export { StoreEditForm } from './ui/StoreEditForm/StoreEditForm'

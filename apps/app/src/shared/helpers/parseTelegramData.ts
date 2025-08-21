@@ -1,18 +1,18 @@
-import { TelegramAuthData } from "@telegram-auth/react";
+import { TelegramAuthData } from '@telegram-auth/react'
 
 export const parseTelegramData = (initData: string): TelegramAuthData => {
-  const decodedString = decodeURIComponent(initData);
-  const params = new URLSearchParams(decodedString);
-  
-  const rawData: any = {};
-  
+  const decodedString = decodeURIComponent(initData)
+  const params = new URLSearchParams(decodedString)
+
+  const rawData: any = {}
+
   Array.from(params.entries()).forEach(([key, value]) => {
     try {
-      rawData[key] = JSON.parse(value);
+      rawData[key] = JSON.parse(value)
     } catch (e) {
-      rawData[key] = value;
+      rawData[key] = value
     }
-  });
+  })
 
   const result: Partial<TelegramAuthData> = {
     id: rawData.user?.id,
@@ -22,7 +22,7 @@ export const parseTelegramData = (initData: string): TelegramAuthData => {
     photo_url: rawData.user?.photo_url || undefined,
     auth_date: rawData.auth_date ? parseInt(rawData.auth_date) : 0,
     hash: rawData.hash || '',
-  };
+  }
 
-  return result as TelegramAuthData;
-};
+  return result as TelegramAuthData
+}

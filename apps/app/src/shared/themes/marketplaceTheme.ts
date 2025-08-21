@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme } from '@mui/material/styles'
 
 export const marketplaceTheme = createTheme({
   palette: {
@@ -40,11 +40,11 @@ export const marketplaceTheme = createTheme({
     action: {
       hover: 'rgba(26, 115, 232, 0.04)', // Очень легкий ховер
       selected: 'rgba(26, 115, 232, 0.08)',
-    }
+    },
   },
   typography: {
     fontFamily: [
-      '"Inter"', 
+      '"Inter"',
       'system-ui',
       '-apple-system',
       'BlinkMacSystemFont',
@@ -52,7 +52,7 @@ export const marketplaceTheme = createTheme({
       'Roboto',
       '"Helvetica Neue"',
       'Arial',
-      'sans-serif'
+      'sans-serif',
     ].join(','),
     h1: {
       fontWeight: 700,
@@ -240,4 +240,4 @@ export const marketplaceTheme = createTheme({
       },
     },
   },
-});
+})

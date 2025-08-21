@@ -1,57 +1,57 @@
-import { FC, useState } from "react";
-import { 
-  Card, 
-  CardMedia, 
-  Typography, 
-  Box, 
-  IconButton, 
-  CircularProgress, 
+import { FC, useState } from 'react'
+import {
+  Card,
+  CardMedia,
+  Typography,
+  Box,
+  IconButton,
+  CircularProgress,
   Badge,
-  Button
-} from "@mui/material";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { basketStore } from "../..";
-import { observer } from "mobx-react-lite";
-import { ConfirmRemoveFromBasketModal } from "../ConfirmRemoveFromBasketModal/ConfirmRemoveFromBasketModal";
-import clsx from "clsx";
-import styles from "./BasketCard.module.scss";
-import { ProductStatusEnum } from "@core/enums/product-status-enum";
-import { BasketBaseType } from "@core/types/basket-tipe";
-import { formatRubbles } from "@core/utils/formatRubbles";
+  Button,
+} from '@mui/material'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import { basketStore } from '../..'
+import { observer } from 'mobx-react-lite'
+import { ConfirmRemoveFromBasketModal } from '../ConfirmRemoveFromBasketModal/ConfirmRemoveFromBasketModal'
+import clsx from 'clsx'
+import styles from './BasketCard.module.scss'
+import { ProductStatusEnum } from '@core/enums/product-status-enum'
+import { BasketBaseType } from '@core/types/basket-tipe'
+import { formatRubbles } from '@core/utils/formatRubbles'
 
 interface BasketItemProps {
-  item: BasketBaseType;
-  className?: string;
+  item: BasketBaseType
+  className?: string
 }
 
-const MINIMUM_COUNT_TO_BE_IN_BASKET = 1;
+const MINIMUM_COUNT_TO_BE_IN_BASKET = 1
 
 export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) => {
-  const { increaseProductCount, decreaseProductCount, clearProduct } = basketStore;
+  const { increaseProductCount, decreaseProductCount, clearProduct } = basketStore
 
-  const [isLoadingAdd, setIsLoadingAdd] = useState<boolean>(false);
-  const [isLoadingRemove, setIsLoadingRemove] = useState<boolean>(false);
-  
-  const hasDiscount = Number(item.product.discount) > 0;
-  const originalPrice = Number(item.product.price);
-  const discountPercentage = Number(item.product.discount);
-  const discountedPrice = hasDiscount 
+  const [isLoadingAdd, setIsLoadingAdd] = useState<boolean>(false)
+  const [isLoadingRemove, setIsLoadingRemove] = useState<boolean>(false)
+
+  const hasDiscount = Number(item.product.discount) > 0
+  const originalPrice = Number(item.product.price)
+  const discountPercentage = Number(item.product.discount)
+  const discountedPrice = hasDiscount
     ? originalPrice * (1 - discountPercentage / 100)
-    : originalPrice;
-  
-  const totalPrice = Math.ceil(item.quantity * discountedPrice * 100) / 100;
-  const totalOriginalPrice = Math.ceil(item.quantity * originalPrice * 100) / 100;
+    : originalPrice
 
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const totalPrice = Math.ceil(item.quantity * discountedPrice * 100) / 100
+  const totalOriginalPrice = Math.ceil(item.quantity * originalPrice * 100) / 100
+
+  const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const handlePlusProduct = async () => {
-    setIsLoadingAdd(true);
-    await increaseProductCount(item.productId);
-    setIsLoadingAdd(false);
-  };
+    setIsLoadingAdd(true)
+    await increaseProductCount(item.productId)
+    setIsLoadingAdd(false)
+  }
 
   const handleRemoveProduct = () => {
     clearProduct(item.productId)
@@ -59,18 +59,20 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
 
   const handleMinusProduct = async () => {
     if (item.quantity === MINIMUM_COUNT_TO_BE_IN_BASKET) {
-      setIsOpen(true);
-      return;
+      setIsOpen(true)
+      return
     }
-    setIsLoadingRemove(true);
-    await decreaseProductCount(item.productId);
-    setIsLoadingRemove(false);
-  };
+    setIsLoadingRemove(true)
+    await decreaseProductCount(item.productId)
+    setIsLoadingRemove(false)
+  }
 
   return (
     <>
       <Card
-        className={clsx(styles.card, className, { [styles.disabled]: item.product.status === ProductStatusEnum.Expired })}
+        className={clsx(styles.card, className, {
+          [styles.disabled]: item.product.status === ProductStatusEnum.Expired,
+        })}
         elevation={0}
       >
         <Box className={styles.imageWrapper}>
@@ -81,31 +83,29 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
             alt={item.product.name}
           />
           {hasDiscount && (
-            <Badge 
-              badgeContent={`-${discountPercentage}%`} 
+            <Badge
+              badgeContent={`-${discountPercentage}%`}
               color="error"
               className={styles.discountBadge}
             />
           )}
         </Box>
-        
+
         <Box className={styles.content}>
           <Typography className={styles.itemName} variant="body1">
             {item.product.name}
           </Typography>
-          
+
           {item.product.status === ProductStatusEnum.Expired && (
             <Box className={styles.unavailableBadge}>
               <ErrorOutlineIcon fontSize="small" />
               <Typography variant="caption">Товар недоступен для доставки</Typography>
             </Box>
           )}
-          
+
           <Box className={styles.priceSection}>
             <Box className={styles.priceContainer}>
-              <Typography className={styles.currentPrice}>
-                {formatRubbles(totalPrice)}
-              </Typography>
+              <Typography className={styles.currentPrice}>{formatRubbles(totalPrice)}</Typography>
               {hasDiscount && (
                 <Typography className={styles.originalPrice}>
                   {formatRubbles(totalOriginalPrice)}
@@ -113,7 +113,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
               )}
             </Box>
           </Box>
-          
+
           <Box className={styles.quantityControls}>
             <Button
               variant="outlined"
@@ -126,7 +126,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
             >
               Убрать
             </Button>
-            
+
             {item.product.status !== ProductStatusEnum.Expired && (
               <>
                 <IconButton
@@ -137,11 +137,9 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
                 >
                   {isLoadingRemove ? <CircularProgress size={20} /> : <RemoveCircleOutlineIcon />}
                 </IconButton>
-                
-                <Typography className={styles.quantity}>
-                  {item.quantity}
-                </Typography>
-                
+
+                <Typography className={styles.quantity}>{item.quantity}</Typography>
+
                 <IconButton
                   className={styles.quantityButton}
                   onClick={handlePlusProduct}
@@ -155,12 +153,12 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
           </Box>
         </Box>
       </Card>
-      
+
       <ConfirmRemoveFromBasketModal
         basketProduct={item}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       />
     </>
-  );
-});
+  )
+})

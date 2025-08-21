@@ -1,5 +1,5 @@
-import { BasketType } from "@entities/Basket";
-import { OrderType } from "@entities/Order";
+import { BasketType } from '@entities/Basket'
+import { OrderType } from '@entities/Order'
 
 // export type UserType = StoreOwnerUserType | CustomerUserType
 
@@ -15,18 +15,18 @@ export interface StoreOwnerUserType {
 }
 
 export interface UserLoginResponse {
-    user: StoreOwnerUserType
-    token: string
-    refreshToken: string
+  user: StoreOwnerUserType
+  token: string
+  refreshToken: string
 }
 
 export interface CustomerUserType {
-  id: number;
-  name: string;
-  email: string;
-  age: number;
-  created_at: Date;
-  updated_at: Date;
-  basket: BasketType;
-  orders: OrderType[];
+  id: number
+  name: string
+  email: string
+  age: number
+  created_at: Date
+  updated_at: Date
+  basket: BasketType
+  orders: OrderType[]
 }

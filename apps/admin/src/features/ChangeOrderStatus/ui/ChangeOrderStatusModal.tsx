@@ -1,6 +1,6 @@
-import { FC } from "react";
-import clsx from "clsx";
-import { 
+import { FC } from 'react'
+import clsx from 'clsx'
+import {
   Modal,
   Box,
   Typography,
@@ -8,28 +8,23 @@ import {
   TextField,
   MenuItem,
   CircularProgress,
-} from "@mui/material";
-import { Controller, useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { OrderStatusEnum } from "@core/enums/order-status-enum";
-import { ChangeStatusFormValues, changeStatusSchema } from "../lib/schema";
-import { STATUS_OPTIONS } from "../lib/constants";
-import styles from "./ChangeOrderStatusModal.module.scss";
+} from '@mui/material'
+import { Controller, useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { OrderStatusEnum } from '@core/enums/order-status-enum'
+import { ChangeStatusFormValues, changeStatusSchema } from '../lib/schema'
+import { STATUS_OPTIONS } from '../lib/constants'
+import styles from './ChangeOrderStatusModal.module.scss'
 
 interface ChangeOrderStatusModalProps {
-  open: boolean;
-  selectedCount: number;
-  onClose: () => void;
-  onSubmit: (values: ChangeStatusFormValues) => void;
+  open: boolean
+  selectedCount: number
+  onClose: () => void
+  onSubmit: (values: ChangeStatusFormValues) => void
 }
 
 export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) => {
-  const {
-    open,
-    selectedCount,
-    onClose,
-    onSubmit,
-  } = props
+  const { open, selectedCount, onClose, onSubmit } = props
 
   const {
     control,
@@ -40,13 +35,13 @@ export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) =
   } = useForm<ChangeStatusFormValues>({
     resolver: yupResolver(changeStatusSchema) as any,
     defaultValues: {
-      status: null ,
-      cancelReason: "",
+      status: null,
+      cancelReason: '',
     },
-  });
+  })
 
-  const selectedStatus = watch("status");
-  const showReasonField = selectedStatus === OrderStatusEnum.CancelByAdmin;
+  const selectedStatus = watch('status')
+  const showReasonField = selectedStatus === OrderStatusEnum.CancelByAdmin
 
   const submitForm = (data: ChangeStatusFormValues) => {
     if (data.status) {
@@ -58,16 +53,12 @@ export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) =
   }
 
   const handleClose = () => {
-    reset();
-    onClose();
-  };
+    reset()
+    onClose()
+  }
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      BackdropProps={{ className: styles.modalBackdrop }}
-    >
+    <Modal open={open} onClose={handleClose} BackdropProps={{ className: styles.modalBackdrop }}>
       <Box className={styles.modalContent} component="form" onSubmit={handleSubmit(submitForm)}>
         <Box className={styles.modalHeader}>
           <Typography variant="h6">Изменение статуса заказов</Typography>
@@ -81,39 +72,35 @@ export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) =
             name="status"
             control={control}
             render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  onChange={onChange}
-                  select
-                  fullWidth
-                  label="Новый статус"
-                  error={!!errors.status}
-                  helperText={errors.status?.message}
-                  variant="outlined"
-                  size="medium"
-                  FormHelperTextProps={{
-                    className: styles.modalError
-                  }}
-                >
-                  {STATUS_OPTIONS.map((option) => (
-                      <MenuItem 
-                        key={option.label} 
-                        value={option.value}
-                      >
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                </TextField>
-              )}
+              <TextField
+                value={value}
+                onChange={onChange}
+                select
+                fullWidth
+                label="Новый статус"
+                error={!!errors.status}
+                helperText={errors.status?.message}
+                variant="outlined"
+                size="medium"
+                FormHelperTextProps={{
+                  className: styles.modalError,
+                }}
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <MenuItem key={option.label} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
           />
 
-          <Box className={clsx(
-            styles.modalReasonField,
-            {
+          <Box
+            className={clsx(styles.modalReasonField, {
               [styles.visible]: showReasonField,
-              [styles.hidden]: !showReasonField
-            }
-          )}>
+              [styles.hidden]: !showReasonField,
+            })}
+          >
             <Controller
               name="cancelReason"
               control={control}
@@ -130,7 +117,7 @@ export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) =
                   variant="outlined"
                   size="medium"
                   FormHelperTextProps={{
-                    className: styles.modalError
+                    className: styles.modalError,
                   }}
                 />
               )}
@@ -139,15 +126,15 @@ export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) =
         </Box>
 
         <Box className={styles.modalActions}>
-          <Button 
-            onClick={handleClose} 
+          <Button
+            onClick={handleClose}
             className={styles.modalCancelButton}
             disabled={isSubmitting}
           >
             Отменить
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className={styles.modalSubmitButton}
             disabled={isSubmitting}
             endIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : null}
@@ -157,5 +144,5 @@ export const ChangeOrderStatusModal: FC<ChangeOrderStatusModalProps> = (props) =
         </Box>
       </Box>
     </Modal>
-  );
-};
+  )
+}

@@ -1,27 +1,27 @@
-import { API } from "@/shared/api/API"
-import { AddressType } from "@core/types/address-type"
-import { useQuery } from "@tanstack/react-query"
+import { API } from '@/shared/api/API'
+import { AddressType } from '@core/types/address-type'
+import { useQuery } from '@tanstack/react-query'
 
 interface AddressByIdQueryOptions {
-    addressId: string
+  addressId: string
 }
 
 const fetchAddressById = async (addressId: string): Promise<AddressType> => {
-    const response = await API.get(`/addresses/${addressId}`)
+  const response = await API.get(`/addresses/${addressId}`)
 
-    return response.data
+  return response.data
 }
 
 export const useAddressById = (options: AddressByIdQueryOptions) => {
-    const { addressId } = options
+  const { addressId } = options
 
-    const qyery = useQuery({
-        queryKey: ['addressById'],
-        queryFn: () => fetchAddressById(addressId)
-    })
+  const qyery = useQuery({
+    queryKey: ['addressById'],
+    queryFn: () => fetchAddressById(addressId),
+  })
 
-    return {
-        ...qyery,
-        address: qyery.data
-    }
+  return {
+    ...qyery,
+    address: qyery.data,
+  }
 }

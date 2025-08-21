@@ -1,1 +1,1 @@
-export { AddNewAddressModal } from "./ui/AddNewAddressModal";
+export { AddNewAddressModal } from './ui/AddNewAddressModal'

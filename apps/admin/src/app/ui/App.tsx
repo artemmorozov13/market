@@ -27,9 +27,9 @@ export const App: FC = observer(() => {
     <StrictMode>
       <ErrorBoundary>
         <QueryClientProvider client={client}>
-          <BrowserRouter basename='/'>
+          <BrowserRouter basename="/">
             <RouteProvider />
-            <ToastContainer/>
+            <ToastContainer />
           </BrowserRouter>
         </QueryClientProvider>
       </ErrorBoundary>

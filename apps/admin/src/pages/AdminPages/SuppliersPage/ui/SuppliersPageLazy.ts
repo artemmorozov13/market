@@ -1,4 +1,3 @@
-import { lazy } from "react";
-import SuppliersPage from "./SuppliersPage";
+import { lazy } from 'react'
 
 export const SuppliersPageLazy = lazy(() => import('./SuppliersPage'))

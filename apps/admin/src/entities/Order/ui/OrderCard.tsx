@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import {
   Card,
   CardContent,
@@ -12,13 +12,13 @@ import {
   ListItem,
   ListItemText,
   Divider,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { OrderType } from '../types/orderTypes';
-import styles from './OrderCard.module.scss';
+} from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { OrderType } from '../types/orderTypes'
+import styles from './OrderCard.module.scss'
 
 interface OrderCardProps {
-  order: OrderType;
+  order: OrderType
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
@@ -30,13 +30,10 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         </Typography>
 
         <Typography color="text.secondary" className={styles.orderStatus}>
-          Статус: <Chip
+          Статус:{' '}
+          <Chip
             label={order.status}
-            color={
-              order.status === 'waitForPay'
-                ? 'warning'
-                : 'success'
-            }
+            color={order.status === 'waitForPay' ? 'warning' : 'success'}
           />
         </Typography>
 
@@ -56,7 +53,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
             rel="noopener noreferrer"
           >
             {order.user.telegram_username}
-          </Link>)
+          </Link>
+          )
         </Typography>
 
         <Typography variant="body2" className={styles.orderDate}>
@@ -104,7 +102,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
                     </ListItem>
                     <Divider />
                   </React.Fragment>
-                );
+                )
               })}
             </List>
           </AccordionDetails>
@@ -115,5 +113,5 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         </Typography>
       </CardContent>
     </Card>
-  );
-};
+  )
+}

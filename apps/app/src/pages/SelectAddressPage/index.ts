@@ -1,1 +1,1 @@
-export { SelectAddressPageLazy as SelectAddressPage } from "./SelectAddressPageLazy";
+export { SelectAddressPageLazy as SelectAddressPage } from './SelectAddressPageLazy'

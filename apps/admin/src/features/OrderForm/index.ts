@@ -1,2 +1,2 @@
-export { OrderForm } from "./ui/OrderForm";
-export { orderFormStore } from "./store/orderFormStore";
+export { OrderForm } from './ui/OrderForm'
+export { orderFormStore } from './store/orderFormStore'

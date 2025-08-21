@@ -125,11 +125,11 @@
   margin-top: 1.5rem;
   box-shadow: none;
   border-radius: 8px;
-  
+
   &:hover {
     box-shadow: none;
   }
-  
+
   &:disabled {
     background-color: #e0e0e0;
     color: #a0a0a0;
@@ -140,12 +140,12 @@
   .paper {
     padding: 1rem;
   }
-  
+
   .deliveryMethodLabel {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .pickupInfoContent {
     flex-direction: column;
   }

@@ -1,5 +1,5 @@
-export { FilterMenu } from "./ui/FilterMenu/FilterMenu";
-export type { FilterItemType, FilterVariantsEnum } from "./types/filterMenuTypes";
-export type { FilterSelectOptionType } from "./types/filterMenuTypes";
-export type { SelecedFiltersDataType } from "./types/filterMenuTypes";
-export { FilterVariantsList } from "./types/filterMenuTypes";
+export { FilterMenu } from './ui/FilterMenu/FilterMenu'
+export type { FilterItemType, FilterVariantsEnum } from './types/filterMenuTypes'
+export type { FilterSelectOptionType } from './types/filterMenuTypes'
+export type { SelecedFiltersDataType } from './types/filterMenuTypes'
+export { FilterVariantsList } from './types/filterMenuTypes'

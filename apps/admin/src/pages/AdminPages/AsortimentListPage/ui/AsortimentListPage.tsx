@@ -1,44 +1,49 @@
-import { FC, useState } from "react";
-import { observer } from "mobx-react-lite";
-import { Pagination } from "@mui/material";
-import styles from "./AsortimentListPage.module.scss";
-import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
-import { Product, useDeleteProduct, useEditProduct, useProducts, useRecoverProduct } from "@entities/Product";
-import { ProductType } from "@core/types/product-item";
-import { useChangeProductStatus, useDeleteOfferedProduct } from "@entities/OfferedProduct";
-import { useUpdateOrderStatus } from "@pages/AdminPages/OrderTablePage/api/useUpdateOrderStatus";
-import { ProductStatusEnum } from "@core/enums/product-status-enum";
+import { FC, useState } from 'react'
+import { observer } from 'mobx-react-lite'
+import { Pagination } from '@mui/material'
+import styles from './AsortimentListPage.module.scss'
+import { ShopOwnerLayout } from '@widgets/ShopOwnerLayout'
+import {
+  Product,
+  useDeleteProduct,
+  useEditProduct,
+  useProducts,
+  useRecoverProduct,
+} from '@entities/Product'
+import { ProductType } from '@core/types/product-item'
+import { useChangeProductStatus } from '@entities/OfferedProduct'
+import { ProductStatusEnum } from '@core/enums/product-status-enum'
 
-const PRODUCTS_PER_PAGE = 12;
+const PRODUCTS_PER_PAGE = 12
 
 export const AsortimentListPage: FC = observer(() => {
-  const [page, setPage] = useState(1);
-  
+  const [page, setPage] = useState(1)
+
   const { products, isPending, error } = useProducts({
     limit: PRODUCTS_PER_PAGE,
     skip: (page - 1) * PRODUCTS_PER_PAGE,
-  });
-  
-  const { recoverProduct } = useRecoverProduct();
-  const { deleteProduct } = useDeleteProduct();
-  const { updateProduct } = useEditProduct();
+  })
+
+  const { recoverProduct } = useRecoverProduct()
+  const { deleteProduct } = useDeleteProduct()
+  const { updateProduct } = useEditProduct()
   const { changeProductStatus } = useChangeProductStatus()
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-  };
+    setPage(value)
+  }
 
   const handleDeleteProduct = (productId: number) => {
-    deleteProduct(productId);
-  };
+    deleteProduct(productId)
+  }
 
   const handleRecoverProduct = (productId: number) => {
-    recoverProduct(productId);
-  };
+    recoverProduct(productId)
+  }
 
   const handleUpdateProduct = (data: ProductType) => {
-    updateProduct(data);
-  };
+    updateProduct(data)
+  }
 
   const handleRevokeProduct = (productId: number) => {
     changeProductStatus(productId, ProductStatusEnum.Rejected)
@@ -52,7 +57,7 @@ export const AsortimentListPage: FC = observer(() => {
           <div>Загрузка...</div>
         </div>
       </ShopOwnerLayout>
-    );
+    )
   }
 
   if (error) {
@@ -63,7 +68,7 @@ export const AsortimentListPage: FC = observer(() => {
           <div>Ошибка загрузки данных: {error.message}</div>
         </div>
       </ShopOwnerLayout>
-    );
+    )
   }
 
   if (!products?.items?.length) {
@@ -74,14 +79,12 @@ export const AsortimentListPage: FC = observer(() => {
           <div>Товары не найдены</div>
         </div>
       </ShopOwnerLayout>
-    );
+    )
   }
 
-  const totalPages = products?.pagination?.total ? (
-    Math.ceil(products.pagination.total / PRODUCTS_PER_PAGE)
-  ) : (
-    1
-  );
+  const totalPages = products?.pagination?.total
+    ? Math.ceil(products.pagination.total / PRODUCTS_PER_PAGE)
+    : 1
 
   return (
     <ShopOwnerLayout>
@@ -100,14 +103,9 @@ export const AsortimentListPage: FC = observer(() => {
       </div>
       {totalPages > 1 && (
         <div className={styles.pagination}>
-          <Pagination
-            page={page}
-            count={totalPages}
-            onChange={handlePageChange}
-            color="primary"
-          />
+          <Pagination page={page} count={totalPages} onChange={handlePageChange} color="primary" />
         </div>
       )}
     </ShopOwnerLayout>
-  );
-});
+  )
+})

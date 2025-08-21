@@ -1,110 +1,110 @@
 .wrapper {
-    min-height: 100vh;
+  min-height: 100vh;
 }
-  
+
 .container {
-    padding: 40px 20px !important;
-    max-width: 800px;
+  padding: 40px 20px !important;
+  max-width: 800px;
 }
-  
+
 .header {
-    text-align: center;
-    margin-bottom: 40px;
-    
-    .title {
-        font-weight: 700;
-        color: #2d3748;
-        margin-bottom: 16px;
-    }
-    
-    .subtitle {
-        color: #718096;
-        font-size: 1.1rem;
-    }
+  text-align: center;
+  margin-bottom: 40px;
+
+  .title {
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    color: #718096;
+    font-size: 1.1rem;
+  }
 }
-  
+
 .telegramSection {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    padding: 32px;
-    margin-bottom: 40px;
-    text-align: center;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 32px;
+  margin-bottom: 40px;
+  text-align: center;
 }
-  
+
 .telegramContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
-    .telegramIcon {
-        color: #0088cc;
-        font-size: 48px;
-        margin-bottom: 16px;
-    }
-    
-    .telegramTitle {
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #2d3748;
-    }
-    
-    .telegramText {
-        color: #718096;
-        margin-bottom: 24px;
-        max-width: 600px;
-    }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .telegramIcon {
+    color: #0088cc;
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .telegramTitle {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2d3748;
+  }
+
+  .telegramText {
+    color: #718096;
+    margin-bottom: 24px;
+    max-width: 600px;
+  }
 }
-  
+
 .button {
-    border-radius: 8px;
-    padding: 12px 24px;
-    text-transform: none;
-    font-weight: 500;
-    background-color: #0088cc;
-    
-    &:hover {
-        background-color: #0077b3;
-    }
+  border-radius: 8px;
+  padding: 12px 24px;
+  text-transform: none;
+  font-weight: 500;
+  background-color: #0088cc;
+
+  &:hover {
+    background-color: #0077b3;
+  }
 }
-  
+
 .divider {
-    margin: 40px 0;
-    background-color: #e2e8f0;
+  margin: 40px 0;
+  background-color: #e2e8f0;
 }
-  
+
 .faqSection {
-    .faqTitle {
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 24px;
-        text-align: center;
-    }
+  .faqTitle {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 24px;
+    text-align: center;
+  }
 }
-  
+
 .accordions {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-  
+
 .accordion {
-    border-radius: 8px !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    
-    &:before {
-        display: none;
-    }
-    
-    .accordionQuestion {
-        font-weight: 500;
-        color: #2d3748;
-    }
-    
-    .accordionAnswer {
-        color: #4a5568;
-        line-height: 1.6;
-    }
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+
+  &:before {
+    display: none;
+  }
+
+  .accordionQuestion {
+    font-weight: 500;
+    color: #2d3748;
+  }
+
+  .accordionAnswer {
+    color: #4a5568;
+    line-height: 1.6;
+  }
 }

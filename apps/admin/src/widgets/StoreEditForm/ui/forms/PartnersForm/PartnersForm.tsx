@@ -1,10 +1,10 @@
-import { FormControlLabel, Switch, Typography } from '@mui/material';
-import styles from './PartnersForm.module.scss';
-import { FC } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { FormControlLabel, Switch, Typography } from '@mui/material'
+import styles from './PartnersForm.module.scss'
+import { FC } from 'react'
+import { Controller, useFormContext } from 'react-hook-form'
 
 export const PartnersForm: FC = () => {
-    const { control } = useFormContext()
+  const { control } = useFormContext()
 
   return (
     <section className={styles.section}>
@@ -12,15 +12,15 @@ export const PartnersForm: FC = () => {
         Партнеры
       </Typography>
       <Controller
-        name='isWorkWithPartners'
+        name="isWorkWithPartners"
         control={control}
         render={({ field: { value, onChange } }) => (
-            <FormControlLabel
-                control={<Switch checked={value} onChange={onChange}/>}
-                label="Работаю с партнерами"
-            />
+          <FormControlLabel
+            control={<Switch checked={value} onChange={onChange} />}
+            label="Работаю с партнерами"
+          />
         )}
       />
     </section>
-  );
-};
+  )
+}

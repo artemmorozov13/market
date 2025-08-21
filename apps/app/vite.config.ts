@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import dotenv from 'dotenv'
 
-dotenv.config() 
+dotenv.config()
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
@@ -12,14 +12,14 @@ export default defineConfig(({ mode }) => {
     base: '/app/',
     plugins: [react()],
     define: {
-      'process.env': env
+      'process.env': env,
     },
     server: {
-      host: "0.0.0.0",
+      host: '0.0.0.0',
       port: 3002,
       watch: {
-        ignored: ['!../../shared/**']
-      }
+        ignored: ['!../../shared/**'],
+      },
     },
     resolve: {
       alias: {
@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
         '@pages': path.resolve(__dirname, './src/pages'),
         '@shared': path.resolve(__dirname, './src/shared'),
         '@core': path.resolve(__dirname, '../../shared/src'),
-      }
-    }
+      },
+    },
   }
 })

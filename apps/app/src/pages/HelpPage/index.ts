@@ -1,1 +1,1 @@
-export { HelpPageLazy as HelpPage } from "./HelpPageLazy";
+export { HelpPageLazy as HelpPage } from './HelpPageLazy'

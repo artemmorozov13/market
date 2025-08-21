@@ -1,17 +1,17 @@
-import { makeAutoObservable } from "mobx";
-import { MenuType } from "..";
-import { fetchMenuListData } from "../api/fetchMenuListData";
+import { makeAutoObservable } from 'mobx'
+import { MenuType } from '..'
+import { fetchMenuListData } from '../api/fetchMenuListData'
 
 class MenuStore {
-    menuList: MenuType[] = []
+  menuList: MenuType[] = []
 
-    constructor() {
-        makeAutoObservable(this)
-    }
+  constructor() {
+    makeAutoObservable(this)
+  }
 
-    fetchMenuList = () => {
-        this.menuList = fetchMenuListData()
-    }
+  fetchMenuList = () => {
+    this.menuList = fetchMenuListData()
+  }
 }
 
 export const menuStore = new MenuStore()

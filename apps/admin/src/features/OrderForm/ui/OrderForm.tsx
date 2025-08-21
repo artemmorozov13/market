@@ -1,18 +1,17 @@
-import { FC, useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { TextField, MenuItem, Typography, Button } from "@mui/material";
-import styles from "./OrderForm.module.css";
-import { OrderFormInputs } from "../types/orderFormTypes";
-import { orderFormSchema } from "../lib/orderFormSchema";
-import { orderFormStore } from "../store/orderFormStore";
-import { observer } from "mobx-react-lite";
-import { formatToRussianPhone } from "@shared/lib/helpers/formatRussianPhone";
-import { AddNewAddressModal } from "@features/AddNewAddressModal";
-
+import { FC, useEffect, useState } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { TextField, MenuItem, Typography, Button } from '@mui/material'
+import styles from './OrderForm.module.css'
+import { OrderFormInputs } from '../types/orderFormTypes'
+import { orderFormSchema } from '../lib/orderFormSchema'
+import { orderFormStore } from '../store/orderFormStore'
+import { observer } from 'mobx-react-lite'
+import { formatToRussianPhone } from '@shared/lib/helpers/formatRussianPhone'
+import { AddNewAddressModal } from '@features/AddNewAddressModal'
 
 interface OrderFormProps {
-  onSubmit: (data: OrderFormInputs) => void;
+  onSubmit: (data: OrderFormInputs) => void
 }
 
 export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
@@ -23,24 +22,24 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
   } = useForm<OrderFormInputs>({
     resolver: yupResolver(orderFormSchema),
     defaultValues: {
-      address: "",
-      time: "",
-      phone: "",
+      address: '',
+      time: '',
+      phone: '',
     },
-  });
+  })
 
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { addressesList, fetchAddressesList } = orderFormStore;
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const { addressesList, fetchAddressesList } = orderFormStore
 
   const handleAddAddress = () => {
-    setIsOpen(true);
-  };
+    setIsOpen(true)
+  }
 
   useEffect(() => {
     if (!isOpen) {
-      fetchAddressesList();
+      fetchAddressesList()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   return (
     <div className={styles.modalContainer}>
@@ -103,11 +102,8 @@ export const OrderForm: FC<OrderFormProps> = observer(({ onSubmit }) => {
         <Button variant="outlined" onClick={handleAddAddress}>
           Добавить адресс
         </Button>
-        <AddNewAddressModal
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-        />
+        <AddNewAddressModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
       </form>
     </div>
-  );
-});
+  )
+})

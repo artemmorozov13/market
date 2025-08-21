@@ -1,12 +1,8 @@
-import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
-import { FC } from "react";
+import { ShopOwnerLayout } from '@widgets/ShopOwnerLayout'
+import { FC } from 'react'
 
 const OrderedProductsPage: FC = () => {
-    return (
-        <ShopOwnerLayout>
-            Список продуктов которын заказал магазин
-        </ShopOwnerLayout>
-    )
+  return <ShopOwnerLayout>Список продуктов которын заказал магазин</ShopOwnerLayout>
 }
 
-export default OrderedProductsPage;
+export default OrderedProductsPage

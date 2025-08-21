@@ -1,1 +1,1 @@
-export { useOrderStatistic } from "./api/getStatisticData";
+export { useOrderStatistic } from './api/getStatisticData'

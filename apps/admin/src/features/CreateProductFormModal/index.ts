@@ -1,1 +1,1 @@
-export { CreateProductModal } from "./ui/CreateProductFormModal";
+export { CreateProductModal } from './ui/CreateProductFormModal'

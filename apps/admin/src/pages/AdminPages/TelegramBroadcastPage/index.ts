@@ -1,1 +1,1 @@
-export { TelegramBroadcastPageLazy as TelegramBroadcastPage } from "./TelegramBroadcastPageLazy";
+export { TelegramBroadcastPageLazy as TelegramBroadcastPage } from './TelegramBroadcastPageLazy'

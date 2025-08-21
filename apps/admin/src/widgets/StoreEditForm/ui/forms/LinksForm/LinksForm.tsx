@@ -1,35 +1,29 @@
-import { useState } from 'react';
-import {
-  Typography,
-  Box,
-  Button
-} from '@mui/material';
-import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
+import { useState } from 'react'
+import { Typography, Button } from '@mui/material'
+import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material'
 import clsx from 'clsx'
-import styles from './LinksForm.module.scss';
-import { FC } from 'react';
-import { useUser } from '@entities/User';
+import styles from './LinksForm.module.scss'
+import { FC } from 'react'
+import { useUser } from '@entities/User'
 
-interface LinksFormProps {
-
-}
+interface LinksFormProps {}
 
 export const LinksForm: FC<LinksFormProps> = () => {
   const { user } = useUser()
-  const [isCopiedTelegram, setIsCopiedTelegram] = useState(false);
-  const [isCopiedBrowser, setIsCopiedBrowser] = useState(false);
+  const [isCopiedTelegram, setIsCopiedTelegram] = useState(false)
+  const [isCopiedBrowser, setIsCopiedBrowser] = useState(false)
 
   const handleCopyMiniAppUrl = () => {
-    navigator.clipboard.writeText(`https://t.me/okacuki_bot/?startapp=shop_${user?.store?.id}`);
-    setIsCopiedTelegram(true);
-    setTimeout(() => setIsCopiedTelegram(false), 2000);
-  };
+    navigator.clipboard.writeText(`https://t.me/okacuki_bot/?startapp=shop_${user?.store?.id}`)
+    setIsCopiedTelegram(true)
+    setTimeout(() => setIsCopiedTelegram(false), 2000)
+  }
 
   const handleCopyBrowserLink = () => {
-    navigator.clipboard.writeText(`https://akacuki.ru/app/?store=${user?.store?.id}`);
-    setIsCopiedBrowser(true);
-    setTimeout(() => setIsCopiedBrowser(false), 2000);
-  };
+    navigator.clipboard.writeText(`https://akacuki.ru/app/?store=${user?.store?.id}`)
+    setIsCopiedBrowser(true)
+    setTimeout(() => setIsCopiedBrowser(false), 2000)
+  }
 
   return (
     <section className={styles.section}>
@@ -46,7 +40,7 @@ export const LinksForm: FC<LinksFormProps> = () => {
           color="primary"
           fullWidth
         >
-          {isCopiedTelegram ? "Скопировано!" : "Скопировать ссылку для Telegram Mini App"}
+          {isCopiedTelegram ? 'Скопировано!' : 'Скопировать ссылку для Telegram Mini App'}
         </Button>
         <Button
           onClick={handleCopyBrowserLink}
@@ -56,9 +50,9 @@ export const LinksForm: FC<LinksFormProps> = () => {
           color="primary"
           fullWidth
         >
-          {isCopiedBrowser ? "Скопировано!" : "Скопировать ссылку для браузера"}
+          {isCopiedBrowser ? 'Скопировано!' : 'Скопировать ссылку для браузера'}
         </Button>
       </div>
     </section>
-  );
-};
+  )
+}

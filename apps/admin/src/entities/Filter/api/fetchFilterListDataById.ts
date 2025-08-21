@@ -1,12 +1,12 @@
-import { AlphabetSortedListType } from "../types/filterMenuTypes";
+import { AlphabetSortedListType } from '../types/filterMenuTypes'
 
 export const fetchFilterListDataById = async (id: number) => {
   try {
-    return data as AlphabetSortedListType[];
+    return data as AlphabetSortedListType[]
   } catch {
-    throw new Error();
+    throw new Error()
   }
-};
+}
 
 const data: AlphabetSortedListType[] = [
   {
@@ -36,14 +36,14 @@ const data: AlphabetSortedListType[] = [
     char: 'H',
     items: [
       { label: 'Heinz', value: 'heinz' },
-      { label: 'Hershey\'s', value: 'hersheys' },
-      { label: 'Hellmann\'s', value: 'hellmanns' },
+      { label: "Hershey's", value: 'hersheys' },
+      { label: "Hellmann's", value: 'hellmanns' },
     ],
   },
   {
     char: 'L',
     items: [
-      { label: 'Lay\'s', value: 'lays' },
+      { label: "Lay's", value: 'lays' },
       { label: 'Lipton', value: 'lipton' },
       { label: 'Lindt', value: 'lindt' },
     ],
@@ -53,7 +53,7 @@ const data: AlphabetSortedListType[] = [
     items: [
       { label: 'Mars', value: 'mars' },
       { label: 'Milka', value: 'milka' },
-      { label: 'M&M\'s', value: 'mms' },
+      { label: "M&M's", value: 'mms' },
     ],
   },
   {
@@ -84,4 +84,4 @@ const data: AlphabetSortedListType[] = [
       { label: 'Toblerone', value: 'toblerone' },
     ],
   },
-];
+]

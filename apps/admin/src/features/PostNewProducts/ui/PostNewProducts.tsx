@@ -1,33 +1,35 @@
-import React, { useState } from 'react';
-import { useForm, Controller, UseFormReturn } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { TextField, Button, Box, Typography } from '@mui/material';
-import { productSchema } from '../lib/productValidationSchema';
-import styles from './PostNewProducts.module.scss';
-import { ProductFormType } from '../types/postNewProductTypes';
-import { Uploader } from '@entities/Uploader/ui/Uploader';
-import { UploaderReturnType } from '@core/types/uploader-type';
+import React, { useState } from 'react'
+import { useForm, Controller, UseFormReturn } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { TextField, Button, Box, Typography } from '@mui/material'
+import { productSchema } from '../lib/productValidationSchema'
+import styles from './PostNewProducts.module.scss'
+import { ProductFormType } from '../types/postNewProductTypes'
+import { Uploader } from '@entities/Uploader/ui/Uploader'
+import { UploaderReturnType } from '@core/types/uploader-type'
 
 interface ProductFormProps {
   initialValues?: ProductFormType
-  onSubmit?: (data: ProductFormType, methods: UseFormReturn<ProductFormType>) => void;
+  onSubmit?: (data: ProductFormType, methods: UseFormReturn<ProductFormType>) => void
 }
 
 export const ProductForm: React.FC<ProductFormProps> = (props) => {
   const { onSubmit, initialValues } = props
-  const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  const [isDisabled, setIsDisabled] = useState<boolean>(false)
   const methods = useForm<ProductFormType>({
     resolver: yupResolver(productSchema) as any,
-    defaultValues: initialValues || {
-      name: '',
-      description: '',
-      price: '',
-      discount: '',
-      unitValue: '',
-      image: '',
-      unitOfMeasurement: 'шт',
-    } as any,
-  });
+    defaultValues:
+      initialValues ||
+      ({
+        name: '',
+        description: '',
+        price: '',
+        discount: '',
+        unitValue: '',
+        image: '',
+        unitOfMeasurement: 'шт',
+      } as any),
+  })
   const {
     control,
     handleSubmit,
@@ -36,25 +38,24 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
 
   console.log(initialValues)
 
-  const handleFileChange = (onChange: (fileUrl: UploaderReturnType) => void) => (file: UploaderReturnType) => {
-    onChange(file)
-  };
+  const handleFileChange =
+    (onChange: (fileUrl: UploaderReturnType) => void) => (file: UploaderReturnType) => {
+      onChange(file)
+    }
 
   const handleFormSubmit = (data: ProductFormType) => {
-    setIsDisabled(true);
+    setIsDisabled(true)
     setTimeout(() => {
-      setIsDisabled(false);
-    }, 1000);
+      setIsDisabled(false)
+    }, 1000)
     onSubmit?.(data, methods)
-  };
+  }
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className={styles.wrapper}
-    >
-      <span className={styles.title}>{initialValues ? 'Редактировать продукт' : 'Добавить продукт'}</span>
+    <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} className={styles.wrapper}>
+      <span className={styles.title}>
+        {initialValues ? 'Редактировать продукт' : 'Добавить продукт'}
+      </span>
       <Controller
         name="name"
         control={control}
@@ -113,13 +114,10 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
       />
       <Box>
         <Controller
-          name='image'
+          name="image"
           control={control}
           render={({ field: { value, onChange } }) => (
-            <Uploader
-              value={value}
-              onChange={handleFileChange(onChange)}
-            />
+            <Uploader value={value} onChange={handleFileChange(onChange)} />
           )}
         />
         {errors.image && (
@@ -165,5 +163,5 @@ export const ProductForm: React.FC<ProductFormProps> = (props) => {
         {initialValues ? 'Сохранить' : 'Добавить'}
       </Button>
     </Box>
-  );
-};
+  )
+}

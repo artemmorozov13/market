@@ -1,1 +1,1 @@
-export { RouteProvider } from "./RouteProvider";
+export { RouteProvider } from './RouteProvider'

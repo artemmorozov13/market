@@ -1,2 +1,2 @@
-import ProductModal from "./ProductModal";
+import ProductModal from './ProductModal'
 export { ProductModal }

@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { useEffect, useState } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
 import {
   Avatar,
   Box,
@@ -12,54 +12,59 @@ import {
   Skeleton,
   TextField,
   Typography,
-} from "@mui/material";
-import { fetchUserProfile, saveUserProfile } from "../api/api";
-import { createProfileValidationSchema } from "../lib/validationSchema";
+} from '@mui/material'
+import { fetchUserProfile, saveUserProfile } from '../api/api'
+import { createProfileValidationSchema } from '../lib/validationSchema'
 
-import styles from "./UserProfileForm.module.css";
+import styles from './UserProfileForm.module.css'
 
 export const UserProfileForm: React.FC = () => {
-  const validationSchema = createProfileValidationSchema();
-  const { control, handleSubmit, reset, formState: { errors } } = useForm({
+  const validationSchema = createProfileValidationSchema()
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      bio: "",
+      name: '',
+      email: '',
+      bio: '',
       age: 0,
-      gender: "",
-      location: "",
-      avatar: "",
+      gender: '',
+      location: '',
+      avatar: '',
     },
-  });
+  })
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await fetchUserProfile();
-        reset(data);
+        const data = await fetchUserProfile()
+        reset(data)
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error('Error fetching profile:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchProfile();
-  }, [reset]);
+    }
+    fetchProfile()
+  }, [reset])
 
   const onSubmit = async (data: any) => {
-    setSaving(true);
+    setSaving(true)
     try {
-      await saveUserProfile(data);
+      await saveUserProfile(data)
     } catch (err) {
-      console.error("Error saving profile:", err);
+      console.error('Error saving profile:', err)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -75,7 +80,7 @@ export const UserProfileForm: React.FC = () => {
         <Skeleton variant="rectangular" width="100%" height={40} />
         <Skeleton variant="rectangular" width="100%" height={40} />
       </Box>
-    );
+    )
   }
 
   return (
@@ -84,33 +89,25 @@ export const UserProfileForm: React.FC = () => {
         User Profile
       </Typography>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           {/* Avatar Field */}
           <Controller
             name="avatar"
             control={control}
             render={({ field }) => (
               <>
-                <Avatar
-                  src={field.value}
-                  alt="User Avatar"
-                  sx={{ width: 100, height: 100 }}
-                />
-                <Button
-                  variant="outlined"
-                  component="label"
-                  sx={{ ml: 2 }}
-                >
+                <Avatar src={field.value} alt="User Avatar" sx={{ width: 100, height: 100 }} />
+                <Button variant="outlined" component="label" sx={{ ml: 2 }}>
                   Upload
                   <input
                     type="file"
                     hidden
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
+                      const file = e.target.files?.[0]
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = () => field.onChange(reader.result as string);
-                        reader.readAsDataURL(file);
+                        const reader = new FileReader()
+                        reader.onload = () => field.onChange(reader.result as string)
+                        reader.readAsDataURL(file)
                       }
                     }}
                   />
@@ -120,7 +117,7 @@ export const UserProfileForm: React.FC = () => {
           />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {/* Name Field */}
           <Controller
             name="name"
@@ -235,9 +232,9 @@ export const UserProfileForm: React.FC = () => {
           disabled={saving}
           className={styles.submitButton}
         >
-          {saving ? <CircularProgress size={24} /> : "Save Profile"}
+          {saving ? <CircularProgress size={24} /> : 'Save Profile'}
         </Button>
       </form>
     </Box>
-  );
-};
+  )
+}

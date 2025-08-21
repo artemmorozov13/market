@@ -1,53 +1,53 @@
 .root {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 24px;
-    font-family: "Roboto";
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 24px;
+  font-family: 'Roboto';
 }
 
 button.sortButton {
-    text-transform: none;
-    font-size: var(--font-size-16);
-    font-weight: 200;
-    line-height: 24px;
-    letter-spacing: .5px;
-    color: hsl(231deg 10% 86%);
+  text-transform: none;
+  font-size: var(--font-size-16);
+  font-weight: 200;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  color: hsl(231deg 10% 86%);
 }
 
 button.filterButton {
-    height: 40px;
-    width: 40px;
-    border-radius: 100%;
-    background-color: var(--color-dark-on-surface-variant-opacity-008);
+  height: 40px;
+  width: 40px;
+  border-radius: 100%;
+  background-color: var(--color-dark-on-surface-variant-opacity-008);
 }
 
 .filters {
-    display: flex;
-    gap: 16px;
-    align-items: center;
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 button.filterItem {
-    max-height: 32px;
-    text-transform: none;
+  max-height: 32px;
+  text-transform: none;
 }
 
 .filtersList {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 @media (width <= 992px) {
-    .root {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+  .root {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-    .filters {
-        width: 100%;
-        justify-content: space-between;
-    }
+  .filters {
+    width: 100%;
+    justify-content: space-between;
+  }
 }

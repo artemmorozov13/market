@@ -7,12 +7,12 @@
   border: 1px solid #ffebee;
   border-radius: 4px;
   margin: 4px 0;
-  
+
   svg {
     color: #f44336;
     font-size: 16px;
   }
-  
+
   p {
     color: #f44336 !important;
     font-weight: 500;
@@ -25,7 +25,7 @@
   font-size: 0.75rem !important;
   padding: 4px 8px !important;
   text-transform: none !important;
-  
+
   &:hover {
     background-color: #ffebee !important;
   }
@@ -36,11 +36,11 @@
   .quantityControls {
     justify-content: flex-end;
   }
-  
+
   .removeButton {
     border-color: #f44336 !important;
     color: #f44336 !important;
-    
+
     &:hover {
       background-color: #ffebee !important;
     }
@@ -82,7 +82,7 @@
   top: 16px;
   right: 24px;
   z-index: 999;
-  
+
   .MuiBadge-badge {
     font-size: 0.75rem;
     font-weight: 600;

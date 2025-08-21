@@ -1,36 +1,30 @@
-import { useFormContext } from 'react-hook-form';
-import {
-  Typography,
-  Box,
-  Button,
-  Chip,
-  IconButton
-} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { LoginButton } from '@telegram-auth/react';
-import styles from './IntegrationsForm.module.scss';
-import { FC } from 'react';
-import { StoreEditFormType } from '../../../types/storeEditTypes';
-import { toast } from 'react-toastify';
-import { API } from '@shared/api/instance';
-import { useUser } from '@entities/User';
+import { useFormContext } from 'react-hook-form'
+import { Typography, Box, Button, Chip } from '@mui/material'
+import SendIcon from '@mui/icons-material/Send'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import { LoginButton } from '@telegram-auth/react'
+import styles from './IntegrationsForm.module.scss'
+import { FC } from 'react'
+import { StoreEditFormType } from '../../../types/storeEditTypes'
+import { toast } from 'react-toastify'
+import { API } from '@shared/api/instance'
+import { useUser } from '@entities/User'
 
 interface IntegrationsFormProps {}
 
 export const IntegrationsForm: FC<IntegrationsFormProps> = () => {
   const { user } = useUser()
-  const { watch } = useFormContext<StoreEditFormType>();
+  const { watch } = useFormContext<StoreEditFormType>()
 
   const handleTestNotification = async () => {
     try {
-        const response = await API.post('/telegram/test-message');
-        toast(response.data.message, { type: 'success' });
+      const response = await API.post('/telegram/test-message')
+      toast(response.data.message, { type: 'success' })
     } catch (error) {
-        console.error(error);
-        toast('Ошибка отправки тестового сообщения', { type: 'error' });
+      console.error(error)
+      toast('Ошибка отправки тестового сообщения', { type: 'error' })
     }
-  };
+  }
 
   return (
     <section className={styles.section}>
@@ -41,9 +35,9 @@ export const IntegrationsForm: FC<IntegrationsFormProps> = () => {
       {user?.telegram_id ? (
         <Box display="flex" alignItems="center" gap={1}>
           <Chip
-            label="Подключен" 
-            color="success" 
-            size="small" 
+            label="Подключен"
+            color="success"
+            size="small"
             icon={<CheckCircleOutlineIcon fontSize="small" />}
           />
           <Typography variant="body2" color="text.secondary">
@@ -61,9 +55,9 @@ export const IntegrationsForm: FC<IntegrationsFormProps> = () => {
           requestAccess={'write'}
         />
       )}
-      
-      <Button 
-        variant="contained" 
+
+      <Button
+        variant="contained"
         color="secondary"
         onClick={handleTestNotification}
         disabled={!watch('telegramBotToken')}
@@ -74,5 +68,5 @@ export const IntegrationsForm: FC<IntegrationsFormProps> = () => {
         Отправить тестовое сообщение
       </Button>
     </section>
-  );
-};
+  )
+}

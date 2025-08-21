@@ -1,1 +1,1 @@
-export { ShopOwnerLayout } from "./ui/ShopOwnerLayout";
+export { ShopOwnerLayout } from './ui/ShopOwnerLayout'

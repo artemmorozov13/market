@@ -1,24 +1,20 @@
-import { FC } from 'react';
-import styles from './CreateProductFormModal.module.scss';
-import { ProductForm, ProductFormType } from '@features/PostNewProducts';
-import { Box, Modal } from '@mui/material';
+import { FC } from 'react'
+import styles from './CreateProductFormModal.module.scss'
+import { ProductForm, ProductFormType } from '@features/PostNewProducts'
+import { Box, Modal } from '@mui/material'
 
 interface CreateProductModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
   onSubmit: (data: ProductFormType) => void
 }
 
 export const CreateProductModal: FC<CreateProductModalProps> = (props) => {
-  const {
-    isOpen,
-    onClose,
-    onSubmit
-  } = props
+  const { isOpen, onClose, onSubmit } = props
 
   const handleClose = () => {
-    onClose();
-  };
+    onClose()
+  }
 
   return (
     <Modal open={isOpen} onClose={handleClose}>
@@ -26,5 +22,5 @@ export const CreateProductModal: FC<CreateProductModalProps> = (props) => {
         <ProductForm onSubmit={onSubmit} />
       </Box>
     </Modal>
-  );
-};
+  )
+}

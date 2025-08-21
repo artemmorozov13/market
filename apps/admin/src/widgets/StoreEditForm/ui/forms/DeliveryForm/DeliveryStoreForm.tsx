@@ -1,18 +1,12 @@
-import { Controller, useFormContext } from 'react-hook-form';
-import {
-  TextField,
-  Typography,
-  Box,
-  Checkbox,
-  FormControlLabel
-} from '@mui/material';
-import styles from './DeliveryStoreForm.module.scss';
-import { FC } from 'react';
-import { StoreEditFormType } from '../../../types/storeEditTypes';
+import { Controller, useFormContext } from 'react-hook-form'
+import { TextField, Typography, Box, Checkbox, FormControlLabel } from '@mui/material'
+import styles from './DeliveryStoreForm.module.scss'
+import { FC } from 'react'
+import { StoreEditFormType } from '../../../types/storeEditTypes'
 
 export const DeliveryStoreForm: FC = () => {
-  const { control, watch } = useFormContext<StoreEditFormType>();
-  const isDeliveryFree = watch('isDeliveryFree');
+  const { control, watch } = useFormContext<StoreEditFormType>()
+  const isDeliveryFree = watch('isDeliveryFree')
 
   return (
     <section className={styles.section}>
@@ -26,13 +20,7 @@ export const DeliveryStoreForm: FC = () => {
           control={control}
           render={({ field }) => (
             <FormControlLabel
-              control={
-                <Checkbox
-                  {...field}
-                  checked={field.value}
-                  color="primary"
-                />
-              }
+              control={<Checkbox {...field} checked={field.value} color="primary" />}
               label="Бесплатная доставка"
             />
           )}
@@ -69,5 +57,5 @@ export const DeliveryStoreForm: FC = () => {
         />
       </Box>
     </section>
-  );
-};
+  )
+}

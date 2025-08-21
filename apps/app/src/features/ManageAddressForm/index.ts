@@ -1,1 +1,1 @@
-export { ManageAddressForm } from "./ui/ManageAddressForm";
+export { ManageAddressForm } from './ui/ManageAddressForm'

@@ -1,210 +1,210 @@
 .productCard {
-    margin: 16px;
-    transition: all 0.2s ease-in-out;
-    position: relative;
-    overflow: visible;
-    width: 100%;
+  margin: 16px;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: visible;
+  width: 100%;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &.expired {
+    background-color: rgba(245, 245, 245, 0.8);
+    border: 1px solid rgba(220, 220, 220, 0.5);
+    transform: scale(0.95);
+    opacity: 0.9;
 
     &:hover {
-        transform: scale(1.02);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: scale(0.97);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
+  }
 
-    &.expired {
-        background-color: rgba(245, 245, 245, 0.8);
-        border: 1px solid rgba(220, 220, 220, 0.5);
-        transform: scale(0.95);
-        opacity: 0.9;
-        
-        &:hover {
-            transform: scale(0.97);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-    }
-
-    &.revoked {
-        background-color: #f9f9f9;
-        border: 1px solid #eee;
-    }
+  &.revoked {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+  }
 }
 
 .image {
-    object-fit: cover;
-    height: 180px;
-    transition: all 0.3s ease;
+  object-fit: cover;
+  height: 180px;
+  transition: all 0.3s ease;
 
-    &.expiredImage {
-        opacity: 0.6;
-        filter: grayscale(50%) brightness(1.05);
-        height: 160px;
-    }
+  &.expiredImage {
+    opacity: 0.6;
+    filter: grayscale(50%) brightness(1.05);
+    height: 160px;
+  }
 
-    &.revokedImage {
-        opacity: 0.7;
-        filter: grayscale(30%);
-    }
+  &.revokedImage {
+    opacity: 0.7;
+    filter: grayscale(30%);
+  }
 }
 
 .wrapper {
-    padding: 12px;
+  padding: 12px;
 }
 
 .name {
-    font-weight: bold;
-    margin-bottom: 6px;
-    flex-grow: 1;
-    font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 6px;
+  flex-grow: 1;
+  font-size: 1rem;
 
-    .expired & {
-        font-size: 0.95rem;
-    }
+  .expired & {
+    font-size: 0.95rem;
+  }
 }
 
 .description {
-    margin-bottom: 10px;
-    color: #666;
-    font-size: 0.9rem;
+  margin-bottom: 10px;
+  color: #666;
+  font-size: 0.9rem;
 
-    .expired & {
-        font-size: 0.85rem;
-    }
+  .expired & {
+    font-size: 0.85rem;
+  }
 }
 
 .priceSection {
-    margin: 10px 0;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .vendorPriceContainer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    padding: 8px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
 }
 
 .vendorPriceLabel {
-    color: #757575;
-    font-size: 0.875rem;
+  color: #757575;
+  font-size: 0.875rem;
 }
 
 .vendorPriceValue {
-    font-weight: bold;
-    color: #388e3c;
+  font-weight: bold;
+  color: #388e3c;
 }
 
 .discountChip {
-    margin-left: 6px;
-    background-color: #ff4081;
-    color: white;
-    font-size: 0.7rem;
-    height: 24px;
+  margin-left: 6px;
+  background-color: #ff4081;
+  color: white;
+  font-size: 0.7rem;
+  height: 24px;
 }
 
 .unit {
-    margin: 6px 0;
-    color: #777;
-    font-size: 0.8rem;
+  margin: 6px 0;
+  color: #777;
+  font-size: 0.8rem;
 }
 
 .expiredText {
-    color: #aaa;
+  color: #aaa;
 }
 
 .revokedText {
-    color: #888;
+  color: #888;
 }
 
 .actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-    gap: 8px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  gap: 8px;
 
-    .expired & {
-        margin-top: 8px;
-    }
+  .expired & {
+    margin-top: 8px;
+  }
 }
 
 .divider {
-    margin: 10px 0;
-    border-color: rgba(0, 0, 0, 0.08);
+  margin: 10px 0;
+  border-color: rgba(0, 0, 0, 0.08);
 
-    .expired & {
-        border-color: rgba(0, 0, 0, 0.05);
-    }
+  .expired & {
+    border-color: rgba(0, 0, 0, 0.05);
+  }
 
-    .revoked & {
-        border-color: rgba(0, 0, 0, 0.03);
-    }
+  .revoked & {
+    border-color: rgba(0, 0, 0, 0.03);
+  }
 }
 
 .oldPrice {
-    text-decoration: line-through;
-    font-size: 0.9rem;
+  text-decoration: line-through;
+  font-size: 0.9rem;
 }
 
 .newPrice {
-    font-weight: bold;
-    color: #1976d2;
-    font-size: 1rem;
+  font-weight: bold;
+  color: #1976d2;
+  font-size: 1rem;
 
-    .expired & {
-        font-size: 0.9rem;
-    }
+  .expired & {
+    font-size: 0.9rem;
+  }
 }
 
 // Responsive adjustments
 @media (max-width: 600px) {
-    .productCard {
-        margin: 8px 0;
-        
-        &:hover {
-            transform: none;
-        }
+  .productCard {
+    margin: 8px 0;
 
-        &.expired {
-            transform: scale(0.98);
-            
-            &:hover {
-                transform: scale(0.99);
-            }
-        }
+    &:hover {
+      transform: none;
     }
 
-    .image {
-        height: 140px;
-        
-        &.expiredImage {
-            height: 120px;
-        }
-    }
+    &.expired {
+      transform: scale(0.98);
 
-    .priceSection {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+      &:hover {
+        transform: scale(0.99);
+      }
     }
+  }
 
-    .vendorPriceContainer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
+  .image {
+    height: 140px;
 
-    .actions {
-        flex-direction: column;
-        gap: 6px;
-        
-        button {
-            width: 100%;
-            padding: 6px 8px;
-            font-size: 0.8rem;
-        }
+    &.expiredImage {
+      height: 120px;
     }
+  }
+
+  .priceSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .vendorPriceContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 6px;
+
+    button {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+    }
+  }
 }

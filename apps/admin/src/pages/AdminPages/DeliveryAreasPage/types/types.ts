@@ -1,9 +1,5 @@
-import { DayOption, DeliveryTimeForm, DeliveryAreaForm, TimeOption } from "@entities/DeliveryArea";
+import { DeliveryTimeForm, DeliveryAreaForm } from '@entities/DeliveryArea'
 
-export interface DeliveryTimeFormData extends DeliveryTimeForm {
+export interface DeliveryTimeFormData extends DeliveryTimeForm {}
 
-}
-
-export interface DeliveryAreaFormData extends DeliveryAreaForm {
-  
-}
+export interface DeliveryAreaFormData extends DeliveryAreaForm {}

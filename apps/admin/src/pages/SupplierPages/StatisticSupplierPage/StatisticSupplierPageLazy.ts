@@ -1,3 +1,3 @@
-import { lazy } from "react";
+import { lazy } from 'react'
 
-export const StatisticSupplierPageLazy = lazy(() => import('./StatisticSupplierPage'));
+export const StatisticSupplierPageLazy = lazy(() => import('./StatisticSupplierPage'))

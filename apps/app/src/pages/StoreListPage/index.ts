@@ -1,1 +1,1 @@
-export { StoreListPageLazy as StoreListPage } from "./StoreListPageLazy";
+export { StoreListPageLazy as StoreListPage } from './StoreListPageLazy'

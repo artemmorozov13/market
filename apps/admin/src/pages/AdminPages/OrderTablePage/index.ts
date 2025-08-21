@@ -1,1 +1,1 @@
-export { OrderTablePageLazy as OrderTablePage } from "./ui/OrderTablePage/OrderTablePageLazy";
+export { OrderTablePageLazy as OrderTablePage } from './ui/OrderTablePage/OrderTablePageLazy'

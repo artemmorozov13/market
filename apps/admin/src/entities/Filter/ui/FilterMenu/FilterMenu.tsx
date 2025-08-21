@@ -1,14 +1,18 @@
-import {  FC, useState } from 'react'
+import { FC, useState } from 'react'
 import FilterAltIcon from '@mui/icons-material/FilterAlt'
 import { Button, IconButton } from '@mui/material'
-import { FilterItemType, FilterSelectOptionType, SelecedFiltersDataType } from '../../types/filterMenuTypes'
+import {
+  FilterItemType,
+  FilterSelectOptionType,
+  SelecedFiltersDataType,
+} from '../../types/filterMenuTypes'
 import { FilterListModal } from '../FilterListModal/FilterListModal'
 
 import styles from './FilterMenu.module.scss'
 
 interface NewsFilterMenuProps {
   filters: FilterItemType[]
-  onSubmitFilter: (selectedFilterList: SelecedFiltersDataType) => void 
+  onSubmitFilter: (selectedFilterList: SelecedFiltersDataType) => void
 }
 
 export const FilterMenu: FC<NewsFilterMenuProps> = (props) => {
@@ -23,7 +27,7 @@ export const FilterMenu: FC<NewsFilterMenuProps> = (props) => {
 
   const handleChangeFilter = (filters: SelecedFiltersDataType) => {
     const filterValuesArray = Object.values(filters)
-      .filter(filterValue => {
+      .filter((filterValue) => {
         if (Array.isArray(filterValue)) {
           return true
         }
@@ -35,36 +39,27 @@ export const FilterMenu: FC<NewsFilterMenuProps> = (props) => {
   }
 
   return (
-      <>
-         <FilterListModal
-          isOpen={isOpenSortMenu}
-          onClose={togleSortMenu}
-          onFilterChange={handleChangeFilter}
-          filters={filters}
-        />
-        <div className={styles.root}>
-          <div className={styles.filters}>
-            <div className={styles.filtersList}>
-              {selectedFilters.map((item, index) => (
-                <Button
-                  key={index}
-                  className={styles.filterItem}
-                  variant="outlined"
-                  color="info"
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </div>
-            <IconButton
-              color="inherit"
-              className={styles.filterButton}
-              onClick={togleSortMenu}
-            >
-              <FilterAltIcon />
-            </IconButton>
+    <>
+      <FilterListModal
+        isOpen={isOpenSortMenu}
+        onClose={togleSortMenu}
+        onFilterChange={handleChangeFilter}
+        filters={filters}
+      />
+      <div className={styles.root}>
+        <div className={styles.filters}>
+          <div className={styles.filtersList}>
+            {selectedFilters.map((item, index) => (
+              <Button key={index} className={styles.filterItem} variant="outlined" color="info">
+                {item.label}
+              </Button>
+            ))}
           </div>
+          <IconButton color="inherit" className={styles.filterButton} onClick={togleSortMenu}>
+            <FilterAltIcon />
+          </IconButton>
         </div>
-      </>
+      </div>
+    </>
   )
 }

@@ -1,5 +1,5 @@
-import { FC, useEffect, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { FC, useEffect, useState } from 'react'
+import { useForm, SubmitHandler } from 'react-hook-form'
 import {
   Box,
   Button,
@@ -8,28 +8,33 @@ import {
   Grid,
   Paper,
   Divider,
-  CircularProgress
-} from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
-import styles from './PickPointPage.module.scss';
-import { EditPickupPointModal } from '../EditPickupPointModal/EditPickupPointModal';
-import { PickupPoint, PickupPointFormData } from '../../types/pickupPointPageType';
-import { WeekdayEnum } from '@core/enums/weekday.enum';
-import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal';
-import { useCreatePickupPoint, useDeletePickupPoint, usePickupPoints, useUpdatePickupPoint } from '@entities/PickupPoint';
+  CircularProgress,
+} from '@mui/material'
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { ShopOwnerLayout } from '@widgets/ShopOwnerLayout'
+import styles from './PickPointPage.module.scss'
+import { EditPickupPointModal } from '../EditPickupPointModal/EditPickupPointModal'
+import { PickupPoint, PickupPointFormData } from '../../types/pickupPointPageType'
+import { WeekdayEnum } from '@core/enums/weekday.enum'
+import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal'
+import {
+  useCreatePickupPoint,
+  useDeletePickupPoint,
+  usePickupPoints,
+  useUpdatePickupPoint,
+} from '@entities/PickupPoint'
 
 const PickPointPage: FC = () => {
-  const { pickupPoints, isLoading, error } = usePickupPoints();
-  const createMutation = useCreatePickupPoint();
-  const updateMutation = useUpdatePickupPoint();
-  const deleteMutation = useDeletePickupPoint();
-  
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPoint, setEditingPoint] = useState<PickupPoint | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const { pickupPoints, isLoading, error } = usePickupPoints()
+  const createMutation = useCreatePickupPoint()
+  const updateMutation = useUpdatePickupPoint()
+  const deleteMutation = useDeletePickupPoint()
 
-  const { control, handleSubmit, reset, setValue } = useForm<PickupPointFormData>();
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingPoint, setEditingPoint] = useState<PickupPoint | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+
+  const { control, handleSubmit, reset, setValue } = useForm<PickupPointFormData>()
 
   useEffect(() => {
     if (editingPoint) {
@@ -41,8 +46,8 @@ const PickPointPage: FC = () => {
         fias_id: editingPoint.fias_id || '',
         geo_lat: editingPoint.geo_lat || '',
         geo_lon: editingPoint.geo_lon || '',
-        workingHours: editingPoint.workingHours || []
-      });
+        workingHours: editingPoint.workingHours || [],
+      })
     } else {
       reset({
         name: '',
@@ -51,10 +56,10 @@ const PickPointPage: FC = () => {
         fias_id: '',
         geo_lat: '',
         geo_lon: '',
-        workingHours: []
-      });
+        workingHours: [],
+      })
     }
-  }, [editingPoint, reset]);
+  }, [editingPoint, reset])
 
   const getRussianWeekdayName = (day: WeekdayEnum) => {
     const weekdayTranslations: Record<WeekdayEnum, string> = {
@@ -64,41 +69,41 @@ const PickPointPage: FC = () => {
       [WeekdayEnum.THURSDAY]: 'Четверг',
       [WeekdayEnum.FRIDAY]: 'Пятница',
       [WeekdayEnum.SATURDAY]: 'Суббота',
-      [WeekdayEnum.SUNDAY]: 'Воскресенье'
-    };
-  
-    return weekdayTranslations[day] || day;
-  };
+      [WeekdayEnum.SUNDAY]: 'Воскресенье',
+    }
+
+    return weekdayTranslations[day] || day
+  }
 
   const getWeekdayName = (day: WeekdayEnum) => {
-    return getRussianWeekdayName(day);
-  };
+    return getRussianWeekdayName(day)
+  }
 
   const onSubmit: SubmitHandler<PickupPointFormData> = async (data) => {
     try {
       if (data.id) {
-        await updateMutation.mutateAsync(data);
+        await updateMutation.mutateAsync(data)
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(data)
       }
-      setIsDialogOpen(false);
-      setEditingPoint(null);
+      setIsDialogOpen(false)
+      setEditingPoint(null)
     } catch (error) {
-      console.error('Error saving pickup point:', error);
+      console.error('Error saving pickup point:', error)
     }
-  };
+  }
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteMutation.mutateAsync(id);
-      setDeleteConfirmId(null);
+      await deleteMutation.mutateAsync(id)
+      setDeleteConfirmId(null)
     } catch (error) {
-      console.error('Error deleting pickup point:', error);
+      console.error('Error deleting pickup point:', error)
     }
-  };
+  }
 
   if (error) {
-    return <div>Ошибка при загрузке пунктов выдачи</div>;
+    return <div>Ошибка при загрузке пунктов выдачи</div>
   }
 
   return (
@@ -111,9 +116,9 @@ const PickPointPage: FC = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => {
-              reset();
-              setEditingPoint(null);
-              setIsDialogOpen(true);
+              reset()
+              setEditingPoint(null)
+              setIsDialogOpen(true)
             }}
           >
             Добавить пункт выдачи
@@ -133,16 +138,13 @@ const PickPointPage: FC = () => {
                       <IconButton
                         size="small"
                         onClick={() => {
-                          setEditingPoint(point);
-                          setIsDialogOpen(true);
+                          setEditingPoint(point)
+                          setIsDialogOpen(true)
                         }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => setDeleteConfirmId(point.id)}
-                      >
+                      <IconButton size="small" onClick={() => setDeleteConfirmId(point.id)}>
                         <DeleteIcon fontSize="small" color="error" />
                       </IconButton>
                     </Box>
@@ -169,8 +171,8 @@ const PickPointPage: FC = () => {
         <EditPickupPointModal
           open={isDialogOpen}
           onClose={() => {
-            setIsDialogOpen(false);
-            setEditingPoint(null);
+            setIsDialogOpen(false)
+            setEditingPoint(null)
           }}
           onSubmit={handleSubmit(onSubmit)}
           control={control}
@@ -189,7 +191,7 @@ const PickPointPage: FC = () => {
         />
       </Box>
     </ShopOwnerLayout>
-  );
-};
+  )
+}
 
-export default PickPointPage;
+export default PickPointPage

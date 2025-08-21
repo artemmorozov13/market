@@ -1,1 +1,1 @@
-export { BasketPageLazy as BasketPage } from "./BasketPageLazy";
+export { BasketPageLazy as BasketPage } from './BasketPageLazy'

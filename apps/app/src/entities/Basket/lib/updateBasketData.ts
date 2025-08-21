@@ -1,10 +1,13 @@
-import { BasketBaseType } from "@core/types/basket-tipe";
-import { useQueryClient } from "@tanstack/react-query";
+import { BasketBaseType } from '@core/types/basket-tipe'
+import { useQueryClient } from '@tanstack/react-query'
 
-type BasketUpdateFn = (oldData: BasketBaseType[] | undefined) => BasketBaseType[];
+type BasketUpdateFn = (oldData: BasketBaseType[] | undefined) => BasketBaseType[]
 
-export const updateBasketData = (queryClient: ReturnType<typeof useQueryClient>, updater: BasketUpdateFn) => {
+export const updateBasketData = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  updater: BasketUpdateFn,
+) => {
   queryClient.setQueryData<BasketBaseType[]>(['basket'], (oldData) => {
-    return updater(oldData);
-  });
-};
+    return updater(oldData)
+  })
+}

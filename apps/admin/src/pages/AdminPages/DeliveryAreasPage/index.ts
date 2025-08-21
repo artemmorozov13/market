@@ -1,1 +1,1 @@
-export { DeliveryAreasPageLazy as DeliveryAreasPage } from "./ui/DeliveryAreasPage/DeliveryAreasPageLazy";
+export { DeliveryAreasPageLazy as DeliveryAreasPage } from './ui/DeliveryAreasPage/DeliveryAreasPageLazy'

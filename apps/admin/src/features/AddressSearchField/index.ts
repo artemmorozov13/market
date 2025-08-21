@@ -1,1 +1,1 @@
-export { useAddressSuggestions } from "./api/queryAdreess";
+export { useAddressSuggestions } from './api/queryAdreess'

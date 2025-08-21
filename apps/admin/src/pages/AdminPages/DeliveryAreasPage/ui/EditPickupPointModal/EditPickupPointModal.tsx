@@ -1,5 +1,5 @@
-import { FC, useState, useEffect, useMemo } from 'react';
-import { Control, Controller, UseFormSetValue, useFieldArray } from 'react-hook-form';
+import { FC, useState } from 'react'
+import { Control, Controller, UseFormSetValue, useFieldArray } from 'react-hook-form'
 import {
   Box,
   Button,
@@ -10,32 +10,33 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  MenuItem,
-  Select,
   FormControl,
-  InputLabel,
   CircularProgress,
   Divider,
-  Autocomplete
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import { DeliveryTimeFormData, DeliveryAreaFormData } from '../../types/types';
-import { dayOptions, timeOptions } from '../../consts/intervals';
-import { useAddressSuggestions } from '@features/AddressSearchField';
-import { AddressSearchField } from '@features/AddressSearchField/ui/AddressSearchField';
-import { DeliveryArea } from '@entities/DeliveryArea';
+  Autocomplete,
+} from '@mui/material'
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+} from '@mui/icons-material'
+import { DeliveryTimeFormData, DeliveryAreaFormData } from '../../types/types'
+import { dayOptions, timeOptions } from '../../consts/intervals'
+import { AddressSearchField } from '@features/AddressSearchField/ui/AddressSearchField'
+import { DeliveryArea } from '@entities/DeliveryArea'
 import styles from './EditPickupPointModal.module.scss'
 
 interface EditDeliveryAreaModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: () => void;
-  control: Control<DeliveryAreaFormData>;
-  setValue: UseFormSetValue<DeliveryAreaFormData>;
-  errors: any;
-  isSubmitting: boolean;
-  isEditing: boolean;
-  selectedPoint: DeliveryArea | null;
+  open: boolean
+  onClose: () => void
+  onSubmit: () => void
+  control: Control<DeliveryAreaFormData>
+  setValue: UseFormSetValue<DeliveryAreaFormData>
+  errors: any
+  isSubmitting: boolean
+  isEditing: boolean
+  selectedPoint: DeliveryArea | null
 }
 
 export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
@@ -52,64 +53,65 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'deliveryTimes',
-  });
+  })
 
   const groupByDay = () => {
-    const grouped: Record<string, DeliveryTimeFormData[]> = {};
-    
-    fields.forEach(field => {
-      const day = field.dayOfWeek.value;
-      if (!grouped[day]) {
-        grouped[day] = [];
-      }
-      grouped[day].push(field);
-    });
-    
-    return grouped;
-  };
+    const grouped: Record<string, DeliveryTimeFormData[]> = {}
 
-  const groupedTimes = groupByDay();
+    fields.forEach((field) => {
+      const day = field.dayOfWeek.value
+      if (!grouped[day]) {
+        grouped[day] = []
+      }
+      grouped[day].push(field)
+    })
+
+    return grouped
+  }
+
+  const groupedTimes = groupByDay()
 
   // Компонент для выбора временного интервала
   const TimeRangePicker = ({ day }: { day: string }) => {
-    const [startTime, setStartTime] = useState(timeOptions[9]);
-    const [endTime, setEndTime] = useState(timeOptions[11]);
-    const [error, setError] = useState('');
+    const [startTime, setStartTime] = useState(timeOptions[9])
+    const [endTime, setEndTime] = useState(timeOptions[11])
+    const [error, setError] = useState('')
 
-    const dayOption = dayOptions.find(d => d.value === day);
-    const existingIntervals = groupedTimes[day] || [];
+    const dayOption = dayOptions.find((d) => d.value === day)
+    const existingIntervals = groupedTimes[day] || []
 
     const handleAddInterval = () => {
       // Проверка на пересечение с существующими интервалами
-      const isOverlapping = existingIntervals.some(interval => {
+      const isOverlapping = existingIntervals.some((interval) => {
         return (
-          (startTime.value >= interval.startTime.value && startTime.value < interval.endTime.value) ||
+          (startTime.value >= interval.startTime.value &&
+            startTime.value < interval.endTime.value) ||
           (endTime.value > interval.startTime.value && endTime.value <= interval.endTime.value) ||
           (startTime.value <= interval.startTime.value && endTime.value >= interval.endTime.value)
-        );
-      });
+        )
+      })
 
       if (isOverlapping) {
-        setError('Этот интервал пересекается с существующим');
-        return;
+        setError('Этот интервал пересекается с существующим')
+        return
       }
 
       if (startTime.value >= endTime.value) {
-        setError('Время окончания должно быть позже времени начала');
-        return;
+        setError('Время окончания должно быть позже времени начала')
+        return
       }
 
       append({
         dayOfWeek: dayOption!,
         startTime,
-        endTime
-      });
+        endTime,
+      })
 
       // Сброс состояния
-      setStartTime(timeOptions[9]);
-      setEndTime(timeOptions[11]);
-      setError('');
-    };
+      setStartTime(timeOptions[9])
+      setEndTime(timeOptions[11])
+      setError('')
+    }
 
     return (
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
@@ -120,37 +122,33 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
             value={startTime}
             onChange={(_, newValue) => {
               if (newValue) {
-                setStartTime(newValue);
+                setStartTime(newValue)
                 // Автоматически устанавливаем конечное время (+2 часа)
-                const startIndex = timeOptions.findIndex(opt => opt.value === newValue.value);
-                const endIndex = Math.min(startIndex + 4, timeOptions.length - 1);
-                setEndTime(timeOptions[endIndex]);
+                const startIndex = timeOptions.findIndex((opt) => opt.value === newValue.value)
+                const endIndex = Math.min(startIndex + 4, timeOptions.length - 1)
+                setEndTime(timeOptions[endIndex])
               }
             }}
-            renderInput={(params) => (
-              <TextField {...params} label="Начало" fullWidth />
-            )}
+            renderInput={(params) => <TextField {...params} label="Начало" fullWidth />}
           />
         </FormControl>
-        
+
         <Typography>—</Typography>
-        
+
         <FormControl fullWidth>
           <Autocomplete
-            options={timeOptions.filter(opt => opt.value > startTime.value)}
+            options={timeOptions.filter((opt) => opt.value > startTime.value)}
             getOptionLabel={(option) => option.label}
             value={endTime}
             onChange={(_, newValue) => {
-              if (newValue) setEndTime(newValue);
+              if (newValue) setEndTime(newValue)
             }}
-            renderInput={(params) => (
-              <TextField {...params} label="Конец" fullWidth />
-            )}
+            renderInput={(params) => <TextField {...params} label="Конец" fullWidth />}
           />
         </FormControl>
-        
-        <Button 
-          variant="contained" 
+
+        <Button
+          variant="contained"
           onClick={handleAddInterval}
           startIcon={<AddIcon />}
           className={styles.addButton}
@@ -165,17 +163,19 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
           </Typography>
         )}
       </Box>
-    );
-  };
+    )
+  }
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{isEditing ? 'Редактировать зону доставки' : 'Добавить новую зону доставки'}</DialogTitle>
+      <DialogTitle>
+        {isEditing ? 'Редактировать зону доставки' : 'Добавить новую зону доставки'}
+      </DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="subtitle1">Основная информация</Typography>
-            
+
             <Controller
               name="name"
               control={control}
@@ -194,9 +194,9 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
             <Controller
               name="radius"
               control={control}
-              rules={{ 
+              rules={{
                 required: 'Радиус обязателен',
-                min: { value: 1, message: 'Радиус должен быть больше 0' }
+                min: { value: 1, message: 'Радиус должен быть больше 0' },
               }}
               render={({ field }) => (
                 <TextField
@@ -222,10 +222,10 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
                   error={errors.address}
                   onAddressSelect={(addressData) => {
                     if (addressData) {
-                      setValue('postal_code', addressData.postal_code);
-                      setValue('fias_id', addressData.fias_id);
-                      setValue('geo_lat', addressData.geo_lat);
-                      setValue('geo_lon', addressData.geo_lon);
+                      setValue('postal_code', addressData.postal_code)
+                      setValue('fias_id', addressData.fias_id)
+                      setValue('geo_lat', addressData.geo_lat)
+                      setValue('geo_lon', addressData.geo_lon)
                     }
                   }}
                 />
@@ -248,7 +248,7 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
                   />
                 )}
               />
-              
+
               <Controller
                 name="geo_lon"
                 control={control}
@@ -282,7 +282,7 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
                   />
                 )}
               />
-              
+
               <Controller
                 name="fias_id"
                 control={control}
@@ -303,28 +303,26 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
             <Divider sx={{ my: 2 }} />
 
             {/* Временные интервалы */}
-            <Typography variant="subtitle1">
-              График доставки по дням недели
-            </Typography>
+            <Typography variant="subtitle1">График доставки по дням недели</Typography>
 
-            {dayOptions.map(day => (
+            {dayOptions.map((day) => (
               <Box key={day.value} sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   {day.label}
                 </Typography>
-                
+
                 {(groupedTimes[day.value] || []).map((time, index) => (
-                  <Box 
+                  <Box
                     key={index}
-                    sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
                       p: 1,
                       border: '1px solid #e0e0e0',
                       borderRadius: 1,
                       mb: 1,
-                      backgroundColor: '#f9f9f9'
+                      backgroundColor: '#f9f9f9',
                     }}
                   >
                     <Typography>
@@ -333,11 +331,12 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
                     <IconButton
                       onClick={() => {
                         const fieldIndex = fields.findIndex(
-                          f => f.dayOfWeek.value === day.value && 
-                          f.startTime.value === time.startTime.value && 
-                          f.endTime.value === time.endTime.value
-                        );
-                        if (fieldIndex !== -1) remove(fieldIndex);
+                          (f) =>
+                            f.dayOfWeek.value === day.value &&
+                            f.startTime.value === time.startTime.value &&
+                            f.endTime.value === time.endTime.value,
+                        )
+                        if (fieldIndex !== -1) remove(fieldIndex)
                       }}
                       color="error"
                       size="small"
@@ -346,7 +345,7 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
                     </IconButton>
                   </Box>
                 ))}
-                
+
                 <TimeRangePicker day={day.value} />
               </Box>
             ))}
@@ -368,5 +367,5 @@ export const EditDeliveryAreaModal: FC<EditDeliveryAreaModalProps> = ({
         </DialogActions>
       </form>
     </Dialog>
-  );
-};
+  )
+}

@@ -1,6 +1,6 @@
 import { FC, useState } from 'react'
 import { IconButton, Portal } from '@mui/material'
-import SortIcon from '@mui/icons-material/Sort';
+import SortIcon from '@mui/icons-material/Sort'
 import { DirectionValueType, SortType } from '../types/sortTypes'
 
 import styles from './SortSelect.module.scss'
@@ -40,10 +40,10 @@ export const SortSelect: FC<SortSelectProps> = (props) => {
   }
 
   const handleChangeSortDirection = () => {
-    if (directionValue === "desk") {
-      onChangeDirectionValue("asc")
+    if (directionValue === 'desk') {
+      onChangeDirectionValue('asc')
     } else {
-      onChangeDirectionValue("desk")
+      onChangeDirectionValue('desk')
     }
   }
 
@@ -51,7 +51,11 @@ export const SortSelect: FC<SortSelectProps> = (props) => {
     <div className={clsx(styles.root, className)}>
       <div className={styles.header}>
         <IconButton
-          children={<SortIcon className={clsx(styles.icon, { [styles.rotated]: directionValue === "asc" })} />}
+          children={
+            <SortIcon
+              className={clsx(styles.icon, { [styles.rotated]: directionValue === 'asc' })}
+            />
+          }
           onClick={handleChangeSortDirection}
         />
         <button className={styles.button} onClick={handleSortOpen}>
@@ -59,13 +63,18 @@ export const SortSelect: FC<SortSelectProps> = (props) => {
         </button>
       </div>
       <Portal>
-        <div className={clsx(styles.wrapper, { [styles.modalOpen]: isOpen })} onClick={handleSortClose}>
+        <div
+          className={clsx(styles.wrapper, { [styles.modalOpen]: isOpen })}
+          onClick={handleSortClose}
+        >
           <div className={clsx(styles.modal, { [styles.modalOpen]: isOpen })}>
             <div className={styles.items}>
               {sortsList.map((sortItem) => (
                 <button
                   key={sortItem.value}
-                  className={clsx(styles.item, { [styles.itemActive]: option.value === option.value })}
+                  className={clsx(styles.item, {
+                    [styles.itemActive]: option.value === option.value,
+                  })}
                   onClick={() => handleChangeSort(sortItem)}
                 >
                   {sortItem.label}

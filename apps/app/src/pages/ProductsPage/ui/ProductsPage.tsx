@@ -1,47 +1,58 @@
-import { FC, useEffect } from "react";
-import { Box, Typography, Paper, Avatar, CircularProgress, Divider, Chip } from "@mui/material";
-import { useInView } from "react-intersection-observer";
-import { Layout } from "@/widgets/Layout";
-import { observer } from "mobx-react-lite";
-import { ProductCard } from "@/entities/Product";
-import { useBasket, usePushBasketItem, useRemoveBasketItem } from "@/entities/Basket";
-import { ManageAddressForm } from "@/features/ManageAddressForm";
-import { useStore } from "@/entities/Store";
-import { formatRubbles } from "@core/utils/formatRubbles";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import ScheduleIcon from "@mui/icons-material/Schedule";
-import { useParams } from "react-router-dom";
-import { useStoreProductsInfinite } from "@/entities/Product/api/fetchProductsByStoreId";
-import styles from "./ProductsPage.module.scss";
-import { ProductType } from "@core/types/product-item";
+import { FC, useEffect } from 'react'
+import { Box, Typography, Paper, Avatar, CircularProgress, Divider, Chip } from '@mui/material'
+import { useInView } from 'react-intersection-observer'
+import { Layout } from '@/widgets/Layout'
+import { observer } from 'mobx-react-lite'
+import { ProductCard } from '@/entities/Product'
+import { useBasket, usePushBasketItem, useRemoveBasketItem } from '@/entities/Basket'
+import { ManageAddressForm } from '@/features/ManageAddressForm'
+import { useStore } from '@/entities/Store'
+import { formatRubbles } from '@core/utils/formatRubbles'
+import LocalShippingIcon from '@mui/icons-material/LocalShipping'
+import ScheduleIcon from '@mui/icons-material/Schedule'
+import { useParams } from 'react-router-dom'
+import { useStoreProductsInfinite } from '@/entities/Product/api/fetchProductsByStoreId'
+import styles from './ProductsPage.module.scss'
+import { ProductType } from '@core/types/product-item'
 
-const LIMIT = 8;
+const LIMIT = 8
 
 const ProductsPage: FC = observer(() => {
-  const { storeId } = useParams<{ storeId: string }>();
-  const { ref, inView } = useInView({ threshold: 0.5 });
+  const { storeId } = useParams<{ storeId: string }>()
+  const { ref, inView } = useInView({ threshold: 0.5 })
 
-  const { store, isLoading: isStoreLoading, isError: isStoreError } = useStore(storeId);
-  const { basket: basketItems = [], isLoading: isBasketLoading, refetch: refetchBasket } = useBasket();
+  const { store, isLoading: isStoreLoading, isError: isStoreError } = useStore(storeId)
+  const {
+    basket: basketItems = [],
+    isLoading: isBasketLoading,
+    refetch: refetchBasket,
+  } = useBasket()
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: isProductsLoading, error: productsError } = useStoreProductsInfinite({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isProductsLoading,
+    error: productsError,
+  } = useStoreProductsInfinite({
     storeId: Number(storeId),
-    limit: LIMIT
-  });
+    limit: LIMIT,
+  })
 
-  const { incrementQuantity, isLoadingIncrement } = usePushBasketItem();
-  const { decrementQuantity, isLoadingDecrement } = useRemoveBasketItem();
+  const { incrementQuantity, isLoadingIncrement } = usePushBasketItem()
+  const { decrementQuantity, isLoadingDecrement } = useRemoveBasketItem()
 
-  const combinedProducts: ProductType[] = data?.pages.flatMap(page => page.data) ?? [];
+  const combinedProducts: ProductType[] = data?.pages.flatMap((page) => page.data) ?? []
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      fetchNextPage()
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const selectedProducts = basketItems.map(item => item.productId);
-  const isLoadingInitial = isStoreLoading || isBasketLoading || isProductsLoading;
+  const selectedProducts = basketItems.map((item) => item.productId)
+  const isLoadingInitial = isStoreLoading || isBasketLoading || isProductsLoading
 
   if (isLoadingInitial && !store) {
     return (
@@ -50,7 +61,7 @@ const ProductsPage: FC = observer(() => {
           <CircularProgress size={60} />
         </Box>
       </Layout>
-    );
+    )
   }
 
   if (!store && !isStoreLoading) {
@@ -62,7 +73,7 @@ const ProductsPage: FC = observer(() => {
           </Typography>
         </Box>
       </Layout>
-    );
+    )
   }
 
   if (isStoreError || productsError) {
@@ -74,7 +85,7 @@ const ProductsPage: FC = observer(() => {
           </Typography>
         </Box>
       </Layout>
-    );
+    )
   }
 
   return (
@@ -84,14 +95,22 @@ const ProductsPage: FC = observer(() => {
         {store && (
           <Paper elevation={0} className={styles.storeCard}>
             <Box className={styles.storeHeader}>
-              <Avatar src={store.imageUrl || undefined} className={styles.storeAvatar} alt={store.name}>
+              <Avatar
+                src={store.imageUrl || undefined}
+                className={styles.storeAvatar}
+                alt={store.name}
+              >
                 {store.name.charAt(0)}
               </Avatar>
               <Box>
                 <Typography variant="h4" component="h1" className={styles.storeName}>
                   {store.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" className={styles.storeDescription}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  className={styles.storeDescription}
+                >
                   {store.description}
                 </Typography>
               </Box>
@@ -104,7 +123,7 @@ const ProductsPage: FC = observer(() => {
                 <LocalShippingIcon color="primary" />
                 <Typography variant="body2">
                   {store.isDeliveryFree
-                    ? "Бесплатная доставка"
+                    ? 'Бесплатная доставка'
                     : `Доставка: ${formatRubbles(store.deliveryCost)}`}
                 </Typography>
                 {store.deliveryFreeFromLimit > 0 && (
@@ -137,7 +156,7 @@ const ProductsPage: FC = observer(() => {
             ) : (
               <>
                 <Box className={styles.grid}>
-                  {combinedProducts.map(product => (
+                  {combinedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -163,7 +182,7 @@ const ProductsPage: FC = observer(() => {
         )}
       </Box>
     </Layout>
-  );
-});
+  )
+})
 
-export default ProductsPage;
+export default ProductsPage

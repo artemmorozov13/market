@@ -1,1 +1,1 @@
-export { PickPointPageLazy as PickPointPage } from "./ui/PickPointPage/PickPointPageLazy";
+export { PickPointPageLazy as PickPointPage } from './ui/PickPointPage/PickPointPageLazy'

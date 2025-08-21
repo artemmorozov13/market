@@ -1,5 +1,5 @@
-import { OrderFormInputs } from "@/features/OrderForm/types/orderFormTypes";
-import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
+import { OrderFormInputs } from '@/features/OrderForm/types/orderFormTypes'
+import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum'
 
 export const adaptOrderFormToDto = (formData: OrderFormInputs) => {
   // Базовые поля для всех заказов
@@ -10,12 +10,12 @@ export const adaptOrderFormToDto = (formData: OrderFormInputs) => {
     deliveryMethod: formData.deliveryMethod,
     deliveryStrategy: formData.deliveryMethod,
     deliveryDate: formData.deliveryDate || new Date().toISOString(),
-  };
+  }
 
   // Для заказов с доставкой
   if (formData.deliveryMethod === DeliveryStrategyEnum.DeliveryToEntrance) {
     if (!formData.address || !formData.address.fullAddress) {
-      throw new Error('Для доставки необходимо указать полный адрес');
+      throw new Error('Для доставки необходимо указать полный адрес')
     }
 
     const deliveryDto = {
@@ -36,12 +36,12 @@ export const adaptOrderFormToDto = (formData: OrderFormInputs) => {
         entrance: formData.address.entrance || '',
         floor: formData.address.floor || '',
         apartment: formData.address.apartment || '',
-        comment: formData.address.comment || ''
+        comment: formData.address.comment || '',
       },
-      pickupPointId: undefined // Явно убираем поле для самовывоза
-    };
+      pickupPointId: undefined, // Явно убираем поле для самовывоза
+    }
 
-    return deliveryDto;
+    return deliveryDto
   }
 
   // Для заказов с самовывозом
@@ -56,8 +56,8 @@ export const adaptOrderFormToDto = (formData: OrderFormInputs) => {
     deliveryAreaId: undefined, // Явно убираем поля для доставки
     deliveryTimeId: undefined,
     addressId: undefined,
-    address: undefined
-  };
+    address: undefined,
+  }
 
-  return pickupDto;
-};
+  return pickupDto
+}

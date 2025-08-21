@@ -1,36 +1,35 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { API } from "@shared/api/instance";
-import { ProductType } from "@core/types/product-item";
-import { toast } from "react-toastify";
-import { AxiosResponse } from "axios";
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { API } from '@shared/api/instance'
+import { ProductType } from '@core/types/product-item'
+import { toast } from 'react-toastify'
 
 const editProductFn = async (data: ProductType) => {
   const body = {
     ...data,
-    image: (data.image as any).url
+    image: (data.image as any).url,
   }
-  const response = await API.patch(`/product/${data.id}`, body);
-  return response.data;
-};
+  const response = await API.patch(`/product/${data.id}`, body)
+  return response.data
+}
 
 export const useEditProduct = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: editProductFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['products'] 
-      });
-      toast('Продукт успешно обновлен', { type: 'success' });
+      queryClient.invalidateQueries({
+        queryKey: ['products'],
+      })
+      toast('Продукт успешно обновлен', { type: 'success' })
     },
     onError: (error) => {
-      toast((error as any).response.data.message, { type: 'error' });
-    }
-  });
+      toast((error as any).response.data.message, { type: 'error' })
+    },
+  })
 
   return {
     ...mutation,
-    updateProduct: mutation.mutateAsync
+    updateProduct: mutation.mutateAsync,
   }
-};
+}

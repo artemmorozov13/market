@@ -1,7 +1,7 @@
 .root {
   margin: 24px;
   position: relative;
-  
+
   &.canceled {
     opacity: 0.8;
   }
@@ -21,7 +21,7 @@
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 12px;
-  
+
   @media (max-width: 600px) {
     flex-direction: column;
     align-items: flex-start;
@@ -40,7 +40,7 @@
   padding: 8px;
   border-radius: 8px;
   transition: background-color 0.2s ease;
-  
+
   &:hover {
     background-color: rgba(0, 0, 0, 0.04);
   }
@@ -63,7 +63,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 4px 0;
-    
+
     &:not(:last-child) {
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }

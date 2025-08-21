@@ -1,5 +1,5 @@
-import { FC, useEffect, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { FC, useEffect, useState } from 'react'
+import { useForm, SubmitHandler } from 'react-hook-form'
 import {
   Box,
   Button,
@@ -8,49 +8,59 @@ import {
   Grid,
   Paper,
   Divider,
-  CircularProgress
-} from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { ShopOwnerLayout } from "@widgets/ShopOwnerLayout";
-import styles from './DeliveryAreasPage.module.scss';
-import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal';
-import { dayOptions } from '../../consts/intervals';
-import { DeliveryArea, TimeOption, useCreateDeliveryArea, useDeleteDeliveryArea, useDeliveryAreas, useUpdateDeliveryArea } from '@entities/DeliveryArea';
-import { DeliveryAreaFormData } from '../../types/types';
-import { EditDeliveryAreaModal } from '../EditPickupPointModal/EditPickupPointModal';
+  CircularProgress,
+} from '@mui/material'
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { ShopOwnerLayout } from '@widgets/ShopOwnerLayout'
+import styles from './DeliveryAreasPage.module.scss'
+import { DeleteConfirmationModal } from '../DeleteConfirmationModal/DeleteConfirmationModal'
+import { dayOptions } from '../../consts/intervals'
+import {
+  DeliveryArea,
+  TimeOption,
+  useCreateDeliveryArea,
+  useDeleteDeliveryArea,
+  useDeliveryAreas,
+  useUpdateDeliveryArea,
+} from '@entities/DeliveryArea'
+import { DeliveryAreaFormData } from '../../types/types'
+import { EditDeliveryAreaModal } from '../EditPickupPointModal/EditPickupPointModal'
 
 const defaultTimeOptionStart: TimeOption = {
   value: '09:00',
-  label: '09:00'
-};
+  label: '09:00',
+}
 
 const defaultTimeOptionEnd: TimeOption = {
   value: '12:00',
-  label: '12:00'
-};
+  label: '12:00',
+}
 
 const DeliveryAreasPage: FC = () => {
-  const { deliveryAreas, isLoading, error } = useDeliveryAreas();
-  const createMutation = useCreateDeliveryArea();
-  const updateMutation = useUpdateDeliveryArea();
-  const deleteMutation = useDeleteDeliveryArea();
-  
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPoint, setEditingPoint] = useState<DeliveryArea | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const { deliveryAreas, isLoading, error } = useDeliveryAreas()
+  const createMutation = useCreateDeliveryArea()
+  const updateMutation = useUpdateDeliveryArea()
+  const deleteMutation = useDeleteDeliveryArea()
 
-  const { control, handleSubmit, reset, setValue } = useForm<DeliveryAreaFormData>();
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingPoint, setEditingPoint] = useState<DeliveryArea | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+
+  const { control, handleSubmit, reset, setValue } = useForm<DeliveryAreaFormData>()
 
   useEffect(() => {
     if (editingPoint) {
-      const initialDeliveryTimes = editingPoint.deliveryTimes.length > 0
-        ? [...editingPoint.deliveryTimes]
-        : [{
-            dayOfWeek: dayOptions[0],
-            startTime: defaultTimeOptionStart,
-            endTime: defaultTimeOptionEnd
-          }];
-  
+      const initialDeliveryTimes =
+        editingPoint.deliveryTimes.length > 0
+          ? [...editingPoint.deliveryTimes]
+          : [
+              {
+                dayOfWeek: dayOptions[0],
+                startTime: defaultTimeOptionStart,
+                endTime: defaultTimeOptionEnd,
+              },
+            ]
+
       reset({
         id: editingPoint.id,
         name: editingPoint.name,
@@ -60,8 +70,8 @@ const DeliveryAreasPage: FC = () => {
         postal_code: editingPoint.postal_code,
         geo_lat: editingPoint.geo_lat,
         geo_lon: editingPoint.geo_lon,
-        deliveryTimes: initialDeliveryTimes
-      });
+        deliveryTimes: initialDeliveryTimes,
+      })
     } else {
       reset({
         name: '',
@@ -71,39 +81,37 @@ const DeliveryAreasPage: FC = () => {
         postal_code: '',
         geo_lat: '',
         geo_lon: '',
-        deliveryTimes: [{
-          dayOfWeek: dayOptions[0],
-          startTime: defaultTimeOptionStart,
-          endTime: defaultTimeOptionEnd
-        }]
-      });
+        deliveryTimes: [
+          {
+            dayOfWeek: dayOptions[0],
+            startTime: defaultTimeOptionStart,
+            endTime: defaultTimeOptionEnd,
+          },
+        ],
+      })
     }
-  }, [editingPoint, reset]);
+  }, [editingPoint, reset])
 
   const onSubmit: SubmitHandler<DeliveryAreaFormData> = async (data) => {
     if (data.id) {
       await updateMutation.mutateAsync({
         id: data.id,
-        ...data
-      });
+        ...data,
+      })
     } else {
-      await createMutation.mutateAsync(data);
+      await createMutation.mutateAsync(data)
     }
-    setIsDialogOpen(false);
-    setEditingPoint(null);
-  };
+    setIsDialogOpen(false)
+    setEditingPoint(null)
+  }
 
   const handleDelete = async (id: number) => {
-    await deleteMutation.mutateAsync(id);
-    setDeleteConfirmId(null);
-  };
+    await deleteMutation.mutateAsync(id)
+    setDeleteConfirmId(null)
+  }
 
   if (error) {
-    return (
-      <ShopOwnerLayout>
-        Ошибка при загрузке зон доставки
-      </ShopOwnerLayout>
-    )
+    return <ShopOwnerLayout>Ошибка при загрузке зон доставки</ShopOwnerLayout>
   }
 
   return (
@@ -116,9 +124,9 @@ const DeliveryAreasPage: FC = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => {
-              reset();
-              setEditingPoint(null);
-              setIsDialogOpen(true);
+              reset()
+              setEditingPoint(null)
+              setIsDialogOpen(true)
             }}
           >
             Добавить зону доставки
@@ -138,16 +146,13 @@ const DeliveryAreasPage: FC = () => {
                       <IconButton
                         size="small"
                         onClick={() => {
-                          setEditingPoint(point);
-                          setIsDialogOpen(true);
+                          setEditingPoint(point)
+                          setIsDialogOpen(true)
                         }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => setDeleteConfirmId(point.id)}
-                      >
+                      <IconButton size="small" onClick={() => setDeleteConfirmId(point.id)}>
                         <DeleteIcon fontSize="small" color="error" />
                       </IconButton>
                     </Box>
@@ -156,18 +161,23 @@ const DeliveryAreasPage: FC = () => {
                   <Box>
                     <Typography variant="subtitle2">Время доставки:</Typography>
                     {Object.entries(
-                      point.deliveryTimes.reduce((acc, time) => {
-                        const day = time.dayOfWeek.label;
-                        if (!acc[day]) acc[day] = [];
-                        acc[day].push(time);
-                        return acc;
-                      }, {} as Record<string, typeof point.deliveryTimes>)
+                      point.deliveryTimes.reduce(
+                        (acc, time) => {
+                          const day = time.dayOfWeek.label
+                          if (!acc[day]) acc[day] = []
+                          acc[day].push(time)
+                          return acc
+                        },
+                        {} as Record<string, typeof point.deliveryTimes>,
+                      ),
                     ).map(([day, times]) => (
                       <Box key={day} sx={{ mb: 1 }}>
-                        <Typography variant="body2" fontWeight="bold">{day}:</Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          {day}:
+                        </Typography>
                         {times.map((time, idx) => (
                           <Typography key={idx} variant="body2" sx={{ ml: 1 }}>
-                            {time.startTime.label.slice(0,5)} - {time.endTime.label.slice(0,5)}
+                            {time.startTime.label.slice(0, 5)} - {time.endTime.label.slice(0, 5)}
                           </Typography>
                         ))}
                       </Box>
@@ -182,8 +192,8 @@ const DeliveryAreasPage: FC = () => {
         <EditDeliveryAreaModal
           open={isDialogOpen}
           onClose={() => {
-            setIsDialogOpen(false);
-            setEditingPoint(null);
+            setIsDialogOpen(false)
+            setEditingPoint(null)
           }}
           onSubmit={handleSubmit(onSubmit)}
           control={control}
@@ -202,7 +212,7 @@ const DeliveryAreasPage: FC = () => {
         />
       </Box>
     </ShopOwnerLayout>
-  );
-};
+  )
+}
 
-export default DeliveryAreasPage;
+export default DeliveryAreasPage

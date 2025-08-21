@@ -1,79 +1,88 @@
-import { FC, useState, useEffect } from "react";
-import { 
-  Container, 
-  Typography, 
-  Button, 
-  Box, 
-  CircularProgress, 
+import { FC, useState, useEffect } from 'react'
+import {
+  Container,
+  Typography,
+  Button,
+  Box,
+  CircularProgress,
   Divider,
   IconButton,
   Tabs,
   Tab,
-  Paper
-} from "@mui/material";
-import { Add, Remove, Delete } from "@mui/icons-material";
-import styles from "./BasketPage.module.scss";
-import { observer } from "mobx-react-lite";
-import { useBasket, usePushBasketItem, useRemoveBasketItem, useRemoveBasketProduct } from "@/entities/Basket";
-import { Layout } from "@/widgets/Layout";
-import { RoutePath } from "@/shared/routes/routeConfig";
-import { useNavigate } from "react-router";
-import { groupBasketData } from "./lib/groupBasketData";
-import { userStore } from "@/entities/User";
-import { LazyLoadImage } from "react-lazy-load-image-component";
-import { formatRubbles } from "@core/utils/formatRubbles";
+  Paper,
+} from '@mui/material'
+import { Add, Remove, Delete } from '@mui/icons-material'
+import styles from './BasketPage.module.scss'
+import { observer } from 'mobx-react-lite'
+import {
+  useBasket,
+  usePushBasketItem,
+  useRemoveBasketItem,
+  useRemoveBasketProduct,
+} from '@/entities/Basket'
+import { Layout } from '@/widgets/Layout'
+import { RoutePath } from '@/shared/routes/routeConfig'
+import { useNavigate } from 'react-router'
+import { groupBasketData } from './lib/groupBasketData'
+import { userStore } from '@/entities/User'
+import { LazyLoadImage } from 'react-lazy-load-image-component'
+import { formatRubbles } from '@core/utils/formatRubbles'
 
 const BasketPage: FC = observer(() => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const { basket, isLoading } = useBasket();
+  const { basket, isLoading } = useBasket()
   const { incrementQuantity } = usePushBasketItem()
-  const { decrementQuantity } = useRemoveBasketItem();
+  const { decrementQuantity } = useRemoveBasketItem()
   const { clearBasketProduct } = useRemoveBasketProduct()
 
   const { setSelectedStore } = userStore
-  const groupedByStore = groupBasketData(basket);
-  const storeGroups = groupedByStore ? Object.values(groupedByStore) : [];
-  const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
+  const groupedByStore = groupBasketData(basket)
+  const storeGroups = groupedByStore ? Object.values(groupedByStore) : []
+  const [selectedStoreIndex, setSelectedStoreIndex] = useState(0)
 
   useEffect(() => {
     if (storeGroups.length > 0 && selectedStoreIndex >= storeGroups.length) {
-      setSelectedStoreIndex(0);
+      setSelectedStoreIndex(0)
     }
-  }, [storeGroups.length, selectedStoreIndex]);
+  }, [storeGroups.length, selectedStoreIndex])
 
   // Функция для расчета цены со скидкой
   const getDiscountedPrice = (price: number, discount: number) => {
-    return price * (1 - discount / 100);
-  };
+    return price * (1 - discount / 100)
+  }
 
-  const selectedStoreGroup = storeGroups[selectedStoreIndex];
+  const selectedStoreGroup = storeGroups[selectedStoreIndex]
 
   // Пересчитываем показатели только для выбранного магазина
-  const selectedStoreItems = selectedStoreGroup?.items || [];
-  
-  const totalItemsForSelectedStore = selectedStoreItems.reduce((acc, item) => acc + item.quantity, 0);
-  
+  const selectedStoreItems = selectedStoreGroup?.items || []
+
+  const totalItemsForSelectedStore = selectedStoreItems.reduce(
+    (acc, item) => acc + item.quantity,
+    0,
+  )
+
   // Общая стоимость с учетом скидки для выбранного магазина
   const totalPriceForSelectedStore = selectedStoreItems.reduce((acc, item) => {
-    const price = Number(item.product.price);
-    const discount = Number(item.product.discount) || 0;
-    const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
-    return acc + (discountedPrice * item.quantity);
-  }, 0);
+    const price = Number(item.product.price)
+    const discount = Number(item.product.discount) || 0
+    const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price
+    return acc + discountedPrice * item.quantity
+  }, 0)
 
   // Общая стоимость без скидки для выбранного магазина
   const totalOriginalPriceForSelectedStore = selectedStoreItems.reduce((acc, item) => {
-    const price = Number(item.product.price);
-    return acc + (price * item.quantity);
-  }, 0);
+    const price = Number(item.product.price)
+    return acc + price * item.quantity
+  }, 0)
 
-  const totalDiscountForSelectedStore = totalOriginalPriceForSelectedStore - totalPriceForSelectedStore;
+  const totalDiscountForSelectedStore =
+    totalOriginalPriceForSelectedStore - totalPriceForSelectedStore
 
-  const deliveryCostForSelectedStore = 
+  const deliveryCostForSelectedStore =
     totalPriceForSelectedStore >= Number(selectedStoreGroup?.store.deliveryFreeFromLimit || 0)
-      ? 0 
-      : Number(selectedStoreGroup?.store.deliveryCost || 0);
+      ? 0
+      : Number(selectedStoreGroup?.store.deliveryCost || 0)
 
   if (isLoading) {
     return (
@@ -82,7 +91,7 @@ const BasketPage: FC = observer(() => {
           <CircularProgress />
         </Box>
       </Layout>
-    );
+    )
   }
 
   if (!basket?.length) {
@@ -91,12 +100,10 @@ const BasketPage: FC = observer(() => {
         <Container className={styles.emptyContainer}>
           <Box className={styles.emptyImage}>
             <svg width="120" height="120" viewBox="0 0 24 24" fill="#ddd">
-              <path d="M17 18a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-1.11.89-2 2-2M1 2h3.27l.94 2H20a1 1 0 0 1 1 1c0 .17-.05.34-.12.5l-3.58 6.47c-.34.61-1 1.03-1.8 1.03H8.1l-.9 1.63-.03.12a.25.25 0 0 0 .25.25H19v2H7a2 2 0 0 1-2-2c0-.35.09-.68.24-.96l1.36-2.45L3 4H1V2m6 16a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-1.11.89-2 2-2m9-7 2.78-5H6.14l2.36 5H16z"/>
+              <path d="M17 18a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-1.11.89-2 2-2M1 2h3.27l.94 2H20a1 1 0 0 1 1 1c0 .17-.05.34-.12.5l-3.58 6.47c-.34.61-1 1.03-1.8 1.03H8.1l-.9 1.63-.03.12a.25.25 0 0 0 .25.25H19v2H7a2 2 0 0 1-2-2c0-.35.09-.68.24-.96l1.36-2.45L3 4H1V2m6 16a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-1.11.89-2 2-2m9-7 2.78-5H6.14l2.36 5H16z" />
             </svg>
           </Box>
-          <Typography className={styles.emptyTitle}>
-            Ваша корзина пуста
-          </Typography>
+          <Typography className={styles.emptyTitle}>Ваша корзина пуста</Typography>
           <Typography className={styles.emptyText}>
             Добавьте товары из каталога, чтобы сделать заказ
           </Typography>
@@ -109,7 +116,7 @@ const BasketPage: FC = observer(() => {
           </Button>
         </Container>
       </Layout>
-    );
+    )
   }
 
   return (
@@ -162,25 +169,23 @@ const BasketPage: FC = observer(() => {
 
               <Box className={styles.itemsContainer}>
                 {selectedStoreGroup.items.map((item) => {
-                  const price = Number(item.product.price);
-                  const discount = Number(item.product.discount) || 0;
-                  const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
-                  const total = discountedPrice * item.quantity;
-                  const originalTotal = price * item.quantity;
+                  const price = Number(item.product.price)
+                  const discount = Number(item.product.discount) || 0
+                  const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price
+                  const total = discountedPrice * item.quantity
+                  const originalTotal = price * item.quantity
 
                   return (
                     <Box key={`${item.productId}-${item.id}`} className={styles.item}>
                       <Box className={styles.itemImage}>
-                        <LazyLoadImage 
-                          src={item.product.image} 
-                          alt={item.product.name} 
-                          className={styles.image} 
+                        <LazyLoadImage
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className={styles.image}
                         />
                       </Box>
                       <Box className={styles.itemInfo}>
-                        <Typography className={styles.itemName}>
-                          {item.product.name}
-                        </Typography>
+                        <Typography className={styles.itemName}>{item.product.name}</Typography>
                         <Typography className={styles.itemDescription}>
                           {item.product.description}
                         </Typography>
@@ -190,38 +195,32 @@ const BasketPage: FC = observer(() => {
                               <Typography className={styles.discountedPrice}>
                                 {formatRubbles(price)}
                               </Typography>
-                              <Typography className={styles.discountBadge}>
-                                -{discount}%
-                              </Typography>
+                              <Typography className={styles.discountBadge}>-{discount}%</Typography>
                             </>
                           ) : (
-                            <Typography className={styles.price}>
-                              {formatRubbles(price)}
-                            </Typography>
+                            <Typography className={styles.price}>{formatRubbles(price)}</Typography>
                           )}
                         </Box>
                       </Box>
                       <Box className={styles.quantityControls}>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           className={styles.quantityButton}
                           onClick={() => decrementQuantity(item.productId)}
                         >
                           <Remove fontSize="small" />
                         </IconButton>
                         <Typography>{item.quantity}</Typography>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           className={styles.quantityButton}
                           onClick={() => incrementQuantity(item.productId)}
                         >
                           <Add fontSize="small" />
                         </IconButton>
                       </Box>
-                      <Typography className={styles.itemTotal}>
-                        {formatRubbles(total)}
-                      </Typography>
-                      <IconButton 
+                      <Typography className={styles.itemTotal}>{formatRubbles(total)}</Typography>
+                      <IconButton
                         onClick={() => clearBasketProduct(item.productId)}
                         color="error"
                         size="small"
@@ -229,29 +228,37 @@ const BasketPage: FC = observer(() => {
                         <Delete fontSize="small" />
                       </IconButton>
                     </Box>
-                  );
+                  )
                 })}
               </Box>
 
               <Box className={styles.storeSummary}>
                 <Box className={styles.summaryRow}>
-                  <Typography>Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)})</Typography>
                   <Typography>
-                    {formatRubbles(selectedStoreGroup.items.reduce((acc, item) => {
-                      const price = Number(item.product.price);
-                      return acc + (price * item.quantity);
-                    }, 0))}
+                    Товары ({selectedStoreGroup.items.reduce((acc, item) => acc + item.quantity, 0)}
+                    )
+                  </Typography>
+                  <Typography>
+                    {formatRubbles(
+                      selectedStoreGroup.items.reduce((acc, item) => {
+                        const price = Number(item.product.price)
+                        return acc + price * item.quantity
+                      }, 0),
+                    )}
                   </Typography>
                 </Box>
-                {selectedStoreGroup.items.some(item => Number(item.product.discount) > 0) && (
+                {selectedStoreGroup.items.some((item) => Number(item.product.discount) > 0) && (
                   <Box className={styles.summaryRow}>
                     <Typography>Скидка</Typography>
                     <Typography className={styles.discount}>
-                      -{formatRubbles(selectedStoreGroup.items.reduce((acc, item) => {
-                        const price = Number(item.product.price);
-                        const discount = Number(item.product.discount) || 0;
-                        return acc + (price * item.quantity * (discount / 100));
-                      }, 0))}
+                      -
+                      {formatRubbles(
+                        selectedStoreGroup.items.reduce((acc, item) => {
+                          const price = Number(item.product.price)
+                          const discount = Number(item.product.discount) || 0
+                          return acc + price * item.quantity * (discount / 100)
+                        }, 0),
+                      )}
                     </Typography>
                   </Box>
                 )}
@@ -259,23 +266,25 @@ const BasketPage: FC = observer(() => {
                   <Typography>Доставка</Typography>
                   <Typography>
                     {selectedStoreGroup.items.reduce((acc, item) => {
-                      const price = Number(item.product.price);
-                      const discount = Number(item.product.discount) || 0;
-                      const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
-                      return acc + (discountedPrice * item.quantity);
+                      const price = Number(item.product.price)
+                      const discount = Number(item.product.discount) || 0
+                      const discountedPrice =
+                        discount > 0 ? getDiscountedPrice(price, discount) : price
+                      return acc + discountedPrice * item.quantity
                     }, 0) >= Number(selectedStoreGroup.store.deliveryFreeFromLimit)
-                      ? "Бесплатно"
+                      ? 'Бесплатно'
                       : formatRubbles(selectedStoreGroup.store.deliveryCost)}
                   </Typography>
                 </Box>
                 {selectedStoreGroup.items.reduce((acc, item) => {
-                  const price = Number(item.product.price);
-                  const discount = Number(item.product.discount) || 0;
-                  const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price;
-                  return acc + (discountedPrice * item.quantity);
+                  const price = Number(item.product.price)
+                  const discount = Number(item.product.discount) || 0
+                  const discountedPrice = discount > 0 ? getDiscountedPrice(price, discount) : price
+                  return acc + discountedPrice * item.quantity
                 }, 0) < Number(selectedStoreGroup.store.deliveryFreeFromLimit) && (
                   <Typography className={styles.storeDeliveryNote}>
-                    Бесплатная доставка от {formatRubbles(selectedStoreGroup.store.deliveryFreeFromLimit)}
+                    Бесплатная доставка от{' '}
+                    {formatRubbles(selectedStoreGroup.store.deliveryFreeFromLimit)}
                   </Typography>
                 )}
               </Box>
@@ -303,8 +312,8 @@ const BasketPage: FC = observer(() => {
               <Box className={styles.summaryRow}>
                 <Typography>Доставка</Typography>
                 <Typography>
-                  {deliveryCostForSelectedStore === 0 
-                    ? "Бесплатно" 
+                  {deliveryCostForSelectedStore === 0
+                    ? 'Бесплатно'
                     : formatRubbles(deliveryCostForSelectedStore)}
                 </Typography>
               </Box>
@@ -321,7 +330,9 @@ const BasketPage: FC = observer(() => {
               <Button
                 variant="contained"
                 className={styles.checkoutButtonMobile}
-                onClick={() => navigate(`${RoutePath.order}?storeId=${selectedStoreGroup.store.id}`)}
+                onClick={() =>
+                  navigate(`${RoutePath.order}?storeId=${selectedStoreGroup.store.id}`)
+                }
                 fullWidth
               >
                 Оформить заказ
@@ -331,7 +342,7 @@ const BasketPage: FC = observer(() => {
         )}
       </div>
     </Layout>
-  );
-});
+  )
+})
 
-export default BasketPage;
+export default BasketPage

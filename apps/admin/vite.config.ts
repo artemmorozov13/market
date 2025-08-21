@@ -1,16 +1,16 @@
-import path from "path"
-import{ defineConfig } from 'vite'
+import path from 'path'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   base: '/admin/',
   plugins: [react()],
   server: {
-    host: "0.0.0.0",
+    host: '0.0.0.0',
     port: 3001,
     watch: {
-      ignored: ['!../../shared/**']
-    }
+      ignored: ['!../../shared/**'],
+    },
   },
   resolve: {
     alias: {

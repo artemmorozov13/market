@@ -1,26 +1,32 @@
-import { FC } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { TextField, Typography, Modal, Button } from "@mui/material";
-import styles from "./AddNewAddressModal.module.css";
-import { putNewAddress } from "../api/putNewAddress";
-import { AddressFormSchema } from "../types/addressesTypes";
+import { FC } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { TextField, Typography, Modal, Button } from '@mui/material'
+import styles from './AddNewAddressModal.module.css'
+import { putNewAddress } from '../api/putNewAddress'
+import { AddressFormSchema } from '../types/addressesTypes'
 
 // Схема валидации
 const schema = yup.object().shape({
-  city: yup.string().required("Город обязателен").min(2, "Город должен содержать минимум 2 символа"),
-  street: yup.string().required("Улица обязательна").min(3, "Улица должна содержать минимум 3 символа"),
-  house: yup.string().required("Дом обязателен"),
-  entrance: yup.string().required("Подъезд обязателен"),
-  floor: yup.string().required("Этаж обязателен"),
-  apartment: yup.string().required("Квартира обязательна"),
-  intercom: yup.string().required("Домофон обязателен"),
-});
+  city: yup
+    .string()
+    .required('Город обязателен')
+    .min(2, 'Город должен содержать минимум 2 символа'),
+  street: yup
+    .string()
+    .required('Улица обязательна')
+    .min(3, 'Улица должна содержать минимум 3 символа'),
+  house: yup.string().required('Дом обязателен'),
+  entrance: yup.string().required('Подъезд обязателен'),
+  floor: yup.string().required('Этаж обязателен'),
+  apartment: yup.string().required('Квартира обязательна'),
+  intercom: yup.string().required('Домофон обязателен'),
+})
 
 interface AddNewAddressModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({ isOpen, onClose }) => {
@@ -31,22 +37,22 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({ isOpen, onClos
   } = useForm<AddressFormSchema>({
     resolver: yupResolver(schema),
     defaultValues: {
-      city: "",
-      street: "",
-      house: "",
-      entrance: "",
-      floor: "",
-      apartment: "",
-      intercom: "",
+      city: '',
+      street: '',
+      house: '',
+      entrance: '',
+      floor: '',
+      apartment: '',
+      intercom: '',
     },
-  });
+  })
 
   const onSubmit = (data: AddressFormSchema) => {
     const result = putNewAddress(data)
-    if (!!result) {
+    if (Boolean(result)) {
       onClose()
     }
-  };
+  }
 
   return (
     <Modal open={isOpen} onClose={onClose}>
@@ -181,5 +187,5 @@ export const AddNewAddressModal: FC<AddNewAddressModalProps> = ({ isOpen, onClos
         </div>
       </div>
     </Modal>
-  );
-};
+  )
+}

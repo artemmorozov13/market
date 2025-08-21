@@ -1,11 +1,11 @@
-import { ProductStatusEnum } from "@core/enums/product-status-enum";
-import { StoreUserBaseType } from "@core/types/store-user";
-import { useChangeProductStatus } from "@entities/OfferedProduct";
-import { SupplierCard } from "@entities/Supplier";
-import { FC } from "react";
+import { ProductStatusEnum } from '@core/enums/product-status-enum'
+import { StoreUserBaseType } from '@core/types/store-user'
+import { useChangeProductStatus } from '@entities/OfferedProduct'
+import { SupplierCard } from '@entities/Supplier'
+import { FC } from 'react'
 
 interface SuppliersListProps {
-  suppliers?: StoreUserBaseType[];
+  suppliers?: StoreUserBaseType[]
 }
 
 export const SuppliersList: FC<SuppliersListProps> = ({ suppliers }) => {
@@ -28,5 +28,5 @@ export const SuppliersList: FC<SuppliersListProps> = ({ suppliers }) => {
         />
       ))}
     </div>
-  );
-};
+  )
+}

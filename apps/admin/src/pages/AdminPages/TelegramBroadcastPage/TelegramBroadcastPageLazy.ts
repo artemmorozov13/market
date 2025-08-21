@@ -1,3 +1,3 @@
-import { lazy } from "react";
+import { lazy } from 'react'
 
-export const TelegramBroadcastPageLazy = lazy(() => import("./TelegramBroadcastPage"))
+export const TelegramBroadcastPageLazy = lazy(() => import('./TelegramBroadcastPage'))

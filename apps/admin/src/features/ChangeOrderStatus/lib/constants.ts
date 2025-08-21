@@ -1,12 +1,12 @@
-import { OrderStatusEnum } from "@core/enums/order-status-enum";
+import { OrderStatusEnum } from '@core/enums/order-status-enum'
 
 export const STATUS_OPTIONS = [
   {
     value: OrderStatusEnum.Finished,
-    label: "Оплачен",
+    label: 'Оплачен',
   },
   {
     value: OrderStatusEnum.CancelByAdmin,
-    label: "Отменен администратором",
+    label: 'Отменен администратором',
   },
-] as const;
+] as const

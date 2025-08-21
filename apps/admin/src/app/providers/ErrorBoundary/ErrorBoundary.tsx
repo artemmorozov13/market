@@ -1,35 +1,35 @@
-import React, { Component, ReactNode } from "react";
-import { Typography, Button } from "@mui/material";
-import styles from "./ErrorBoundary.module.scss"; // Подключаем стили
+import React, { Component, ReactNode } from 'react'
+import { Typography, Button } from '@mui/material'
+import styles from './ErrorBoundary.module.scss' // Подключаем стили
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
+  hasError: boolean
+  error?: Error
+  errorInfo?: React.ErrorInfo
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
+    super(props)
+    this.state = { hasError: false }
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
-    this.setState({ error, errorInfo });
+    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    this.setState({ error, errorInfo })
   }
 
   render() {
-    const { hasError, error } = this.state;
-    const { children } = this.props;
+    const { hasError, error } = this.state
+    const { children } = this.props
 
     if (hasError) {
       return (
@@ -38,7 +38,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             Что-то пошло не так 😔
           </Typography>
           <Typography variant="body1" className={styles.description}>
-            {error?.message || "Произошла непредвиденная ошибка."}
+            {error?.message || 'Произошла непредвиденная ошибка.'}
           </Typography>
           <Button
             variant="contained"
@@ -49,11 +49,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             Перезагрузить страницу
           </Button>
         </div>
-      );
+      )
     }
 
-    return children;
+    return children
   }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary

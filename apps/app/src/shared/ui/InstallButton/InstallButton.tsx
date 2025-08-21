@@ -1,63 +1,53 @@
-import { useState, useEffect, FC } from 'react';
-import { 
-  Button,
-  Paper,
-  Typography,
-  IconButton,
-  Modal
-} from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
-import styles from "./InstallButton.module.scss";
+import { useState, useEffect, FC } from 'react'
+import { Button, Paper, Typography, IconButton, Modal } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
+import styles from './InstallButton.module.scss'
 
 export const InstallButton: FC = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [isInstallable, setIsInstallable] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setIsInstallable(true);
-      setIsOpen(true);
-    };
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setIsInstallable(true)
+      setIsOpen(true)
+    }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    }
+  }, [])
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response: ${outcome}`);
-    setDeferredPrompt(null);
-    setIsInstallable(false);
-    setIsOpen(false);
-  };
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    console.log(`User response: ${outcome}`)
+    setDeferredPrompt(null)
+    setIsInstallable(false)
+    setIsOpen(false)
+  }
 
   const handleClose = () => {
-    setIsOpen(false);
-  };
+    setIsOpen(false)
+  }
 
-  if (!isInstallable) return null;
+  if (!isInstallable) return null
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      className={styles.modal}
-    >
+    <Modal open={isOpen} onClose={handleClose} className={styles.modal}>
       <Paper className={styles.paper}>
         <div className={styles.header}>
           <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </div>
-        
+
         <div className={styles.content}>
           <Typography variant="h6" gutterBottom>
             Установить приложение
@@ -66,24 +56,16 @@ export const InstallButton: FC = () => {
             Для более удобного использования установите наше приложение
           </Typography>
         </div>
-        
+
         <div className={styles.actions}>
-          <Button 
-            variant="outlined" 
-            onClick={handleClose}
-            fullWidth
-          >
+          <Button variant="outlined" onClick={handleClose} fullWidth>
             Позже
           </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleInstallClick}
-            fullWidth
-          >
+          <Button variant="contained" onClick={handleInstallClick} fullWidth>
             Установить
           </Button>
         </div>
       </Paper>
     </Modal>
-  );
-};
+  )
+}

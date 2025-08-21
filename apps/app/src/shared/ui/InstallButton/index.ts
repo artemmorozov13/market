@@ -1,1 +1,1 @@
-export { InstallButton } from "./InstallButton";
+export { InstallButton } from './InstallButton'

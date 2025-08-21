@@ -1,10 +1,10 @@
-export { useDeliveryAreas } from "./api/useDeliveryArea";
-export { useCreateDeliveryArea } from "./api/useDeliveryArea";
-export { useUpdateDeliveryArea } from "./api/useDeliveryArea";
-export { useDeleteDeliveryArea } from "./api/useDeliveryArea";
+export { useDeliveryAreas } from './api/useDeliveryArea'
+export { useCreateDeliveryArea } from './api/useDeliveryArea'
+export { useUpdateDeliveryArea } from './api/useDeliveryArea'
+export { useDeleteDeliveryArea } from './api/useDeliveryArea'
 
-export type { DayOption } from "./types/pickupPointTypes";
-export type { TimeOption } from "./types/pickupPointTypes";
-export type { DeliveryArea } from "./types/pickupPointTypes";
-export type { DeliveryAreaForm } from "./types/pickupPointTypes";
-export type { DeliveryTimeForm } from "./types/pickupPointTypes";
+export type { DayOption } from './types/pickupPointTypes'
+export type { TimeOption } from './types/pickupPointTypes'
+export type { DeliveryArea } from './types/pickupPointTypes'
+export type { DeliveryAreaForm } from './types/pickupPointTypes'
+export type { DeliveryTimeForm } from './types/pickupPointTypes'

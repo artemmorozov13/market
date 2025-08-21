@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "baseUrl": "./src",
     "paths": {
       "@app/*": ["app/*"],
@@ -30,8 +26,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "../../../shared/**/*",
-    "src/**/*"
-  ]
+  "include": ["../../../shared/**/*", "src/**/*"]
 }

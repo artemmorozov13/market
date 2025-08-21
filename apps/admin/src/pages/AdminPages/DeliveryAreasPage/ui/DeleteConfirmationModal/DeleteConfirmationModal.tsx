@@ -1,18 +1,26 @@
-import { FC } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, CircularProgress } from '@mui/material';
+import { FC } from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  CircularProgress,
+} from '@mui/material'
 
 interface DeleteConfirmationModalProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  isDeleting: boolean;
+  open: boolean
+  onClose: () => void
+  onConfirm: () => void
+  isDeleting: boolean
 }
 
 export const DeleteConfirmationModal: FC<DeleteConfirmationModalProps> = ({
   open,
   onClose,
   onConfirm,
-  isDeleting
+  isDeleting,
 }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs">
@@ -33,5 +41,5 @@ export const DeleteConfirmationModal: FC<DeleteConfirmationModalProps> = ({
         </Button>
       </DialogActions>
     </Dialog>
-  );
-};
+  )
+}

@@ -1,3 +1,3 @@
-import { ProductType } from "@core/types/product-item";
+import { ProductType } from '@core/types/product-item'
 
-export interface ProductFormType extends ProductType {};
+export interface ProductFormType extends ProductType {}

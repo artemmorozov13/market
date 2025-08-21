@@ -1,1 +1,1 @@
-export { ChangeOrderStatusModal } from "./ui/ChangeOrderStatusModal";
+export { ChangeOrderStatusModal } from './ui/ChangeOrderStatusModal'

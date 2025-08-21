@@ -1,1 +1,1 @@
-export { ShopSettingsPageLazy as ShopSettingsPage } from "./ShopSettingsPageLazy";
+export { ShopSettingsPageLazy as ShopSettingsPage } from './ShopSettingsPageLazy'

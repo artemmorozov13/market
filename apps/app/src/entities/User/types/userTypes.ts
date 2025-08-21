@@ -1,4 +1,4 @@
-import { UserType } from "@core/types/user-type"
+import { UserType } from '@core/types/user-type'
 
 export interface AuthViaTelegramResponse {
   user: UserType

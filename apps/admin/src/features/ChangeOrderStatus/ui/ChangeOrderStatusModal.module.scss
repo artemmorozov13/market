@@ -21,14 +21,14 @@
 
   &Header {
     margin-bottom: 24px;
-    
+
     h6 {
       font-size: 1.5rem;
       font-weight: 600;
       color: #1a1a1a;
       margin: 0 0 8px 0;
     }
-    
+
     .selectedCount {
       font-size: 0.875rem;
       color: #666;
@@ -85,12 +85,12 @@
   &ReasonField {
     transition: all 0.3s ease;
     margin-top: 8px;
-    
+
     &.visible {
       opacity: 1;
       max-height: 200px;
     }
-    
+
     &.hidden {
       opacity: 0;
       max-height: 0;

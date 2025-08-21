@@ -1,15 +1,11 @@
-import { UnitOfMeasuresEnum } from '@core/enums/units-of-measures';
-import * as yup from 'yup';
+import { UnitOfMeasuresEnum } from '@core/enums/units-of-measures'
+import * as yup from 'yup'
 
-const unitOfMeasuresValues = Object.values(UnitOfMeasuresEnum);
+const unitOfMeasuresValues = Object.values(UnitOfMeasuresEnum)
 
 export const productSchema = yup.object().shape({
-  name: yup
-    .string()
-    .required('Название продукта обязательно'),
-  description: yup
-    .string()
-    .required('Описание продукта обязательно'),
+  name: yup.string().required('Название продукта обязательно'),
+  description: yup.string().required('Описание продукта обязательно'),
   price: yup
     .number()
     .required('Цена продукта обязательна')
@@ -21,6 +17,9 @@ export const productSchema = yup.object().shape({
     .max(100, 'Скидка не может быть больше 100'),
   unitOfMeasurement: yup
     .string()
-    .oneOf([...unitOfMeasuresValues], `Единица измерения должна быть ${unitOfMeasuresValues.join(',')}`)
+    .oneOf(
+      [...unitOfMeasuresValues],
+      `Единица измерения должна быть ${unitOfMeasuresValues.join(',')}`,
+    )
     .required('Единица измерения обязательна'),
-});
+})

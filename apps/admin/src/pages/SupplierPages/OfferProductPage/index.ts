@@ -1,1 +1,1 @@
-export { OfferProductPageLazy as OfferProductPage } from "./OfferProductPageLazy";
+export { OfferProductPageLazy as OfferProductPage } from './OfferProductPageLazy'

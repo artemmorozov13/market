@@ -1,4 +1,4 @@
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form'
 import {
   TextField,
   Typography,
@@ -6,12 +6,12 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Box
-} from '@mui/material';
-import { Uploader } from '@entities/Uploader/ui/Uploader';
-import styles from './GeneralForm.module.scss';
-import { FC } from 'react';
-import { StoreEditFormType } from '../../../types/storeEditTypes';
+  Box,
+} from '@mui/material'
+import { Uploader } from '@entities/Uploader/ui/Uploader'
+import styles from './GeneralForm.module.scss'
+import { FC } from 'react'
+import { StoreEditFormType } from '../../../types/storeEditTypes'
 
 const TIMEZONES = [
   'Europe/Moscow',
@@ -19,11 +19,14 @@ const TIMEZONES = [
   'Europe/Berlin',
   'America/New_York',
   'Asia/Tokyo',
-  'Asia/Shanghai'
-];
+  'Asia/Shanghai',
+]
 
 export const GeneralForm: FC = () => {
-  const { control, formState: { errors } } = useFormContext<StoreEditFormType>();
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<StoreEditFormType>()
 
   return (
     <section className={styles.section}>
@@ -36,7 +39,7 @@ export const GeneralForm: FC = () => {
           Изображение магазина
         </Typography>
         <Controller
-          name='imageUrl'
+          name="imageUrl"
           control={control}
           render={({ field: { value, onChange } }) => (
             <Uploader value={value} onChange={onChange} />
@@ -98,5 +101,5 @@ export const GeneralForm: FC = () => {
         )}
       />
     </section>
-  );
-};
+  )
+}

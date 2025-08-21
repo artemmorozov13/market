@@ -1,2 +1,2 @@
-import StartupScreen from "./StartupScreen";
+import StartupScreen from './StartupScreen'
 export { StartupScreen }

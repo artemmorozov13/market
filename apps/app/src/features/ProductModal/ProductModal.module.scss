@@ -1,119 +1,119 @@
 .modalPaper {
-    border-radius: 12px !important;
-    max-width: 800px;
-  }
-  
-  .modalTitle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .closeButton {
-    color: #666;
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
-    }
-  }
-
-  .basketToolsWrapper {
-    padding: 20px;
-  }
-  
-  .modalContent {
-    padding: 0 !important;
-  }
-  
-  .productContainer {
-    display: flex;
-    flex-direction: row;
-    @media (max-width: 600px) {
-      flex-direction: column;
-    }
-  }
-  
-  .imageContainer {
-    flex: 1;
-    padding: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #fafafa;
-    @media (max-width: 600px) {
-      padding: 8px;
-    }
-  }
-  
-  .productImage {
-    max-width: 100%;
-    max-height: 400px;
-    object-fit: contain;
-    border-radius: 8px;
-    @media (max-width: 600px) {
-      max-height: 250px;
-    }
-  }
-  
-  .detailsContainer {
-    flex: 1;
-    padding: 24px;
-    @media (max-width: 600px) {
-      padding: 16px;
-    }
-  }
-  
-  .priceSection {
-    margin-bottom: 16px;
-  }
-  
-  .finalPrice {
-    font-weight: 700;
-    color: #333;
-  }
-  
-  .originalPriceContainer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-  }
-  
-  .originalPrice {
-    text-decoration: line-through;
-    color: #999;
-  }
-  
-  .discountChip {
-    font-weight: 600;
-  }
-  
-  .unitInfo {
-    color: #666;
-    margin-bottom: 16px;
-  }
-  
-  .divider {
-    margin: 16px 0;
-  }
-  
-  .descriptionSection {
-    margin-top: 16px;
-  }
-  
-  .descriptionList {
-    display: flex;
-    flex-direction: column;
-    margin: 8px 0;
+  border-radius: 12px !important;
+  max-width: 800px;
 }
-  
-  .modalActions {
-    padding: 16px 24px;
-    border-top: 1px solid #e0e0e0;
+
+.modalTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.closeButton {
+  color: #666;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
   }
-  
-  .closeButtonAction {
-    margin: 0;
+}
+
+.basketToolsWrapper {
+  padding: 20px;
+}
+
+.modalContent {
+  padding: 0 !important;
+}
+
+.productContainer {
+  display: flex;
+  flex-direction: row;
+  @media (max-width: 600px) {
+    flex-direction: column;
   }
+}
+
+.imageContainer {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fafafa;
+  @media (max-width: 600px) {
+    padding: 8px;
+  }
+}
+
+.productImage {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  @media (max-width: 600px) {
+    max-height: 250px;
+  }
+}
+
+.detailsContainer {
+  flex: 1;
+  padding: 24px;
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
+}
+
+.priceSection {
+  margin-bottom: 16px;
+}
+
+.finalPrice {
+  font-weight: 700;
+  color: #333;
+}
+
+.originalPriceContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.discountChip {
+  font-weight: 600;
+}
+
+.unitInfo {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.divider {
+  margin: 16px 0;
+}
+
+.descriptionSection {
+  margin-top: 16px;
+}
+
+.descriptionList {
+  display: flex;
+  flex-direction: column;
+  margin: 8px 0;
+}
+
+.modalActions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.closeButtonAction {
+  margin: 0;
+}

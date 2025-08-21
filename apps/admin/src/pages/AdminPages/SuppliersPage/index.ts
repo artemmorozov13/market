@@ -1,1 +1,1 @@
-export { SuppliersPageLazy as SuppliersPage } from "./ui/SuppliersPageLazy";
+export { SuppliersPageLazy as SuppliersPage } from './ui/SuppliersPageLazy'
