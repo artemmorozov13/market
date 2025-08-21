@@ -1,4 +1,4 @@
-import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { StoreUserEntity } from "./store-user.entity";
 import { UsersEntity } from "./users.entity";
 import { ProductEntity } from "./product.entity";
@@ -13,7 +13,6 @@ export class StoreEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Index()
     @Column()
     name: string;
 
