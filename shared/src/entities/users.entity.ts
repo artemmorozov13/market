@@ -18,13 +18,14 @@ import { OrderedProductsEntity } from "./ordered-products.entity";
 import { AddressesEntity } from "./addresses.entity";
 import { Roles } from "../enums/role-enum";
 import { StoreEntity } from "./store.entity";
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity({ name: "users" })
 export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: 'bigint', nullable: true })
+    @Column({ type: 'bigint', nullable: true, unique: true })
     telegram_id?: number;
 
     @Column({ nullable: true, default: null })
@@ -33,16 +34,16 @@ export class UsersEntity {
     @Column({ nullable: true, default: null })
     name: string | null
 
-    @Column({ nullable: true, default: null })
+    @Column({ nullable: true, unique: true })
     phone_number: string | null
 
     @Column({ default: false })
     is_phone_confirmed: boolean
 
-    @Column({ nullable: true, default: null })
+    @Column({ nullable: true, unique: true })
     email: string | null
 
-    @Column({ default: null, nullable: true })
+    @Column({ nullable: true, unique: true })
     login: string | null
 
     @Column({ nullable: true, default: null})
@@ -68,7 +69,7 @@ export class UsersEntity {
     @JoinColumn()
     selectedAddress: AddressesEntity;
 
-    @OneToOne(() => BasketEntity, (basketEntity) => basketEntity.user, { cascade: true })
+    @OneToOne(() => BasketEntity, (basketEntity) => basketEntity.user)
     basket: BasketEntity
 
     @OneToMany(() => OrderEntity, (order) => order.user)
@@ -97,7 +98,7 @@ export class UsersEntity {
     @BeforeInsert()
     generateDefaultLogin() {
         if (!this.login) {
-            this.login = `user-${this.id}`
+            this.login = `user-${this.id}`;
         }
     }
 }
