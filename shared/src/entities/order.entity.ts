@@ -27,7 +27,7 @@ import { DeliveryStrategyEnum } from "../enums/delivery-strategy.enum";
       @Column({ 
         type: "enum", 
         enum: OrderStatusEnum, 
-        default: OrderStatusEnum.WaitForPay
+        default: OrderStatusEnum.Created
       })
       status: OrderStatusEnum;
   

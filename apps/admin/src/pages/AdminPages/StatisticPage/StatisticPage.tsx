@@ -24,6 +24,12 @@ import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum'
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
 const statusLabels: Record<OrderStatusEnum, string> = {
+  [OrderStatusEnum.Created]: 'Создан',
+  [OrderStatusEnum.Confirmed]: 'Подтвержден',
+  [OrderStatusEnum.ReadyForDelivery]: 'Готов к отправке',
+  [OrderStatusEnum.TransferredToDelivery]: 'Передан курьеру',
+  [OrderStatusEnum.OnTheWay]: 'В пути',
+  [OrderStatusEnum.Assembly]: 'Готовится к отправке',
   [OrderStatusEnum.WaitForPay]: 'Ожидает оплаты',
   [OrderStatusEnum.Finished]: 'Завершен',
   [OrderStatusEnum.CanceledByUser]: 'Отменен клиентом',

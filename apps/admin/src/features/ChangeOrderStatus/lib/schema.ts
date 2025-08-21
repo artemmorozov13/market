@@ -4,7 +4,16 @@ import { OrderStatusEnum } from '@core/enums/order-status-enum'
 export const changeStatusSchema = yup.object({
   status: yup
     .mixed<OrderStatusEnum>()
-    .oneOf([OrderStatusEnum.Finished, OrderStatusEnum.CancelByAdmin])
+    .oneOf([
+      OrderStatusEnum.Finished,
+      OrderStatusEnum.CancelByAdmin,
+      OrderStatusEnum.WaitForPay,
+      OrderStatusEnum.Assembly,
+      OrderStatusEnum.Confirmed,
+      OrderStatusEnum.OnTheWay,
+      OrderStatusEnum.ReadyForDelivery,
+      OrderStatusEnum.TransferredToDelivery
+    ])
     .required('Выберите статус')
     .typeError('Необходимо выбрать статус'),
   cancelReason: yup

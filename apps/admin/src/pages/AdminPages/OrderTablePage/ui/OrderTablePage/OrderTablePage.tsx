@@ -42,6 +42,13 @@ type FormValues = {
   deliveryAreas: number[]
 }
 
+const disableToChangeStatuses = [
+  OrderStatusEnum.CancelByAdmin,
+  OrderStatusEnum.CanceledByUser,
+  OrderStatusEnum.Finished,
+  OrderStatusEnum.FinishedAndRated,
+]
+
 const OrderTablePage: FC = observer(() => {
   const [page, setPage] = useState(DEFAULT_PAGE)
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_PAGE_SIZE)
@@ -82,7 +89,7 @@ const OrderTablePage: FC = observer(() => {
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       const selectableOrders = tableOrders
-        .filter((order) => order.status === OrderStatusEnum.WaitForPay)
+        .filter((order) => disableToChangeStatuses.includes(order.status))
         .map((order) => order.id)
       setSelectedOrders(selectableOrders)
     } else {
@@ -118,7 +125,7 @@ const OrderTablePage: FC = observer(() => {
   }
 
   const numSelectableOrders = tableOrders.filter(
-    (order) => order.status === OrderStatusEnum.WaitForPay,
+    (order) => !disableToChangeStatuses.includes(order.status),
   ).length
 
   const numSelected = selectedOrders.length

@@ -27,7 +27,20 @@ interface RowProps {
   onSelect: (id: number, isSelected: boolean) => void
 }
 
+const disableToChangeStatuses = [
+  OrderStatusEnum.CancelByAdmin,
+  OrderStatusEnum.CanceledByUser,
+  OrderStatusEnum.Finished,
+  OrderStatusEnum.FinishedAndRated,
+]
+
 const statusLabels: Record<OrderStatusEnum, string> = {
+  [OrderStatusEnum.Created]: 'Создан',
+  [OrderStatusEnum.Confirmed]: 'Подтвержден',
+  [OrderStatusEnum.ReadyForDelivery]: 'Готов к отправке',
+  [OrderStatusEnum.TransferredToDelivery]: 'Передан курьеру',
+  [OrderStatusEnum.OnTheWay]: 'В пути',
+  [OrderStatusEnum.Assembly]: 'Готовится к отправке',
   [OrderStatusEnum.WaitForPay]: 'Ожидает оплаты',
   [OrderStatusEnum.Finished]: 'Завершен',
   [OrderStatusEnum.CanceledByUser]: 'Отменен клиентом',
@@ -35,7 +48,13 @@ const statusLabels: Record<OrderStatusEnum, string> = {
   [OrderStatusEnum.FinishedAndRated]: 'Завершен и оценен',
 }
 
-const statusColors: Record<OrderStatusEnum, 'warning' | 'success' | 'error' | 'info'> = {
+const statusColors: Record<OrderStatusEnum, 'warning' | 'success' | 'error' | 'info' | 'primary' | 'secondary'> = {
+  [OrderStatusEnum.Created]: 'info',
+  [OrderStatusEnum.Confirmed]: 'primary',
+  [OrderStatusEnum.ReadyForDelivery]: 'info',
+  [OrderStatusEnum.TransferredToDelivery]: 'primary',
+  [OrderStatusEnum.OnTheWay]: 'warning',
+  [OrderStatusEnum.Assembly]: 'info',
   [OrderStatusEnum.WaitForPay]: 'warning',
   [OrderStatusEnum.Finished]: 'success',
   [OrderStatusEnum.CanceledByUser]: 'error',
@@ -112,7 +131,7 @@ export const Row: FC<RowProps> = ({ order, isSelected, onSelect }) => {
           <Checkbox
             checked={isSelected}
             onChange={handleSelect}
-            disabled={order.status !== OrderStatusEnum.WaitForPay}
+            disabled={disableToChangeStatuses.includes(order.status)}
           />
         </TableCell>
         <TableCell>

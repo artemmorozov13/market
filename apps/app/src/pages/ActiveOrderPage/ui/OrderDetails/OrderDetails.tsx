@@ -105,7 +105,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
   const isCanceledByUser = order.status === OrderStatusEnum.CanceledByUser
   const isCanceledByAdmin = order.status === OrderStatusEnum.CancelByAdmin
-  const isActive = order.status === OrderStatusEnum.WaitForPay
+  const isActive = order.status === OrderStatusEnum.WaitForPay || order.status === OrderStatusEnum.Created
   const isDelivery = order.orderDeliveryStrategy === 'delivery_to_entrance'
 
   const renderStatusBanner = () => {

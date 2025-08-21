@@ -108,8 +108,7 @@ export class OrderService {
         'store',
       ],
       order: {
-        deliveryDate: "DESC",
-        createdAt: "DESC"
+        createdAt: "DESC",
       }
     });
   }
@@ -122,7 +121,7 @@ export class OrderService {
         user: {
           id: user.id
         },
-        status: In([OrderStatusEnum.WaitForPay])
+        status: In([OrderStatusEnum.Created, OrderStatusEnum.WaitForPay])
       },
       relations: ['user', 'ordered_products', 'store'] // Подгружаем связанные данные
     });
@@ -178,7 +177,17 @@ export class OrderService {
       throw new NotFoundException("Заказы не найдены");
     }
 
-    const allowedStatuses = [OrderStatusEnum.CancelByAdmin, OrderStatusEnum.Finished, OrderStatusEnum.WaitForPay];
+    const allowedStatuses = [
+      OrderStatusEnum.CancelByAdmin,
+      OrderStatusEnum.Finished,
+      OrderStatusEnum.Created,
+      OrderStatusEnum.WaitForPay,
+      OrderStatusEnum.Confirmed,
+      OrderStatusEnum.Assembly,
+      OrderStatusEnum.OnTheWay,
+      OrderStatusEnum.ReadyForDelivery,
+      OrderStatusEnum.TransferredToDelivery
+    ];
     if (!allowedStatuses.includes(status)) {
       throw new BadRequestException(`Допустимые статусы: ${allowedStatuses.join(', ')}`);
     }
@@ -230,7 +239,10 @@ export class OrderService {
         where: {
             user: { id: userJwt.id },
             store: { id: store.id },
-            status: OrderStatusEnum.WaitForPay
+            status: In([
+              OrderStatusEnum.Created,
+              OrderStatusEnum.WaitForPay
+            ])
         }
     });
 
@@ -244,7 +256,10 @@ export class OrderService {
             user: { id: userJwt.id },
             store: { id: store.id },
             deliveryDate: new Date(createOrderDto.deliveryDate),
-            status: OrderStatusEnum.WaitForPay
+            status: In([
+              OrderStatusEnum.Created,
+              OrderStatusEnum.WaitForPay
+            ])
         }
     });
 
@@ -353,7 +368,7 @@ export class OrderService {
         phoneNumber: createOrderDto.phone,
         comment: createOrderDto.comment,
         deliveryDate: deliveryStrategy.type === DeliveryStrategyEnum.DeliveryToEntrance ? new Date(createOrderDto.deliveryDate) : null,
-        status: OrderStatusEnum.WaitForPay,
+        status: OrderStatusEnum.Created,
         orderDeliveryStrategy: deliveryStrategy.type,
         totalAmount,
         deliveryArea,
@@ -524,7 +539,10 @@ export class OrderService {
   
   async exportExcelWithInnerTable(userJwt: AuthJwtPayload, deliveryAreaIds?: number[]): Promise<Uint8Array> {
     const whereOptions: FindOptionsWhere<OrderEntity> = { 
-        status: OrderStatusEnum.WaitForPay,
+        status: In[
+          OrderStatusEnum.Created,
+          OrderStatusEnum.WaitForPay
+        ],
         store: {
           id: userJwt.storeId
         }
@@ -548,7 +566,10 @@ export class OrderService {
 
   async exportToWideFormatExcel(userJwt: AuthJwtPayload, deliveryAreaIds?: number[]): Promise<Uint8Array> {
       const whereOptions: FindOptionsWhere<OrderEntity> = { 
-          status: OrderStatusEnum.WaitForPay,
+          status: In[
+            OrderStatusEnum.Created,
+            OrderStatusEnum.WaitForPay
+          ],
           store: {
             id: userJwt.storeId
           }

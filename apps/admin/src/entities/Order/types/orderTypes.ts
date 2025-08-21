@@ -14,6 +14,7 @@ export interface OrderedProductType {
 export interface OrderType {
   id: number
   status:
+    | OrderStatusEnum.Created
     | OrderStatusEnum.Finished
     | OrderStatusEnum.WaitForPay
     | OrderStatusEnum.CanceledByUser

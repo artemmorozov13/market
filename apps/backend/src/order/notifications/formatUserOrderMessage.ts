@@ -121,7 +121,7 @@ ${store.deliveryFreeFromLimit > 0 ? `🎯 <b>Бесплатная доставк
 
     // Final message template
     return `
-<b>🛍️ Заказ #${order.id} подтверждён!</b>
+<b>🛍️ Заказ #${order.id} создан!</b>
 
 ${deliveryDetails}
 

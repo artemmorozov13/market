@@ -3,12 +3,18 @@ import { OrderStatusEnum } from "@core/enums/order-status-enum";
 import { DeliveryStrategyEnum } from "@core/enums/delivery-strategy.enum";
 
 const textByStatus: Record<OrderStatusEnum, string> = {
-    waitForPay: "Создан",
-    finished: "Завершен",
-    canceled_by_user: 'Отменен',
-    cancel_by_admin: 'Отменен Администратором',
-    finished_and_rated: 'Заверешен и оценен'
-};
+  [OrderStatusEnum.Created]: 'Создан',
+  [OrderStatusEnum.Confirmed]: 'Подтвержден',
+  [OrderStatusEnum.ReadyForDelivery]: 'Готов к отправке',
+  [OrderStatusEnum.TransferredToDelivery]: 'Передан курьеру',
+  [OrderStatusEnum.OnTheWay]: 'В пути',
+  [OrderStatusEnum.Assembly]: 'Готовится к отправке',
+  [OrderStatusEnum.WaitForPay]: 'Ожидает оплаты',
+  [OrderStatusEnum.Finished]: 'Завершен',
+  [OrderStatusEnum.CanceledByUser]: 'Отменен клиентом',
+  [OrderStatusEnum.CancelByAdmin]: 'Отменен администратором',
+  [OrderStatusEnum.FinishedAndRated]: 'Завершен и оценен',
+}
 
 const formatPrice = (price: number) => 
     new Intl.NumberFormat('ru-RU', { 

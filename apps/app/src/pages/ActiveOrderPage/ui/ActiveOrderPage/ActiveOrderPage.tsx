@@ -72,7 +72,7 @@ const ActiveOrderPage: FC = () => {
       )
     }
 
-    const activeOrders = orders?.filter((order) => order.status === OrderStatusEnum.WaitForPay)
+    const activeOrders = orders?.filter((order) => order.status === OrderStatusEnum.WaitForPay || order.status === OrderStatusEnum.Created)
     const canceledByUserOrders = orders?.filter(
       (order) => order.status === OrderStatusEnum.CanceledByUser,
     )
