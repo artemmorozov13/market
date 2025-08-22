@@ -14,13 +14,13 @@ import { CancelUserOrderDto } from './dto/cancel-user-order-dto';
 import { cancelOrderByUserMessage } from './notifications/cancelOrderByUserMessage';
 import { OrderStatusEnum } from '@core/enums/order-status-enum';
 import { AdminUpdateOrderStatusDto } from './dto/admin-update-order-status.dto';
-import { getCanceledByAdminMessage } from './notifications/admin-order-status-change.message';
 import { UsersService } from '@app/users/users.service';
 import { ProductStatusEnum } from '@core/enums/product-status-enum';
 import { StoreService } from '@app/store/store.service';
 import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum';
 import { DeliveryArea, DeliveryStrategy, DeliveryTime, OrderedProductsEntity, OrderEntity, PickupPointEntity, ProductEntity, SelectedProductEntity, UsersEntity } from '@core/entities';
 import { sendStoreNotification } from './notifications/store-order-notification';
+import { getOrderStatusUpdateMessage } from './notifications/admin-order-status-change.message';
 
 @Injectable()
 export class OrderService {
@@ -188,6 +188,7 @@ export class OrderService {
       OrderStatusEnum.ReadyForDelivery,
       OrderStatusEnum.TransferredToDelivery
     ];
+    
     if (!allowedStatuses.includes(status)) {
       throw new BadRequestException(`Допустимые статусы: ${allowedStatuses.join(', ')}`);
     }
@@ -200,14 +201,13 @@ export class OrderService {
       }
     );
 
-    if (status === OrderStatusEnum.CancelByAdmin) {
-      const notifications = orders.map(order => ({
-        chatId: order.user.telegram_id.toString(),
-        message: getCanceledByAdminMessage(order, cancelReason)
-      }));
+    // Отправляем уведомление при любом изменении статуса
+    const notifications = orders.map(order => ({
+      chatId: order.user.telegram_id.toString(),
+      message: getOrderStatusUpdateMessage(order, status, cancelReason)
+    }));
 
-      return await this.telegramService.sendBatchMessages(notifications);
-    }
+    return await this.telegramService.sendBatchMessages(notifications);
   }
   
   async createOrder(createOrderDto: CreateOrderDto, userJwt: AuthJwtPayload) {

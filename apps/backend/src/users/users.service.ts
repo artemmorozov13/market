@@ -64,6 +64,7 @@ export class UsersService {
         'age',
         'is_phone_confirmed',
         'phone_number',
+        'selectedAddress',
         'role',
         'telegram_id',
         'telegram_username'
