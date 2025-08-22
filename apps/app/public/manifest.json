@@ -1,6 +1,6 @@
 {
-  "name": "Доставка фруктов",
-  "short_name": "Доставка фруктов",
+  "name": "ЖК Хорошевский",
+  "short_name": "ЖК Хорошевский",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
