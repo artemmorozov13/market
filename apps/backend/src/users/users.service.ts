@@ -56,19 +56,7 @@ export class UsersService {
     return await this.usersRepository.findOne({
       where: {
         telegram_id: telegramId
-      },
-      select: [
-        'id',
-        'email',
-        'name',
-        'age',
-        'is_phone_confirmed',
-        'phone_number',
-        'selectedAddress',
-        'role',
-        'telegram_id',
-        'telegram_username'
-      ]
+      }
     })
   }
 
