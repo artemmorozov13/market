@@ -56,7 +56,8 @@ export class UsersService {
     return await this.usersRepository.findOne({
       where: {
         telegram_id: telegramId
-      }
+      },
+      relations: ['selectedProducts', 'selectedAddress', 'store', 'addresses']
     })
   }
 
