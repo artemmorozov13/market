@@ -55,6 +55,20 @@ export const DeliveryStoreForm: FC = () => {
             />
           )}
         />
+
+        <Controller
+          name="minOrderBeforeDeliveryHours"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="Задержка между заказом и принятием в работу (в часах)"
+              type="number"
+              fullWidth
+              margin="normal"
+            />
+          )}
+        />
       </Box>
     </section>
   )
