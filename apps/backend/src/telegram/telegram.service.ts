@@ -188,6 +188,7 @@ export class TelegramService implements OnModuleDestroy {
   }
 
   async sendBatchMessages(messages: Array<{ chatId: string; message: string }>) {
+    console.log(messages)
     if (!messages?.length) {
       return {
         total: 0,

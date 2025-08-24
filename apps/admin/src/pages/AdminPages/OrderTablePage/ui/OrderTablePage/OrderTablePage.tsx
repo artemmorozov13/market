@@ -89,7 +89,7 @@ const OrderTablePage: FC = observer(() => {
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       const selectableOrders = tableOrders
-        .filter((order) => disableToChangeStatuses.includes(order.status))
+        .filter((order) => !disableToChangeStatuses.includes(order.status))
         .map((order) => order.id)
       setSelectedOrders(selectableOrders)
     } else {
@@ -130,6 +130,8 @@ const OrderTablePage: FC = observer(() => {
 
   const numSelected = selectedOrders.length
   const allSelected = numSelected > 0 && numSelected === numSelectableOrders
+
+  console.log(numSelected, numSelectableOrders)
 
   return (
     <ShopOwnerLayout>

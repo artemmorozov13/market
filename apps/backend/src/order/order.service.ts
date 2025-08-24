@@ -202,14 +202,16 @@ export class OrderService {
     );
 
     // Отправляем уведомление при любом изменении статуса
-    const notifications = orders.map(order => {
-      if (order?.user?.telegram_id) {
+    const notifications = orders
+      .filter(order => {
+        return !!order?.user?.telegram_id
+      })
+      .map(order => {
         return ({
           chatId: order.user.telegram_id.toString(),
           message: getOrderStatusUpdateMessage(order, status, cancelReason)
         })
-      }
-    });
+      });
 
     return await this.telegramService.sendBatchMessages(notifications);
   }
