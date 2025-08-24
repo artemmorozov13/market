@@ -9,7 +9,6 @@ import { OrderDetails } from '../OrderDetails/OrderDetails'
 import { EditOrderModal } from '../EditOrderModal/EditOrderModal'
 import styles from './ActiveOrderPage.module.scss'
 import { Roles } from '@core/enums/role-enum'
-import { DeliveryStrategyEnum } from '@core/enums/delivery-strategy.enum'
 
 const ActiveOrderPage: FC = () => {
   const { role } = userStore
@@ -45,59 +44,46 @@ const ActiveOrderPage: FC = () => {
       )
     }
 
-    const activeOrders = orders?.filter((order) => order.status === OrderStatusEnum.WaitForPay || order.status === OrderStatusEnum.Created)
-    const canceledByUserOrders = orders?.filter(
-      (order) => order.status === OrderStatusEnum.CanceledByUser,
-    )
-    const canceledByAdminOrders = orders?.filter(
-      (order) => order.status === OrderStatusEnum.CancelByAdmin,
-    )
+    if (!orders || orders.length === 0) {
+      return (
+        <div className={styles.empty}>
+          <h2>У вас нет активных заказов</h2>
+          <p>Вы можете оформить новый заказ в каталоге товаров</p>
+        </div>
+      )
+    }
 
     return (
       <div>
-        {activeOrders &&
-          activeOrders.length > 0 &&
-          activeOrders.map((order) => (
-            <Card key={order.id} className={styles.card}>
-              <OrderDetails order={order} />
-              <div className={styles.actions}>
-                <Button
-                  variant="contained"
-                  onClick={() => handleOpenEditModal(order)}
-                  className={styles.editButton}
-                  disabled={order.status !== OrderStatusEnum.Created}
-                  fullWidth
-                >
-                  Изменить состав
-                </Button>
-              </div>
-            </Card>
-          ))}
+        {orders.map((order) => {
+          const isCanceled = 
+            order.status === OrderStatusEnum.CanceledByUser || 
+            order.status === OrderStatusEnum.CancelByAdmin
+          
+          const canEdit = order.status === OrderStatusEnum.Created
 
-        {canceledByUserOrders &&
-          canceledByUserOrders.length > 0 &&
-          canceledByUserOrders.map((order) => (
-            <Card key={order.id} className={`${styles.card} ${styles.canceledCard}`}>
+          return (
+            <Card 
+              key={order.id} 
+              className={`${styles.card} ${isCanceled ? styles.canceledCard : ''}`}
+            >
               <OrderDetails order={order} />
+              {!isCanceled && (
+                <div className={styles.actions}>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenEditModal(order)}
+                    className={styles.editButton}
+                    disabled={!canEdit}
+                    fullWidth
+                  >
+                    Изменить состав
+                  </Button>
+                </div>
+              )}
             </Card>
-          ))}
-
-        {canceledByAdminOrders &&
-          canceledByAdminOrders.length > 0 &&
-          canceledByAdminOrders.map((order) => (
-            <Card key={order.id} className={`${styles.card} ${styles.canceledCard}`}>
-              <OrderDetails order={order} />
-            </Card>
-          ))}
-
-        {!activeOrders?.length &&
-          !canceledByUserOrders?.length &&
-          !canceledByAdminOrders?.length && (
-            <div className={styles.empty}>
-              <h2>У вас нет активных заказов</h2>
-              <p>Вы можете оформить новый заказ в каталоге товаров</p>
-            </div>
-          )}
+          )
+        })}
       </div>
     )
   }
