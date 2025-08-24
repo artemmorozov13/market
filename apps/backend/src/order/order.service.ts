@@ -202,10 +202,14 @@ export class OrderService {
     );
 
     // Отправляем уведомление при любом изменении статуса
-    const notifications = orders.map(order => ({
-      chatId: order.user.telegram_id.toString(),
-      message: getOrderStatusUpdateMessage(order, status, cancelReason)
-    }));
+    const notifications = orders.map(order => {
+      if (order?.user?.telegram_id) {
+        return ({
+          chatId: order.user.telegram_id.toString(),
+          message: getOrderStatusUpdateMessage(order, status, cancelReason)
+        })
+      }
+    });
 
     return await this.telegramService.sendBatchMessages(notifications);
   }
@@ -447,8 +451,8 @@ export class OrderService {
           throw new NotFoundException("Заказ не найден");
       }
     
-      if (order.status !== "waitForPay") {
-          throw new BadRequestException("Изменение заказа возможно только в статусе 'Ожидает оплаты'");
+      if (order.status !== OrderStatusEnum.Created) {
+          throw new BadRequestException("Невозможно изменить подтвержденный заказ");
       }
     
       // Обрабатываем товары в заказе

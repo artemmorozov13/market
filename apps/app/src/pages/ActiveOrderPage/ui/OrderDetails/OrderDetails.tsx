@@ -24,33 +24,6 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
 
   const isPickup = order.orderDeliveryStrategy === 'pickup_by_yourself'
 
-  const isDeliveryAvailable = (order: Order): boolean => {
-    // 1. Для самовывоза всегда разрешаем изменение
-    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
-      return true
-    }
-
-    const now = new Date()
-
-    // 2. Создаем объект Date для точного времени начала доставки
-    const deliveryStartDateTime = new Date(
-      order?.deliveryDate + 'T' + order?.deliveryTime?.startTime,
-    )
-
-    // 3. Проверяем, не началась ли уже доставка
-    if (now >= deliveryStartDateTime) {
-      return false
-    }
-
-    // 4. Вычисляем дедлайн для редактирования: время начала доставки минус minOrderBeforeDeliveryHours
-    const editDeadline = new Date(deliveryStartDateTime)
-    const hoursToSubtract = order?.store?.minOrderBeforeDeliveryHours || 1
-    editDeadline.setHours(editDeadline.getHours() - hoursToSubtract)
-
-    // 5. Разрешаем редактирование только если текущее время РАНЬШЕ дедлайна
-    return now < editDeadline
-  }
-
   const renderWorkingHours = (workingHours: any[]) => {
     if (!workingHours || workingHours.length === 0) return null
 
@@ -259,7 +232,7 @@ export const OrderDetails: FC<OrderDetailsProps> = ({ order }) => {
               variant="outlined"
               color="error"
               size="small"
-              disabled={!isDeliveryAvailable(order)}
+              disabled={order.status !== OrderStatusEnum.Created}
               onClick={() => setIsOpen(true)}
             >
               Отменить заказ

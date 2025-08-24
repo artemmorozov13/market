@@ -27,33 +27,6 @@ const ActiveOrderPage: FC = () => {
     setIsEditModalOpen(true)
   }
 
-  const isDeliveryAvailable = (order: Order): boolean => {
-    // 1. Для самовывоза всегда разрешаем изменение
-    if (order.orderDeliveryStrategy === DeliveryStrategyEnum.PickupByYourself) {
-      return true
-    }
-
-    const now = new Date()
-
-    // 2. Создаем объект Date для точного времени начала доставки
-    const deliveryStartDateTime = new Date(
-      order?.deliveryDate + 'T' + order?.deliveryTime?.startTime,
-    )
-
-    // 3. Проверяем, не началась ли уже доставка
-    if (now >= deliveryStartDateTime) {
-      return false
-    }
-
-    // 4. Вычисляем дедлайн для редактирования: время начала доставки минус minOrderBeforeDeliveryHours
-    const editDeadline = new Date(deliveryStartDateTime)
-    const hoursToSubtract = order?.store?.minOrderBeforeDeliveryHours || 1
-    editDeadline.setHours(editDeadline.getHours() - hoursToSubtract)
-
-    // 5. Разрешаем редактирование только если текущее время РАНЬШЕ дедлайна
-    return now < editDeadline
-  }
-
   const renderContent = () => {
     if (role !== Roles.User) {
       return (
@@ -92,7 +65,7 @@ const ActiveOrderPage: FC = () => {
                   variant="contained"
                   onClick={() => handleOpenEditModal(order)}
                   className={styles.editButton}
-                  disabled={!isDeliveryAvailable(order)}
+                  disabled={order.status !== OrderStatusEnum.Created}
                   fullWidth
                 >
                   Изменить состав
