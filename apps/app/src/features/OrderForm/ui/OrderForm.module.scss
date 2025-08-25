@@ -1,0 +1,152 @@
+.paper {
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.modalContainer {
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.deliveryMethodGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.deliveryMethodCard {
+  padding: 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #1976d2;
+    background-color: rgba(25, 118, 210, 0.04);
+  }
+
+  &.Mui-selected {
+    border-color: #1976d2;
+    background-color: rgba(25, 118, 210, 0.08);
+  }
+}
+
+.deliveryMethodOption {
+  width: 100%;
+  margin: 0;
+  align-items: flex-start;
+}
+
+.deliveryMethodLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.deliveryMethodIcon {
+  color: #1976d2;
+  margin-top: 4px;
+}
+
+.addAddressBtn {
+  margin-bottom: 1rem;
+  padding: 12px;
+  text-transform: none;
+}
+
+.deliveryWarning {
+  text-align: center;
+  padding: 1rem;
+  background-color: #fff8e1;
+  border-radius: 8px;
+}
+
+.pickupInfoCard {
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.pickupInfoContent {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.pickupIcon {
+  color: #1976d2;
+  font-size: 2rem;
+}
+
+.divider {
+  margin: 2rem 0;
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.textField {
+  .MuiInputBase-root {
+    font-size: 0.875rem;
+  }
+}
+
+.selectField {
+  .MuiSelect-select {
+    padding: 12px 14px;
+  }
+}
+
+.menuItem {
+  padding: 10px 16px;
+  font-size: 0.875rem;
+}
+
+.errorText {
+  display: block;
+  margin-top: 4px;
+  margin-left: 14px;
+  color: #d32f2f;
+  font-size: 0.75rem;
+}
+
+.alert {
+  margin-top: 1rem;
+  border-radius: 8px;
+}
+
+.submitButton {
+  padding: 12px;
+  font-weight: 500;
+  text-transform: none;
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  box-shadow: none;
+  border-radius: 8px;
+
+  &:hover {
+    box-shadow: none;
+  }
+
+  &:disabled {
+    background-color: #e0e0e0;
+    color: #a0a0a0;
+  }
+}
+
+@media (max-width: 600px) {
+  .paper {
+    padding: 1rem;
+  }
+
+  .deliveryMethodLabel {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pickupInfoContent {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,98 @@
+.productCard {
+  width: 100%;
+  min-width: 140px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.imageContainer {
+  position: relative;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.discountBadge {
+  background-color: #fff;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 8px;
+}
+
+.infoSection {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price.text {
+  font-weight: bold;
+  color: rgb(143, 32, 32);
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  font-size: 0.875rem;
+}
+
+.unit {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 8px;
+  }
+
+  .name {
+    font-size: 0.875rem;
+  }
+
+  .price {
+    font-size: 0.9375rem;
+  }
+
+  .originalPrice {
+    font-size: 0.8125rem;
+  }
+
+  .unit {
+    font-size: 0.6875rem;
+  }
+}

@@ -1,0 +1,68 @@
+.orderCard {
+  min-width: 275px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+
+  .orderTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+
+  .orderStatus {
+    margin-bottom: 12px;
+
+    .MuiChip-root {
+      font-weight: bold;
+    }
+  }
+
+  .orderDate {
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .orderAddress {
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+
+  .userInfo {
+    color: #444;
+    margin-bottom: 8px;
+
+    a {
+      color: #1976d2;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .productsAccordion {
+    margin-top: 16px;
+
+    .productsTitle {
+      font-weight: bold;
+    }
+
+    .productsList {
+      .productItem {
+        padding: 8px;
+
+        .productDetail {
+          display: block;
+          color: #555;
+        }
+      }
+    }
+  }
+
+  .orderTotal {
+    margin-top: 16px;
+    font-weight: bold;
+  }
+}

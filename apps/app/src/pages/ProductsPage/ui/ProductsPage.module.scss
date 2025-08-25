@@ -1,0 +1,145 @@
+.wrapper {
+  padding-bottom: 2rem;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.noStoresText {
+  text-align: center;
+  margin-top: 40px;
+  color: #666;
+}
+
+.storesPagination {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+
+  .MuiPagination-ul {
+    justify-content: center;
+  }
+}
+
+.storeCard {
+  padding: 8px;
+  border-radius: 12px !important;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.storeHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.storeAvatar {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  background-color: #1976d2;
+}
+
+.storeName {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.storeDescription {
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.divider {
+  margin: 16px 0;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.storeDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  font-size: 14px;
+
+  svg {
+    font-size: 20px;
+  }
+}
+
+.freeDeliveryChip {
+  margin-left: 8px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.emptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.noProductsTitle {
+  font-size: 18px;
+  color: #666;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+
+  @media (width <= 800px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (width <= 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  margin-top: 16px;
+}
+
+.addressForm {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}

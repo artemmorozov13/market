@@ -1,0 +1,53 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.card {
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.timeRangeContainer {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.timeRangeItem {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.deliveryTimesList {
+  margin-top: 16px;
+}
+
+.deliveryTimeItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.addButton {
+  margin-top: 16px !important;
+}
+
+.errorText {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  margin-top: 3px;
+}

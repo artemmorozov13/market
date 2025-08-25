@@ -1,0 +1,1 @@
+export { OrderPageLazy as OrderPage } from './ui/OrderPageLazy'

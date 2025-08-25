@@ -1,0 +1,43 @@
+.filtersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &_left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.mainTitle {
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+}
+
+.headerWithSearch {
+  width: 100%;
+  gap: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.search {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Roboto';
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+  text-align: left;
+  transition: 0.2s ease-in-out;
+
+  &__focused {
+    outline: 1px solid #9c73ff;
+  }
+}

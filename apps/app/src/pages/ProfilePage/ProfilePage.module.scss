@@ -1,0 +1,105 @@
+.profileContainer {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.avatar {
+  font-size: 2.5rem;
+}
+
+.userName {
+  flex-grow: 1;
+}
+
+.editButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.formContainer {
+  margin-top: 1rem;
+}
+
+.formSection {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.formField {
+  margin-bottom: 1.5rem !important;
+}
+
+.divider {
+  margin: 2rem 0;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.saveButton {
+  background-color: #1976d2 !important;
+  color: white !important;
+}
+
+.cancelButton {
+  border-color: #1976d2 !important;
+  color: #1976d2 !important;
+}
+
+.confirmedField {
+  & .MuiOutlinedInput-root {
+    fieldset {
+      border-color: #4caf50 !important;
+    }
+  }
+}
+
+.integrationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.integrationTitle {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.telegramButton {
+  align-self: flex-start;
+}
+
+@media (max-width: 600px) {
+  .profileHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .telegramButton {
+    width: 100%;
+  }
+}
