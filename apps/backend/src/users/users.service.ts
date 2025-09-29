@@ -7,8 +7,10 @@ import { TelegramUtils } from 'src/utils/telegram.utils';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersEntity } from '@core/entities/users.entity';
 import { OrderEntity } from '@core/entities/order.entity';
-import { AuthJwtPayload } from '@core/types/user-type';
 import { StoreService } from '@app/store/store.service';
+import { AddressesEntity } from '@core/entities/addresses.entity';
+import { AuthJwtPayload } from '@core/types/user-type';
+import { UpdateUserDto } from './dto/update-user-dto';
 
 @Injectable()
 export class UsersService {
@@ -20,7 +22,8 @@ export class UsersService {
     private readonly basketService: BasketService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
-    private readonly storeService: StoreService
+    private readonly storeService: StoreService,
+    private readonly telegramUtils: TelegramUtils
   ) {}
 
   async getUserById(userId: number) {
@@ -39,7 +42,7 @@ export class UsersService {
         'telegram_id',
         'telegram_username'
       ],
-      relations: ['store']
+      relations: ['selectedProducts', 'selectedAddress', 'store', 'addresses']
     })
   }
 
@@ -78,57 +81,53 @@ export class UsersService {
     return savedUser;
   }
 
-  async updateUser(updateUser: Partial<UsersEntity>) {
-    try {
-      const user = await this.getUserById(updateUser.id)
+  async updateUser(user: AuthJwtPayload, updateUser: UpdateUserDto) {
+    const updatedFields: UpdateUserDto = {};
+    
+    if (updateUser.age) updatedFields.age = updateUser.age;
+    if (updateUser.email) updatedFields.email = updateUser.email;
+    if (updateUser.name) updatedFields.name = updateUser.name;
+    if (updateUser.phone_number) updatedFields.phone_number = updateUser.phone_number;
 
-      if (!user) {
-        throw new BadRequestException("Пользователь не найден");
-      }
-
-      Object.assign(user, updateUser);
-      await this.usersRepository.update(user.id, user);
-      
-      return user
-    } catch (error) {
-      throw error
+    if (!Object.keys(updatedFields).length) {
+        return this.getUserById(user.id);
     }
+
+    await this.usersRepository.update(user.id, updatedFields);
+    return this.getUserById(user.id)
+  }
+
+  async updateSelectedAddress(userJwt: AuthJwtPayload, address: AddressesEntity) {
+    return await this.usersRepository.update(userJwt.id, { selectedAddress: address })
   }
 
   async loginWithTelegram(initData: string, storeId: number) {
     const store = await this.storeService.getStoreDataById(storeId);
 
-    if (!store) {
-      throw new NotFoundException("Не удалось определить магазин");
+    const isValid = await this.telegramUtils.validateInitData(initData);
+    if (!isValid) {
+      throw new Error('Invalid Telegram data');
     }
 
-    // const isValid = await TelegramUtils.validateInitData(initData);
-    // if (!isValid) {
-    //   throw new Error('Invalid Telegram data');
-    // }
-
-    const telegramUser = TelegramUtils.parseInitData(initData);
+    const telegramUser = await this.telegramUtils.parseInitData(initData);
 
     let user = await this.usersRepository.findOne({
       where: { telegram_id: telegramUser.id },
-      relations: [
-        'selectedProducts',
-        'store'
-      ]
+      relations: ['selectedProducts', 'selectedAddress', 'store', 'addresses']
     });
 
     if (!user) {
       user = this.usersRepository.create({
+        telegram_id: telegramUser.id,
+        name: telegramUser.first_name,
+        email: "",
+        telegram_username: telegramUser.username || "",
+        password: "123456",
+        store,
+        basket: {
           telegram_id: telegramUser.id,
-          name: telegramUser.first_name,
-          email: "",
-          telegram_username: telegramUser.username || "",
-          password: "123456",
-          store,
-          basket: {
-              telegram_id: telegramUser.id,
-              products_count: 0,
-          },
+          products_count: 0,
+        },
       });
   
       await this.usersRepository.save(user);

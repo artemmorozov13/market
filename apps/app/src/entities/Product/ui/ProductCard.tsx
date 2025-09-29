@@ -6,14 +6,14 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import { ProductType } from '..';
 import styles from './ProductCard.module.scss';
 import clsx from 'clsx';
-import { ConfirmRemoveFromBasketModal, basketStore } from '@/entities/Basket';
+import { ConfirmRemoveFromBasketModal, useBasket, usePushBasketItem, useRemoveBasketItem } from '@/entities/Basket';
 import { observer } from 'mobx-react-lite';
 import { ProductModal } from '@/features/ProductModal';
 import { BasketTools } from '@/shared/ui/BasketTools';
 import { MINIMUM_QUANTITY_TO_BE_IN_BASKET } from '@/shared/consts/applicationConsts';
+import { ProductType } from '@core/types/product-item';
 
 interface ProductCardProps {
   product: ProductType;
@@ -25,18 +25,20 @@ interface ProductCardProps {
 export const ProductCard: FC<ProductCardProps> = observer((props) => {
   const { product, isInBasket = false, onAddItemBasket, onRemoveBasketItem } = props;
 
-  const { basketList, increaseProductCount, decreaseProductCount } = basketStore;
+  const { basket } = useBasket()
+  const { incrementQuantity, isLoadingIncrement } = usePushBasketItem()
+  const { decrementQuantity, isLoadingDecrement } = useRemoveBasketItem()
 
   const [isOpenProduct, setIsOpenProduct] = useState(false)
-  const [isLoadingAdd, setIsLoadingAdd] = useState<boolean>(false);
-  const [isLoadingRemove, setIsLoadingRemove] = useState<boolean>(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
 
-  const basketItemIndex = basketList.findIndex((item) => item.productId === product.id);
-  const basketItem = basketList[basketItemIndex];
+  const basketItemIndex = basket?.findIndex((item) => item.productId === product.id);
+
+  // @ts-ignore
+  const basketItem = basket?.[basketItemIndex];
 
   const discountPercentage = parseFloat(product.discount);
-  const originalPrice = parseFloat(product.price);
+  const originalPrice = parseFloat(product.price.toString());
   const discountedPrice = discountPercentage > 0 
     ? originalPrice * (1 - discountPercentage / 100) 
     : originalPrice;
@@ -47,7 +49,7 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
 
   const getDisplayUnitValue = () => {
     if (product.unitOfMeasurement === 'гр') {
-      const valueInGrams = parseFloat(product.unitValue);
+      const valueInGrams = parseFloat(product.unitValue.toString());
       return (valueInGrams / 1000).toString();
     }
     return product.unitValue;
@@ -61,33 +63,32 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
   const displayUnitOfMeasurement = getDisplayUnitOfMeasurement();
 
   const handlePlusProduct = async () => {
-    setIsLoadingAdd(true);
-    await increaseProductCount(product.id);
-    setIsLoadingAdd(false);
+    incrementQuantity(product.id)
   };
 
   const handleMinusProduct = async () => {
-    setIsLoadingRemove(true);
-    if (basketItemIndex < 0) return;
+    if (typeof basketItemIndex === 'undefined') {
+      return
+    }
+    
+    if (basketItemIndex < 0) {
+      return
+    }
 
     if (basketItem.quantity === MINIMUM_QUANTITY_TO_BE_IN_BASKET) {
       setIsRemoveModalOpen(true);
-      setIsLoadingRemove(false);
       return;
     }
-    await decreaseProductCount(basketList[basketItemIndex].productId);
-    setIsLoadingRemove(false);
+    if (basket?.[basketItemIndex].productId) {
+      decrementQuantity(basket[basketItemIndex].productId);
+    }
   };
 
   const handleToggleBasketStatus = async () => {
     if (isInBasket) {
-      setIsLoadingRemove(true);
-      await onRemoveBasketItem(product);
-      setIsLoadingRemove(false);
+      onRemoveBasketItem(product);
     } else {
-      setIsLoadingAdd(true);
-      await onAddItemBasket(product);
-      setIsLoadingAdd(false);
+      onAddItemBasket(product);
     }
   };
 
@@ -124,24 +125,20 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
         
         <CardContent className={styles.content}>
           <div className={styles.infoSection} onClick={() => setIsOpenProduct(true)}>
-            <Typography variant="h6" className={styles.name} noWrap>
+            <Box className={styles.priceRow}>
+              <Typography variant='body1' className={clsx(styles.price, styles.text)}>
+                {`${discountedPrice}₽`}
+              </Typography>
+              {discountPercentage > 0 && (
+                <Typography className={clsx(styles.originalPrice, styles.text)}>
+                  {originalPrice}&nbsp;₽
+                </Typography>
+              )}
+            </Box>
+            <Typography variant="body1" className={styles.name} noWrap>
               {product.name}
             </Typography>
-            <Typography variant="body2" className={styles.description}>
-              {product.description}
-            </Typography>
-            
             <Box className={styles.priceSection}>
-              <Box className={styles.priceRow}>
-                <Typography className={clsx(styles.price, styles.text)}>
-                  {`${discountedPrice}₽`}
-                </Typography>
-                {discountPercentage > 0 && (
-                  <Typography className={clsx(styles.originalPrice, styles.text)}>
-                    {originalPrice}&nbsp;₽
-                  </Typography>
-                )}
-              </Box>
               <Typography variant="caption" className={styles.unit}>
                 {`${displayUnitValue}${displayUnitOfMeasurement}`}
               </Typography>
@@ -152,8 +149,8 @@ export const ProductCard: FC<ProductCardProps> = observer((props) => {
             basketItem={basketItem}
             totalPrice={totalPrice}
             isInBasket={isInBasket}
-            isLoadingAdd={isLoadingAdd}
-            isLoadingRemove={isLoadingRemove}
+            isLoadingAdd={isLoadingIncrement}
+            isLoadingRemove={isLoadingDecrement}
             handleToggleBasketStatus={handleToggleBasketStatus}
             handleMinusProduct={handleMinusProduct}
             handlePlusProduct={handlePlusProduct}

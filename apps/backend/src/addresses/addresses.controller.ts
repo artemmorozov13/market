@@ -55,6 +55,15 @@ export class AddressesController {
     ) {
       return this.addressesService.update(user, updateAddressDto);
     }
+
+    @Patch('selected/:addressId')
+    @UseGuards(JwtAuthGuard)
+    updateSelected(
+      @User() user: AuthJwtPayload,
+      @Param('addressId') addressId: string
+    ) {
+      return this.addressesService.updateSelectedAddress(user, addressId);
+    }
   
     @Delete(':id')
     @UseGuards(JwtAuthGuard)

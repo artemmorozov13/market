@@ -31,11 +31,11 @@ import {
     ExitToApp as LogoutIcon,
     Menu as MenuIcon,
     PointOfSale as PointOfSaleIcon,
-    Inventory as InventoryIcon
-  } from '@mui/icons-material';
+    Inventory as InventoryIcon,
+    People as SuppliersIcon
+} from '@mui/icons-material';
 import { useUser } from "@entities/User";
-  
-
+import { Roles } from "@core/enums/role-enum";
 
 interface ShopOwnerLayoutProps {
     children: ReactNode
@@ -44,6 +44,7 @@ interface ShopOwnerLayoutProps {
 export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
     const { children } = props
 
+    const storeUser = useUser()
     const [mobileOpen, setMobileOpen] = useState<boolean>(false)
     const { user, isLoading } = useUser()
 
@@ -51,9 +52,16 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
 
     const menuListTop = [
         {
-          label: "Статистика",
-          href: routeConfig['statistic'],
-          icon: <StatsIcon />
+            label: "Статистика",
+            href: routeConfig['statistic'],
+            icon: <StatsIcon />,
+            roles: [Roles.Admin]
+        },
+        {
+            label: "Статистика",
+            href: routeConfig['supplier-statistic'],
+            icon: <StatsIcon />,
+            roles: [Roles.Vendor]
         },
     ]
 
@@ -61,41 +69,60 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
         {
             label: "Таблица заказов",
             href: routeConfig["order-table"],
-            icon: <PointOfSaleIcon />
+            icon: <PointOfSaleIcon />,
+            roles: [Roles.Admin]
         },
-        // {
-        //     label: "Список заказов",
-        //     href: routeConfig["orders"],
-        //     icon: <ShoppingCartIcon />
-        // },
         {
             label: "Список товаров",
             href: routeConfig["product"],
-            icon: <InventoryIcon />
+            icon: <InventoryIcon />,
+            roles: [Roles.Admin]
         },
         {
             label: "Пункты выдачи",
             href: routeConfig["pickup-points"],
-            icon: <DeliveryIcon />
-        }
+            icon: <DeliveryIcon />,
+            roles: [Roles.Admin]
+        },
+        {
+            label: "Поставщики",
+            href: routeConfig["suppliers"],
+            icon: <SuppliersIcon />,
+            roles: [Roles.Admin]
+        },
+        {
+            label: "Таблица заказов",
+            href: routeConfig['supplier-orders'],
+            icon: <PointOfSaleIcon />,
+            roles: [Roles.Vendor]
+        },
     ]
 
     const bottomMenu = [
         {
             label: "Добавить товар",
             href: routeConfig["product/create"],
-            icon: <AddIcon />
+            icon: <AddIcon />,
+            roles: [Roles.Admin]
         },
         {
-            label: "Создать телеграм рассулку",
+            label: "Создать телеграм рассылку",
             href: routeConfig["telegram-broadcast"],
-            icon: <TelegramIcon />
+            icon: <TelegramIcon />,
+            roles: [Roles.Admin]
         },
         {
             label: "Настройки",
             href: routeConfig["shop/settings"],
-            icon: <SettingsIcon />
-        }
+            icon: <SettingsIcon />,
+            roles: [Roles.Admin]
+        },
+        {
+            label: "Товары",
+            href: routeConfig['supplier-products'],
+            icon: <InventoryIcon />,
+            roles: [Roles.Vendor]
+        },
     ]
 
     const handleLogout = () => {
@@ -108,57 +135,66 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
         setMobileOpen(!mobileOpen)
     }
 
-    const drawer = (
-        <div>
-            <Toolbar />
-            <Divider />
-            <List>
-                {menuListTop.map((menuItem) => (
-                    <Link key={menuItem.href} to={menuItem.href} className={styles.link}>
-                        <ListItem disablePadding>
-                            <ListItemButton>
-                                <ListItemIcon>
-                                    {menuItem.icon}
-                                </ListItemIcon>
-                                <ListItemText primary={menuItem.label} />
-                            </ListItemButton>
-                        </ListItem>
-                    </Link>
-                ))}
-            </List>
-            <Divider />
-            <List>
-                {middleMenu.map((menuItem) => (
-                    <Link key={menuItem.href} to={menuItem.href} className={styles.link}>
-                        <ListItem disablePadding>
-                            <ListItemButton>
-                                <ListItemIcon>
-                                    {menuItem.icon}
-                                </ListItemIcon>
-                                <ListItemText primary={menuItem.label} />
-                            </ListItemButton>
-                        </ListItem>
-                    </Link>
-                ))}
-            </List>
-            <Divider />
-            <List>
-                {bottomMenu.map((menuItem) => (
-                    <Link key={menuItem.href} to={menuItem.href} className={styles.link}>
-                        <ListItem disablePadding>
-                            <ListItemButton>
-                                <ListItemIcon>
-                                    {menuItem.icon}
-                                </ListItemIcon>
-                                <ListItemText primary={menuItem.label} />
-                            </ListItemButton>
-                        </ListItem>
-                    </Link>
-                ))}
-            </List>
-            <Divider />
-        </div>
+    const menuListFilter = (item: any) => (
+        item.roles.includes(storeUser.data?.role)
     )
+
+    const drawer = () => {
+        if (storeUser.data?.role) {
+            return (
+                <div>
+                    <Toolbar />
+                    <Divider />
+                    <List>
+                        {menuListTop.filter(menuListFilter).map((menuItem) => (
+                            <Link key={menuItem.href} to={menuItem.href} className={styles.link}>
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            {menuItem.icon}
+                                        </ListItemIcon>
+                                        <ListItemText primary={menuItem.label} />
+                                    </ListItemButton>
+                                </ListItem>
+                            </Link>
+                        ))}
+                    </List>
+                    <Divider />
+                    <List>
+                        {middleMenu.filter(menuListFilter).map((menuItem) => (
+                            <Link key={menuItem.href} to={menuItem.href} className={styles.link}>
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            {menuItem.icon}
+                                        </ListItemIcon>
+                                        <ListItemText primary={menuItem.label} />
+                                    </ListItemButton>
+                                </ListItem>
+                            </Link>
+                        ))}
+                    </List>
+                    <Divider />
+                    <List>
+                        {bottomMenu.filter(menuListFilter).map((menuItem) => (
+                            <Link key={menuItem.href} to={menuItem.href} className={styles.link}>
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            {menuItem.icon}
+                                        </ListItemIcon>
+                                        <ListItemText primary={menuItem.label} />
+                                    </ListItemButton>
+                                </ListItem>
+                            </Link>
+                        ))}
+                    </List>
+                    <Divider />
+                </div>
+            )
+        }
+        return null
+    }
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -166,8 +202,8 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             <AppBar
                 position="fixed"
                 sx={{
-                    width: { md: `calc(100% - ${drawerWidth}px)` }, // Изменено с sm на md
-                    ml: { md: `${drawerWidth}px` }, // Изменено с sm на md
+                    width: { md: `calc(100% - ${drawerWidth}px)` },
+                    ml: { md: `${drawerWidth}px` },
                 }}
             >
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -176,7 +212,7 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
                         aria-label="open drawer"
                         edge="start"
                         onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { md: 'none' } }} // Изменено с sm на md
+                        sx={{ mr: 2, display: { md: 'none' } }}
                     >
                         <MenuIcon />
                     </IconButton>
@@ -185,7 +221,7 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
                             <Skeleton height={40} width={150} />
                         ) : (
                             <Typography variant="h6" noWrap>
-                                {user?.store.name}
+                                {user?.store?.name}
                             </Typography>
                         )}
                     </Box>
@@ -203,7 +239,7 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
             </AppBar>
             <Box
                 component="nav"
-                sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }} // Изменено с sm на md
+                sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
                 aria-label="mailbox folders"
             >
                 <Drawer
@@ -211,29 +247,29 @@ export const ShopOwnerLayout: FC<ShopOwnerLayoutProps> = observer((props) => {
                     open={mobileOpen}
                     onClose={handleDrawerToggle}
                     ModalProps={{
-                        keepMounted: true, // Better open performance on mobile.
+                        keepMounted: true,
                     }}
                     sx={{
-                        display: { xs: 'block', md: 'none' }, // Изменено с sm на md
+                        display: { xs: 'block', md: 'none' },
                         '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
                     }}
                 >
-                    {drawer}
+                    {drawer()}
                 </Drawer>
                 <Drawer
                     variant="permanent"
                     sx={{
-                        display: { xs: 'none', md: 'block' }, // Изменено с sm на md
+                        display: { xs: 'none', md: 'block' },
                         '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
                     }}
                     open
                 >
-                    {drawer}
+                    {drawer()}
                 </Drawer>
             </Box>
             <Box
                 component="main"
-                sx={{ flexGrow: 1, p: 3, width: { md: `calc(100% - ${drawerWidth}px)` } }} // Изменено с sm на md
+                sx={{ flexGrow: 1, p: 3, width: { md: `calc(100% - ${drawerWidth}px)` } }}
             >
                 <Toolbar />
                 {children}

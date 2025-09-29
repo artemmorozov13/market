@@ -1,4 +1,5 @@
-import { ProductType } from "@/entities/Product";
+import { ProductType } from "@core/types/product-item";
+import { StoreBaseType } from "@core/types/store-type";
 
 export interface OrderedProduct {
     id: number;
@@ -41,5 +42,6 @@ export interface Order {
         createdAt: Date,
         updatedAt: Date
     };
+    store?: StoreBaseType
     pickupPoint: PickupPoint;
 }

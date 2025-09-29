@@ -1,24 +1,28 @@
 import * as crypto from 'crypto';
+import { Injectable, Logger } from '@nestjs/common';
 
+@Injectable()
 export class TelegramUtils {
-  private static BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  private readonly logger = new Logger(TelegramUtils.name);
+  private readonly botToken: string;
 
-  static validateInitData(initData: string): boolean {
-    if (!initData || !this.BOT_TOKEN) {
-      console.error('initData or BOT_TOKEN is missing!');
-      return false;
+  constructor() {
+    this.botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!this.botToken) {
+      throw new Error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
     }
+  }
 
+  async validateInitData(initData: string): Promise<boolean> {
     try {
       const urlParams = new URLSearchParams(initData);
       const hash = urlParams.get('hash');
       
       if (!hash) {
-        console.error('Hash not found in initData');
+        this.logger.error('Hash not found in initData');
         return false;
       }
 
-      // Собираем все параметры, кроме `hash`, сортируем и объединяем
       const dataCheckString = Array.from(urlParams.entries())
         .filter(([key]) => key !== 'hash')
         .sort(([a], [b]) => a.localeCompare(b))
@@ -26,17 +30,15 @@ export class TelegramUtils {
         .join('\n');
 
       if (!dataCheckString) {
-        console.error('No data to validate (empty after filtering)');
+        this.logger.error('No data to validate');
         return false;
       }
 
-      // Генерируем секретный ключ
       const secretKey = crypto
         .createHmac('sha256', 'WebAppData')
-        .update(this.BOT_TOKEN)
+        .update(this.botToken)
         .digest();
 
-      // Вычисляем хеш
       const calculatedHash = crypto
         .createHmac('sha256', secretKey)
         .update(dataCheckString)
@@ -45,27 +47,28 @@ export class TelegramUtils {
       const isValid = calculatedHash === hash;
       
       if (!isValid) {
-        console.error('Hash mismatch!');
+        this.logger.warn('Hash mismatch in initData validation');
       }
 
       return isValid;
     } catch (error) {
-      console.error('Error validating initData:', error);
+      this.logger.error(`Validation error: ${error.message}`);
       return false;
     }
   }
 
-  static parseInitData(initData: string) {
-    console.log('Received initData:', initData); // Добавьте это
+  async parseInitData(initData: string) {
     try {
-      const urlParams = new URLSearchParams(initData);
-      console.log('URLSearchParams entries:', [...urlParams.entries()]); // И это
+      const isValid = await this.validateInitData(initData);
+      if (!isValid) {
+        throw new Error('Invalid initData signature');
+      }
 
+      const urlParams = new URLSearchParams(initData);
       const userStr = urlParams.get('user');
       
-      if (!userStr) throw new Error('User data not found in initData');
+      if (!userStr) throw new Error('User data not found');
 
-      // Декодируем `user` (он приходит в URL-encoded формате)
       const userData = JSON.parse(decodeURIComponent(userStr));
       
       if (!userData?.id) {
@@ -78,7 +81,8 @@ export class TelegramUtils {
         username: userData.username,
       };
     } catch (error) {
-      throw error
+      this.logger.error(`Parse error: ${error.message}`);
+      throw error;
     }
   }
 }

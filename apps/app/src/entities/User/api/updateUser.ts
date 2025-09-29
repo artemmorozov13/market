@@ -1,5 +1,5 @@
 import { API } from "@/shared/api/API";
-import { UserType } from "../types/userTypes";
+import { UserType } from "@core/types/user-type";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const updateUser = async (updateData: Partial<UserType>) => {

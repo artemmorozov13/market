@@ -7,6 +7,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UsersEntity } from '@core/entities/users.entity';
 import { OrderEntity } from '@core/entities/order.entity';
 import { StoreModule } from '@app/store/store.module';
+import { TelegramUtils } from '@app/utils/telegram.utils';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -16,10 +18,17 @@ import { StoreModule } from '@app/store/store.module';
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => BasketModule),
-    forwardRef(() => StoreModule)
+    forwardRef(() => StoreModule),
+    CacheModule.register(),
   ],
-  providers: [UsersService],
+  providers: [
+    UsersService,
+    TelegramUtils,
+  ],
   controllers: [UsersController],
-  exports: [UsersService],
+  exports: [
+    UsersService,
+    TelegramUtils,
+  ],
 })
 export class UsersModule {}

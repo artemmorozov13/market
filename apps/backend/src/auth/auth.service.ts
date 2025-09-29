@@ -1,5 +1,4 @@
-import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
-import * as bcrypt from "bcryptjs"
+import { BadRequestException, Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TelegramAuthData } from 'src/telegram/types/telegram-user-types';
 import refreshJwtConfig from './config/refresh-jwt.config';
@@ -12,6 +11,7 @@ import { StoreUserService } from '@app/store-user/store-user.service';
 import { StoreUserEntity } from '@core/entities/store-user.entity';
 import { UsersService } from '@app/users/users.service';
 import { StoreService } from '@app/store/store.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -25,33 +25,16 @@ export class AuthService {
         private readonly storeService: StoreService
     ) {}
 
-    async validateUser(email: string, password: string) {
-        const user = await this.storeUserService.getStoreUserByEmail(email)
-
-        if (!user) {
-          throw new UnauthorizedException("пользователь не найден" + email)
-        }
-    
-        const isPasswordsComapre = await bcrypt.compare(password, user.password)
-    
-        if (!isPasswordsComapre) {
-          throw new UnauthorizedException("Неверный пароль")
-        }
-        
-        return {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          store: user.store
-        }
-    }
-
-    async generateToken(user: UsersEntity | StoreUserEntity) {
+    async generateToken(user: UsersEntity | StoreUserEntity | AuthJwtPayload) {
       const currentUser: AuthJwtPayload = {
         id: user.id,
-        role: user.role
+        role: user.role,
       }
-      return this.jwtService.sign(currentUser)
+      if (user.role === Roles.Admin) {
+        currentUser.storeId = (user as StoreUserEntity).store.id;
+      }
+
+      return await this.jwtService.sign(currentUser)
     }
 
     async generateRefreshToken(user: UsersEntity | StoreUserEntity) {
@@ -59,10 +42,41 @@ export class AuthService {
         id: user.id,
         role: user.role
       }
+      if (user.role === Roles.Admin) {
+        currentUser.storeId = (user as StoreUserEntity).store.id;
+      }
       return this.jwtService.sign(currentUser, this.refreshTokenConfig)
     }
 
-    async validateJwtUser(payload: AuthJwtPayload) {
+    async validateStoreUser(payload: AuthJwtPayload) {
+      const user = await this.storeUserService.getStoreUserById(payload.id)
+  
+      const currentUser: AuthJwtPayload = {
+        id: user.id,
+        role: user.role
+      }
+
+      return currentUser
+    }
+
+    async compareUserByEmail(email: string, password: string) {
+      const user = await this.storeUserService.getStoreUserByEmail(email);
+      if (!user) {
+        throw new BadRequestException("Ошибка при вводе логина или пароля");
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new BadRequestException("Ошибка при вводе логина или пароля");
+      }
+
+      return {
+        id: user.id,
+        role: user.role
+      };
+    }
+
+    async validateUser(payload: AuthJwtPayload) {
       const user = await this.userService.getUserById(payload.id)
 
       if (!user) {
@@ -112,20 +126,5 @@ export class AuthService {
         token,
         refreshToken
       };
-    }
-
-    async refreshAccessToken(userId: number) {
-      const user = await this.userService.getUserById(userId)
-
-      if (!user) {
-        throw new UnauthorizedException("Пользователь не найден")
-      }
-
-      const token = await this.generateToken(user);
-
-      return {
-        user,
-        token
-      }
     }
 }

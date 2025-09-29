@@ -1,22 +1,23 @@
 import { FC } from 'react';
 import { Button, Modal, Paper, Typography } from '@mui/material';
+import { BasketBaseType } from '@core/types/basket-tipe';
+import { useRemoveBasketProduct } from '../../api/useRemoveBasketProduct';
 
 import styles from './ConfirmRemoveFromBasketModal.module.scss';
-import { BasketType, basketStore } from '../..';
 
 interface ConfirmRemoveFromBasketModalProps {
-    basketProduct: BasketType
+    basketProduct: BasketBaseType
     isOpen: boolean
     onClose: () => void
 }
 
 export const ConfirmRemoveFromBasketModal: FC<ConfirmRemoveFromBasketModalProps> = (props) => {
     const { basketProduct, isOpen, onClose } = props;
-
-    const { removeItem } = basketStore
+    
+    const { clearBasketProduct } = useRemoveBasketProduct()
 
     const handleRemoveFromBasket = () => {
-        removeItem(basketProduct.productId)
+        clearBasketProduct(basketProduct.productId)
         onClose()
     }
 

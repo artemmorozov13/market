@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TelegramService } from './telegram.service';
 import { TelegramErrorService } from './telegram-error.service';
@@ -11,24 +11,48 @@ import { UsersEntity } from '@core/entities/users.entity';
 import { StoreModule } from '@app/store/store.module';
 import { BasketModule } from '@app/basket/basket.module';
 import { UsersService } from '@app/users/users.service';
+import { UsersModule } from '@app/users/users.module';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
+import { StoreService } from '@app/store/store.service';
+import type { Cache } from 'cache-manager';
+import { StoreUserModule } from '@app/store-user/store-user.module';
+import { StoreUserService } from '@app/store-user/store-user.service';
 
 @Module({
   imports: [
-    ConfigModule,
-    TypeOrmModule.forFeature([
-      UsersEntity,
-      OrderEntity
-    ]),
+    ConfigModule.forRoot(), // Добавлен forRoot() для правильной инициализации
+    CacheModule.register(),
+    TypeOrmModule.forFeature([UsersEntity, OrderEntity]),
     forwardRef(() => AuthModule),
     forwardRef(() => StoreModule),
-    forwardRef(() => BasketModule)
+    forwardRef(() => BasketModule),
+    forwardRef(() => UsersModule),
+    StoreUserModule
   ],
   providers: [
     UsersService,
     {
       provide: TelegramService,
-      useFactory: (usersService: UsersService) => new TelegramService(usersService),
-      inject: [UsersService],
+      useFactory: (
+        configService: ConfigService,
+        usersService: UsersService,
+        storeService: StoreService,
+        storeUserService: StoreUserService,
+        cacheManager: Cache
+      ) => {
+        return new TelegramService(
+          configService, // Добавлен ConfigService
+          usersService,
+          storeUserService // StoreService больше не нужен в конструкторе TelegramService
+        );
+      },
+      inject: [
+        ConfigService, // Добавлен ConfigService
+        UsersService, 
+        StoreService, 
+        StoreUserService, 
+        CACHE_MANAGER
+      ],
     },
     {
       provide: TelegramErrorService,

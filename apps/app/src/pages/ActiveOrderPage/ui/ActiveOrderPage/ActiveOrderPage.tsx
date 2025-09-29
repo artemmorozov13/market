@@ -10,6 +10,7 @@ import { OrderDetails } from "../OrderDetails/OrderDetails";
 import { EditOrderModal } from "../EditOrderModal/EditOrderModal";
 
 import styles from "./ActiveOrderPage.module.scss";
+import { Roles } from "@core/enums/role-enum";
 
 export const ActiveOrderPage: FC = () => {
   const { role } = userStore;
@@ -43,7 +44,7 @@ export const ActiveOrderPage: FC = () => {
   };
 
   const renderContent = () => {
-    if (role !== 'customer') {
+    if (role !== Roles.User) {
       return (
         <div className={styles.empty}>
           <h2>У вас нет активных заказов</h2>

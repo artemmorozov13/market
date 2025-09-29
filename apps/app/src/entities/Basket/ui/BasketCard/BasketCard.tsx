@@ -13,14 +13,16 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { BasketType, basketStore } from "../..";
+import { basketStore } from "../..";
 import { observer } from "mobx-react-lite";
 import { ConfirmRemoveFromBasketModal } from "../ConfirmRemoveFromBasketModal/ConfirmRemoveFromBasketModal";
 import clsx from "clsx";
 import styles from "./BasketCard.module.scss";
+import { ProductStatusEnum } from "@core/enums/product-status-enum";
+import { BasketBaseType } from "@core/types/basket-tipe";
 
 interface BasketItemProps {
-  item: BasketType;
+  item: BasketBaseType;
   className?: string;
 }
 
@@ -67,7 +69,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
   return (
     <>
       <Card
-        className={clsx(styles.card, className, { [styles.disabled]: item.product.is_expired })}
+        className={clsx(styles.card, className, { [styles.disabled]: item.product.status === ProductStatusEnum.Expired })}
         elevation={0}
       >
         <Box className={styles.imageWrapper}>
@@ -91,7 +93,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
             {item.product.name}
           </Typography>
           
-          {item.product.is_expired && (
+          {item.product.status === ProductStatusEnum.Expired && (
             <Box className={styles.unavailableBadge}>
               <ErrorOutlineIcon fontSize="small" />
               <Typography variant="caption">Товар недоступен для доставки</Typography>
@@ -124,7 +126,7 @@ export const BasketCard: FC<BasketItemProps> = observer(({ className, item }) =>
               Убрать
             </Button>
             
-            {!item.product.is_expired && (
+            {item.product.status !== ProductStatusEnum.Expired && (
               <>
                 <IconButton
                   className={styles.quantityButton}

@@ -80,7 +80,7 @@ export class OrderController {
     @User() user: AuthJwtPayload,
     @Body() updateStatusDto: AdminUpdateOrderStatusDto
   ) {
-    return this.orderService.adminUpdateOrdersStatus(updateStatusDto);
+    return this.orderService.adminUpdateOrdersStatus(user, updateStatusDto);
   }
 
   @Post('export-inner-table')

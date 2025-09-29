@@ -1,0 +1,35 @@
+.title {
+    font-weight: bold;
+    font-size: 2rem;
+}
+
+.description {
+    font-size: 1rem;
+}
+
+.modalContent {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    border-radius: 8px;
+    outline: none;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 20px;
+    }
+}

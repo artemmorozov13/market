@@ -10,6 +10,11 @@ import {
   Box,
   Paper,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
 } from '@mui/material';
 import { storeSchema } from '../lib/editStoreSchema';
 import { StoreEditFormType } from '../types/storeEditTypes';
@@ -23,6 +28,15 @@ import { CheckCircleOutline, FileCopyOutlined } from '@mui/icons-material';
 interface StoreEditFormProps {
     storeData: StoreBaseType
 }
+
+const TIMEZONES = [
+    'Europe/Moscow',
+    'Europe/London',
+    'Europe/Berlin',
+    'America/New_York',
+    'Asia/Tokyo',
+    'Asia/Shanghai'
+];
 
 export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   const [isCopiedTelegram, setIsCopiedTelegram] = useState<boolean>(false)
@@ -56,10 +70,12 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
   return (
     <Box className={styles.formContainer}>
       <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Основная информация о магазине */}
         <section className={styles.section}>
           <Typography variant="h6" className={styles.sectionTitle}>
-            Информация
+            Основная информация
           </Typography>
+          
           <Controller
             name="name"
             control={control}
@@ -91,14 +107,37 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
               />
             )}
           />
+
+          <Controller
+            name='timezone'
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="timezone-label">Часовой пояс магазина</InputLabel>
+                <Select
+                    value={value}
+                    onChange={onChange}
+                    labelId="timezone-label"
+                    label="Часовой пояс магазина"
+                >
+                    {TIMEZONES.map((tz) => (
+                        <MenuItem key={tz} value={tz}>
+                            {tz}
+                        </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            )}
+          />
         </section>
 
-        {/* Delivery Section */}
+        {/* Настройки доставки */}
         <section className={styles.section}>
           <Typography variant="h6" className={styles.sectionTitle}>
-            Доставка
+            Настройки доставки
           </Typography>
-          <Box className={styles.deliveryContent}>
+          
+          <Box className={styles.deliverySettings}>
             <Controller
               name="isDeliveryFree"
               control={control}
@@ -152,11 +191,53 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
           </Box>
         </section>
 
-        {/* Telegram Section */}
+        {/* Настройки времени заказа */}
         <section className={styles.section}>
           <Typography variant="h6" className={styles.sectionTitle}>
-            Телеграм
+            Настройки времени заказа
           </Typography>
+          
+          <Controller
+            name="minOrderBeforeDeliveryHours"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Минимальное время до заказа (часы)"
+                type="number"
+                fullWidth
+                margin="normal"
+                inputProps={{ min: 0, max: 24 }}
+                helperText="Минимальное количество часов между оформлением заказа и временем доставки"
+              />
+            )}
+          />
+
+          <Controller
+            name="isWeekLimited"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={
+                  <Switch
+                    {...field}
+                    checked={field.value}
+                    color="primary"
+                  />
+                }
+                label="Ограничить доставку текущей неделей"
+                sx={{ mt: 1, mb: 1 }}
+              />
+            )}
+          />
+        </section>
+
+        {/* Интеграции */}
+        <section className={styles.section}>
+          <Typography variant="h6" className={styles.sectionTitle}>
+            Интеграции
+          </Typography>
+          
           <Controller
             name="telegramBotToken"
             control={control}
@@ -171,6 +252,11 @@ export const StoreEditForm: FC<StoreEditFormProps> = ({ storeData }) => {
               />
             )}
           />
+          
+          <Typography variant="subtitle1" className={styles.subsectionTitle}>
+            Ссылки для клиентов
+          </Typography>
+          
           <div className={styles.buttonGroup}>
             <Button
                 onClick={handleCopyMiniAppUrl}

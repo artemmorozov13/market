@@ -6,31 +6,23 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { AuthJwtPayload } from '@core/types/user-type';
 import { AddressesEntity } from '@core/entities/addresses.entity';
 import { UsersEntity } from '@core/entities/users.entity';
+import { UsersService } from '@app/users/users.service';
 
 @Injectable()
 export class AddressesService {
   constructor(
     @InjectRepository(AddressesEntity)
     private readonly addressRepository: Repository<AddressesEntity>,
-    @InjectRepository(UsersEntity)
-    private readonly usersRepository: Repository<UsersEntity>,
+    private readonly usersService: UsersService
   ) {}
 
-  async create(user: AuthJwtPayload, createAddressDto: CreateAddressDto) {
-    const userData = await this.usersRepository.findOne({ 
-      where: { id: user.id },
-      relations: ['addresses'] // Подгружаем связанные адреса пользователя
-    });
+  async create(userJwt: AuthJwtPayload, createAddressDto: CreateAddressDto) {
+    const user = await this.usersService.getUserById(userJwt.id);
   
-    if (!userData) {
-      throw new UnauthorizedException('User not found');
-    }
-  
-    // Проверяем, есть ли у пользователя уже адрес с таким fias_id
     const existingAddress = await this.addressRepository.findOne({
       where: {
         fias_id: createAddressDto.addressData.fias_id,
-        user: { id: user.id }
+        user: user
       }
     });
   
@@ -48,7 +40,8 @@ export class AddressesService {
       geo_lon: createAddressDto.addressData.geo_lon,
       intercom: createAddressDto.intercom,
       postal_code: createAddressDto.addressData.postal_code,
-      user: userData,
+      user: user,
+      selectedByUser: user
     });
   
     return this.addressRepository.save(address);
@@ -72,7 +65,7 @@ export class AddressesService {
     });
 
     if (!address) {
-      throw new NotFoundException('Address not found');
+      throw new NotFoundException('Адрес не найден');
     }
 
     return address;
@@ -87,6 +80,12 @@ export class AddressesService {
       ...address,
       ...updateAddressDto,
     });
+  }
+
+  async updateSelectedAddress(userJwt: AuthJwtPayload, addressId: string) {
+    const address = await this.findOne(userJwt, addressId);
+
+    return await this.usersService.updateSelectedAddress(userJwt, address)
   }
 
   async remove(addressId: string, user: AuthJwtPayload): Promise<void> {

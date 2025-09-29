@@ -15,12 +15,12 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import styles from './ProductModal.module.scss';
-import { ProductType } from '@/entities/Product';
 import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { BasketTools } from '@/shared/ui/BasketTools';
 import { MINIMUM_QUANTITY_TO_BE_IN_BASKET } from '@/shared/consts/applicationConsts';
 import { ConfirmRemoveFromBasketModal, basketStore } from '@/entities/Basket';
+import { ProductType } from '@core/types/product-item';
 
 interface ProductModalProps {
   isInBasket: boolean
@@ -43,7 +43,7 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
 
   const descriptionLines = product.description.split('\n').filter(line => line.trim() !== '');
 
-  const originalPrice = parseFloat(product.price);
+  const originalPrice = product.price;
   const discount = parseFloat(product.discount);
   const hasDiscount = discount > 0;
   const finalPrice = hasDiscount ? originalPrice * (1 - discount / 100) : originalPrice;
@@ -160,7 +160,7 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
                     </Typography>
                     <Box className={styles.originalPriceContainer}>
                       <Typography variant="body1" className={styles.originalPrice}>
-                        {originalPrice.toFixed(2)} ₽
+                        {/* {originalPrice?.toFixed(2)} ₽ */}
                       </Typography>
                       <Chip 
                         label={`-${discount}%`} 
@@ -173,7 +173,7 @@ const ProductModal: React.FC<ProductModalProps> = (props) => {
                 )}
                 {!hasDiscount && (
                   <Typography variant="h5" className={styles.finalPrice}>
-                    {originalPrice.toFixed(2)} ₽
+                    {/* {originalPrice?.toFixed(2)} ₽ */}
                   </Typography>
                 )}
               </Box>

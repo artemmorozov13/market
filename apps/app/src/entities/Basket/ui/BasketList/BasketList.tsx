@@ -1,22 +1,22 @@
 import { FC } from 'react';
 import { Button, Typography } from '@mui/material';
 import { observer } from 'mobx-react-lite';
-import { BasketCard, basketStore, postClearBasket } from '../..';
+import { BasketCard, useBasket, useClearBasket } from '../..';
 import styles from './BasketList.module.scss';
 import { RoutePath } from '@/shared/routes/routeConfig';
 import { Link } from 'react-router';
 
 export const BasketList: FC = observer(() => {
-    const { basketList, clearBasket } = basketStore
+    const { basket } = useBasket()
+    const { clearBasket } = useClearBasket()
 
-    const totalPrice = basketList.reduce((prevValue, currentItem) => (
+    const totalPrice = basket?.reduce((prevValue, currentItem) => (
         prevValue + currentItem.quantity * Number(currentItem.product.price)
     ), 0)
-    const totalPriceFixed = Math.ceil(totalPrice * 100) / 100;
+    const totalPriceFixed = totalPrice ?  Math.ceil(totalPrice * 100) / 100 : 0;
 
     const handleClearBusket = () => {
-        postClearBasket()
-            .then(() => clearBasket())
+        clearBasket()
     }
 
     return (
@@ -29,9 +29,9 @@ export const BasketList: FC = observer(() => {
                         onClick={handleClearBusket}
                     >Очистить</Button>
                 </div>
-                {basketList.length ? (
+                {basket?.length ? (
                     <div className={styles.basketList}>
-                        {basketList.map(basketItem => (
+                        {basket.map(basketItem => (
                             <BasketCard
                                 key={basketItem.id}
                                 item={basketItem}
@@ -53,7 +53,7 @@ export const BasketList: FC = observer(() => {
                         <Button
                             variant='contained'
                             color='info'
-                            disabled={!basketList.length}
+                            disabled={!basket?.length}
                         >
                             Заказать
                         </Button>

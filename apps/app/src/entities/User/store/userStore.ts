@@ -1,9 +1,12 @@
 import { makeAutoObservable } from "mobx";
-import { AuthViaTelegramResponse, UserRoleType } from "../types/userTypes";
+import { AuthViaTelegramResponse } from "../types/userTypes";
+import { Roles } from "@core/enums/role-enum"
+import { StoreBaseType } from "@core/types/store-type";
 
 export class UserStore {
     user: AuthViaTelegramResponse = {} as AuthViaTelegramResponse
-    role: UserRoleType = 'notAuthed'
+    role: Roles = Roles.NotAuthed
+    selectedStore: StoreBaseType | null = null
 
     constructor() {
         makeAutoObservable(this)
@@ -13,7 +16,11 @@ export class UserStore {
         this.user = user
     }
 
-    setUserRole = (role: UserRoleType) => {
+    setSelectedStore = (selectedStore: StoreBaseType) => {
+        this.selectedStore = selectedStore
+    }
+
+    setUserRole = (role: Roles) => {
         this.role = role
     }
 }

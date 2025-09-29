@@ -71,6 +71,16 @@ services:
       - /app/node_modules
     ports:
       - "3002:3002"
+    
+  landing:
+    build:
+      context: ../
+      dockerfile: docker/landing.Dockerfile.dev
+    volumes:
+      - ../apps/landing:/usr/share/nginx/html
+      - ../nginx/landing-dev.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "3004:80"
 
 volumes:
   postgres_data:

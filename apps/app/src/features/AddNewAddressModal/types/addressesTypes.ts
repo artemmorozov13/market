@@ -24,3 +24,13 @@ export interface AddressFormSchema {
         geo_lon: string,
     }
 }
+
+export interface AddressFormValues {
+  fullAddress: string;
+  entrance: string;
+  floor?: string;
+  apartment?: string;
+  intercom?: string;
+  addressData?: any;
+  selectedAddress?: number;
+}

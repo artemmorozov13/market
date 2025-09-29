@@ -61,6 +61,10 @@ export class UsersEntity {
     @UpdateDateColumn()
     updated_at: Date
 
+    @OneToOne(() => AddressesEntity)
+    @JoinColumn()
+    selectedAddress: AddressesEntity;
+
     @OneToOne(() => BasketEntity, (basketEntity) => basketEntity.user, { cascade: true })
     basket: BasketEntity
 

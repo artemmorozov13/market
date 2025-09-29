@@ -22,6 +22,14 @@ export class ProductController {
         return this.productService.getProductsList(user, options);
     }
 
+    @Get('offered')
+    @AllowRoles(Roles.Admin, Roles.SuperAdmin, Roles.User, Roles.Vendor)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard)
+    getOfferedProductsList(@User() user: AuthJwtPayload, @Query() options: PaginationDto) {
+        return this.productService.getOfferedProductsList(user, options);
+    }
+
     @Get(':id')
     getProductById(@Param('id') id: number) {
         return this.productService.getProductById(id);
@@ -39,23 +47,29 @@ export class ProductController {
     @AllowRoles(Roles.Admin)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    rocoverProduct(@Param('id') id: number) {
-        return this.productService.rocoverProduct(id);
+    rocoverProduct(
+        @User() user: AuthJwtPayload,
+        @Param('id') id: number
+    ) {
+        return this.productService.setStatusAccept(user, id);
     }
 
     @Patch(':id')
     @AllowRoles(Roles.Admin)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    updateProduct(@Param('id') id: number, @Body() product: UpdateProductDto) {
-        return this.productService.updateProduct(id, product);
+    updateProduct(@User() user: AuthJwtPayload, @Param('id') id: number, @Body() product: UpdateProductDto) {
+        return this.productService.updateProduct(user, id, product);
     }
 
     @Delete(':id')
     @AllowRoles(Roles.Admin)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    deleteProduct(@Param('id') id: number) {
-        return this.productService.deleteProduct(id);
+    deleteProduct(
+        @User() user: AuthJwtPayload,
+        @Param('id') id: number
+    ) {
+        return this.productService.deleteProduct(user, id);
     }
 }

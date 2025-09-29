@@ -9,6 +9,7 @@ import { AllowRoles } from 'src/auth/decorators/roles.decorator';
 import { Roles } from '@core/enums/role-enum';
 import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user-dto';
 
 @Controller('users')
 export class UsersController {
@@ -48,8 +49,11 @@ export class UsersController {
     @AllowRoles(Roles.Admin, Roles.User)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
-    updateUserData(@Body() body: Partial<CreateUserBodyDto>) {
-        return this.usersService.updateUser(body)
+    updateUserData(
+        @User() user: AuthJwtPayload,
+        @Body() body: UpdateUserDto
+    ) {
+        return this.usersService.updateUser(user, body)
     }
 
     @Post('login')

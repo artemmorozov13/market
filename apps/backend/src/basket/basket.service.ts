@@ -6,7 +6,6 @@ import { BasketEntity } from '@core/entities/basket.entity';
 import { ProductEntity } from '@core/entities/product.entity';
 import { SelectedProductEntity } from '@core/entities/selected-product.entity';
 import { UsersEntity } from '@core/entities/users.entity';
-import { StoreService } from '@app/store/store.service';
 
 @Injectable()
 export class BasketService {
@@ -31,129 +30,135 @@ export class BasketService {
 
   async clearBasket(userJwt: AuthJwtPayload) {
     const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id,
-      }
-    })
+      where: { id: userJwt.id },
+      relations: ['basket']
+    });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return await this.selectedProductRepository.delete({
-      user: {
-        id: user.id,
-        store: user.store
-      }
+      user: { id: user.id }
     });
   }
 
   async addProductToBasket(userJwt: AuthJwtPayload, productId: number) {
     const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id
-      },
-      relations: ['basket', 'store']
-    })
-    const selectedProduct = await this.selectedProductRepository.findOne({
-      where: {
-        user: {
-          id: userJwt.id,
-          store: user.store
-        },
-        productId: productId
-      }
-    })
-    if (selectedProduct) {
-      return this.selectedProductRepository.update(selectedProduct.id, {
-        productId: productId,
-        quantity: selectedProduct.quantity + 1,
-        userTgchatId: user.telegram_id,
-        basket: user.basket,
-        store: user.store,
-        user: user
-      })
+      where: { id: userJwt.id },
+      relations: ['basket']
+    });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-    return this.selectedProductRepository.save({
-      productId: productId,
+
+    const product = await this.productRepository.findOne({ 
+      where: { id: productId },
+      relations: ['store']
+    });
+    
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const existingProduct = await this.selectedProductRepository.findOne({
+      where: {
+        user: { id: user.id },
+        product: { id: productId }
+      },
+      relations: ['product', 'store']
+    });
+
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+      return this.selectedProductRepository.save(existingProduct);
+    }
+
+    const newSelectedProduct = this.selectedProductRepository.create({
       quantity: 1,
-      userTgchatId: user.telegram_id,
       basket: user.basket,
-      store: user.store,
-      user: user
-    })
+      store: product.store, // Используем store из продукта
+      user: user,
+      product: product
+    });
+
+    return this.selectedProductRepository.save(newSelectedProduct);
   }
 
   async removeProductFromBasket(userJwt: AuthJwtPayload, productId: number) {
     const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id,
-      },
-      relations: ['basket', 'store']
-    })
+      where: { id: userJwt.id }
+    });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     const selectedProduct = await this.selectedProductRepository.findOne({
       where: {
         user: { id: user.id },
-        productId: productId,
-        store: user.store
-      }
-    })
+        product: { id: productId }
+      },
+      relations: ['product', 'store']
+    });
 
     if (!selectedProduct) {
-      return {
-        message: "Product is not in the basket"
-      }
+      throw new NotFoundException('Product is not in the basket');
     }
 
     if (selectedProduct.quantity === 1) {
-      return this.selectedProductRepository.delete(selectedProduct.id)
+      await this.selectedProductRepository.delete(selectedProduct.id);
+      return { quantity: 0 };
     }
-    return this.selectedProductRepository.update(selectedProduct.id, {
-      productId: productId,
-      quantity: selectedProduct.quantity - 1,
-      userTgchatId: user.telegram_id,
-      basket: user.basket,
-      store: user.store,
-      user: user
-    })
+
+    selectedProduct.quantity -= 1;
+    await this.selectedProductRepository.save(selectedProduct);
+    return selectedProduct;
   }
 
   async resetBasketProduct(userJwt: AuthJwtPayload, productId: number) {
     const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id
-      },
-      relations: ['basket', 'store']
-    })
-    const selectedProduct = await this.selectedProductRepository.findOne({
-      where: {
-        productId: productId,
-        user: {
-          id: user.id,
-          store: user.store
-        }
-      }
-    })
-
-    if (!selectedProduct) {
-      return {
-        message: "Product is not in the basket"
-      }
+      where: { id: userJwt.id }
+    });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    return this.selectedProductRepository.delete(selectedProduct.id)
+    const selectedProduct = await this.selectedProductRepository.findOne({
+      where: {
+        product: { id: productId },
+        user: { id: user.id }
+      },
+      relations: ['product', 'store']
+    });
+
+    if (!selectedProduct) {
+      throw new NotFoundException('Product is not in the basket');
+    }
+
+    await this.selectedProductRepository.delete(selectedProduct.id);
+    return { message: 'Product removed from basket' };
   }
 
   async getBasketById(userJwt: AuthJwtPayload): Promise<SelectedProductEntity[]> {
     const user = await this.usersRepository.findOne({
-      where: {
-        id: userJwt.id
-      },
-    })
-    const selectedProducts = await this.selectedProductRepository.find({
-      where: {
-        user: {
-          id: user.id
-        }
-      },
-      relations: ['product']
+      where: { id: userJwt.id }
     });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-    return selectedProducts;
+    return this.selectedProductRepository.find({
+      where: {
+        user: { id: user.id }
+      },
+      relations: ['product', 'store'],
+      order: {
+        id: 'ASC' // Сортировка по ID в порядке добавления
+      }
+    });
   }
 }

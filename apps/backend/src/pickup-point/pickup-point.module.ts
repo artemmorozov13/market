@@ -8,6 +8,8 @@ import { PickupPoint } from '@core/entities/pickup-point.entity';
 import { PickupPointStoreResolver } from './lib/pickup-point-store-resolver';
 import { StoreUserModule } from '@app/store-user/store-user.module';
 import { UsersModule } from '@app/users/users.module';
+import { DeliveryTimesModule } from '@app/delivery-times/delivery-times.module';
+import { StoreModule } from '@app/store/store.module';
 
 @Module({
   imports: [
@@ -17,7 +19,9 @@ import { UsersModule } from '@app/users/users.module';
     ]),
     StoreUserModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    DeliveryTimesModule,
+    StoreModule
   ],
   controllers: [PickupPointController],
   providers: [

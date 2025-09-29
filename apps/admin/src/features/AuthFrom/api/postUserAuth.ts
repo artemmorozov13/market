@@ -25,7 +25,7 @@ export const postUserAuth = async (options: PostUserAuthOptions) => {
             setUserData(response.data.user)
         }
 
-        window.location.replace(routeConfig.product)
+        window.location.replace('/admin/')
 
         return response.data
     } catch {

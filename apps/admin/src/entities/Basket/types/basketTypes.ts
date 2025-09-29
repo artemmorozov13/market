@@ -1,5 +1,5 @@
+import { ProductType } from "@core/types/product-item"
 import { CustomerUserType } from "@entities/User/types/userTypes"
-import { ProductType } from "../../Product/types/productTypes"
 
 export interface BasketType {
     id: number

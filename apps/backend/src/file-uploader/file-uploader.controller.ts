@@ -19,7 +19,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
     constructor(private readonly fileUploaderService: FileUploaderService) {}
   
     @Post('upload')
-    @AllowRoles(Roles.Admin, Roles.User)
+    @AllowRoles(Roles.Admin, Roles.User, Roles.Vendor)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
